@@ -1,0 +1,1819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pump the Pill — Mini Runner</title>
+  <style>
+    :root {
+      --bg:#0a0a0a;           /* fond très sombre */
+      --text:#e6ecff;         /* texte clair */
+      --accent:#00d17a;       /* vert pump.fun */
+      --accent-2:#ff1744;     /* rouge rug */
+      --danger:#ff3b3b;       /* obstacles = FUD */
+      --success:#00d17a;      /* points / pump */
+    }
+    *{box-sizing:border-box}
+    html,body{
+      height:100%;
+      margin:0;
+      background:#0a0a0a;
+      color:var(--text);
+      font-family:'Courier New',monospace;
+      position:relative;
+      overflow-x:hidden;
+    }
+    /* Effet Matrix/Terminal en arrière-plan */
+    html::before{
+      content:'';
+      position:fixed;
+      top:0;left:0;right:0;bottom:0;
+      background:
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,209,122,.03) 2px, rgba(0,209,122,.03) 4px),
+        repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,23,68,.03) 2px, rgba(255,23,68,.03) 4px);
+      pointer-events:none;
+      z-index:0;
+    }
+    .wrap{max-width:980px;margin:24px auto;padding:16px;position:relative;z-index:1}
+    header{
+      text-align:center;
+      margin-bottom:16px;
+      padding:20px;
+      background:rgba(0,0,0,.6);
+      border-radius:12px;
+      border:1px solid rgba(0,209,122,.3);
+      box-shadow:0 0 30px rgba(0,209,122,.2);
+      position:relative;
+    }
+    .x-logo{
+      position:absolute;
+      top:20px;
+      right:20px;
+      width:32px;
+      height:32px;
+      background:rgba(255,255,255,.1);
+      border:1px solid rgba(255,255,255,.2);
+      border-radius:8px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      transition:.2s;
+      text-decoration:none;
+      font-size:18px;
+      color:#ffffff;
+    }
+    .x-logo:hover{
+      background:rgba(255,255,255,.2);
+      border-color:rgba(255,255,255,.4);
+      transform:translateY(-2px);
+      box-shadow:0 4px 12px rgba(255,255,255,.2);
+    }
+    h1{
+      font-size:28px;
+      margin:0;
+      letter-spacing:1px;
+      color:#00d17a;
+      text-shadow:0 0 20px rgba(0,209,122,.8);
+      text-transform:uppercase;
+    }
+    .panel{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      margin-bottom:12px;
+      padding:12px;
+      background:rgba(0,0,0,.5);
+      border-radius:12px;
+      border:1px solid rgba(255,23,68,.2);
+    }
+    .btn{
+      appearance:none;
+      border:1px solid rgba(0,209,122,.3);
+      background:rgba(0,209,122,.1);
+      color:var(--text);
+      padding:10px 16px;
+      border-radius:8px;
+      cursor:pointer;
+      transition:.2s;
+      font-family:'Courier New',monospace;
+      font-weight:600;
+      text-transform:uppercase;
+      font-size:12px;
+      letter-spacing:.5px;
+    }
+    .btn:hover{
+      transform:translateY(-2px);
+      background:rgba(0,209,122,.2);
+      box-shadow:0 4px 12px rgba(0,209,122,.3);
+    }
+    .btn.primary{
+      border-color:#00d17a;
+      background:#00d17a;
+      color:#000;
+      box-shadow:0 4px 20px rgba(0,209,122,.4);
+    }
+    .btn.primary:hover{
+      box-shadow:0 6px 25px rgba(0,209,122,.6);
+    }
+    .badge{
+      padding:6px 12px;
+      border-radius:6px;
+      border:1px solid rgba(0,209,122,.3);
+      background:rgba(0,209,122,.1);
+      font-size:12px;
+      font-weight:600;
+      text-transform:uppercase;
+      letter-spacing:.5px;
+    }
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+    /* Canvas avec bordures degen */
+    canvas#game{
+      width:100%;
+      height:auto;
+      border-radius:8px;
+      background:linear-gradient(180deg,#0b1226 0%,#061026 100%);
+      box-shadow:
+        0 0 0 3px rgba(0,209,122,.3),
+        0 0 0 6px rgba(255,23,68,.2),
+        0 20px 60px rgba(0,0,0,.8),
+        inset 0 0 100px rgba(0,0,0,.5);
+      position:relative;
+    }
+
+    /* Petit canvas pour le header et modal */
+    canvas#headerPill, canvas#modalPill{
+      display:block;
+    }
+
+    .hud{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-top:10px;
+      gap:10px;
+      padding:12px;
+      background:rgba(0,0,0,.5);
+      border-radius:12px;
+      border:1px solid rgba(0,209,122,.2);
+    }
+    .hud .left, .hud .right{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .meter{
+      height:14px;
+      background:rgba(0,0,0,.5);
+      border-radius:999px;
+      position:relative;
+      overflow:hidden;
+      border:1px solid rgba(0,209,122,.3);
+    }
+    .meter>i{
+      display:block;
+      height:100%;
+      background:linear-gradient(90deg,#00d17a,#00ff88);
+      width:0%;
+      box-shadow:0 0 10px rgba(0,209,122,.6);
+    }
+
+    footer{
+      opacity:.9;
+      margin-top:20px;
+      font-size:13px;
+      padding:20px;
+      background:rgba(0,0,0,.5);
+      border-radius:12px;
+      border:1px solid rgba(255,23,68,.2);
+    }
+    footer h3{
+      color:#ff1744;
+      text-shadow:0 0 10px rgba(255,23,68,.5);
+      margin:0 0 16px 0;
+    }
+
+    /* Loading Screen */
+    #loadingScreen{
+      position:fixed;
+      top:0;left:0;right:0;bottom:0;
+      background:linear-gradient(135deg, #0a0a0a 0%, #1a0f0f 100%);
+      z-index:99999;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      transition:opacity 0.5s ease;
+    }
+    #loadingScreen.hidden{
+      opacity:0;
+      pointer-events:none;
+    }
+    .loading-pill-container{
+      margin-bottom:60px;
+      animation:float 2s ease-in-out infinite;
+    }
+    @keyframes float{
+      0%,100%{transform:translateY(0px)}
+      50%{transform:translateY(-20px)}
+    }
+    .loading-title{
+      font-size:48px;
+      font-weight:700;
+      color:#00d17a;
+      text-shadow:0 0 30px rgba(0,209,122,.8);
+      margin-bottom:40px;
+      letter-spacing:2px;
+      text-transform:uppercase;
+    }
+    .loading-bar-container{
+      width:400px;
+      max-width:80vw;
+      height:30px;
+      background:rgba(0,0,0,.5);
+      border-radius:999px;
+      border:2px solid rgba(0,209,122,.3);
+      overflow:hidden;
+      position:relative;
+      box-shadow:0 0 20px rgba(0,209,122,.2);
+    }
+    .loading-bar{
+      height:100%;
+      background:linear-gradient(90deg, #00d17a 0%, #00ff88 100%);
+      width:0%;
+      transition:width 0.3s ease;
+      box-shadow:0 0 20px rgba(0,209,122,.6);
+      position:relative;
+    }
+    .loading-bar::after{
+      content:'';
+      position:absolute;
+      top:0;left:0;right:0;bottom:0;
+      background:linear-gradient(90deg, transparent, rgba(255,255,255,.3), transparent);
+      animation:shimmer 1.5s infinite;
+    }
+    @keyframes shimmer{
+      0%{transform:translateX(-100%)}
+      100%{transform:translateX(100%)}
+    }
+    .loading-percentage{
+      margin-top:20px;
+      font-size:24px;
+      font-weight:600;
+      color:#00d17a;
+      text-shadow:0 0 10px rgba(0,209,122,.5);
+    }
+    .loading-text{
+      margin-top:10px;
+      font-size:14px;
+      color:rgba(255,255,255,.6);
+      letter-spacing:1px;
+    }
+    code.k{
+      padding:3px 8px;
+      border-radius:6px;
+      background:rgba(0,209,122,.15);
+      border:1px solid rgba(0,209,122,.3);
+      color:#00d17a;
+      font-weight:600;
+    }
+
+    /* Modal Rules */
+    .modal{
+      display:none;
+      position:fixed;
+      top:0;left:0;right:0;bottom:0;
+      background:rgba(0,0,0,.9);
+      z-index:9999;
+      align-items:center;
+      justify-content:center;
+      backdrop-filter:blur(10px);
+    }
+    .modal.show{display:flex}
+    .modal-content{
+      background:linear-gradient(135deg, #0a0a0a 0%, #1a0f0f 100%);
+      border:2px solid #00d17a;
+      border-radius:16px;
+      padding:32px;
+      max-width:500px;
+      width:90%;
+      box-shadow:0 0 60px rgba(0,209,122,.4), inset 0 0 60px rgba(0,0,0,.5);
+      position:relative;
+      animation:slideIn .3s ease;
+    }
+    @keyframes slideIn{
+      from{transform:translateY(-50px);opacity:0}
+      to{transform:translateY(0);opacity:1}
+    }
+    .modal-header{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-bottom:24px;
+      padding-bottom:16px;
+      border-bottom:1px solid rgba(0,209,122,.3);
+    }
+    .modal-header h2{
+      margin:0;
+      font-size:24px;
+      color:#00d17a;
+      text-shadow:0 0 20px rgba(0,209,122,.8);
+      flex:1;
+    }
+    .modal-close{
+      background:rgba(255,23,68,.2);
+      border:1px solid #ff1744;
+      color:#ff1744;
+      width:32px;
+      height:32px;
+      border-radius:50%;
+      cursor:pointer;
+      font-size:20px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      transition:.2s;
+    }
+    .modal-close:hover{
+      background:#ff1744;
+      color:#000;
+      transform:rotate(90deg);
+    }
+    .modal-body{
+      line-height:1.8;
+    }
+    .modal-body .rule{
+      display:flex;
+      align-items:flex-start;
+      gap:12px;
+      margin-bottom:16px;
+      padding:12px;
+      background:rgba(0,209,122,.05);
+      border-radius:8px;
+      border-left:3px solid #00d17a;
+    }
+    .modal-body .rule.danger{
+      background:rgba(255,23,68,.05);
+      border-left-color:#ff1744;
+    }
+    .modal-body .rule .icon{
+      font-size:28px;
+      min-width:40px;
+      animation:iconPulse 2s infinite;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    @keyframes iconPulse{
+      0%,100%{transform:scale(1)}
+      50%{transform:scale(1.1)}
+    }
+    .modal-body .rule:hover .icon{
+      animation:iconBounce .5s ease;
+    }
+    @keyframes iconBounce{
+      0%,100%{transform:translateY(0)}
+      50%{transform:translateY(-5px)}
+    }
+    .modal-body .rule .text{
+      flex:1;
+    }
+    .modal-body .rule .text strong{
+      color:#00d17a;
+      display:block;
+      margin-bottom:4px;
+    }
+    .modal-body .rule.danger .text strong{
+      color:#ff1744;
+    }
+    .modal-footer{
+      margin-top:24px;
+      padding-top:16px;
+      border-top:1px solid rgba(0,209,122,.3);
+      text-align:center;
+      font-size:14px;
+      opacity:.8;
+    }
+
+    /* Game Over Modal & Shake Animation */
+    @keyframes shake{
+      0%, 100%{transform:translate(0,0)}
+      10%, 30%, 50%, 70%, 90%{transform:translate(-10px,0)}
+      20%, 40%, 60%, 80%{transform:translate(10px,0)}
+    }
+    .shake{
+      animation:shake 0.5s;
+    }
+    #gameOverModal .modal-content{
+      background:linear-gradient(135deg, #1a0000 0%, #0a0a0a 100%);
+      border:3px solid #ff1744;
+      box-shadow:0 0 80px rgba(255,23,68,.6), inset 0 0 80px rgba(255,0,0,.3);
+    }
+    #gameOverModal .modal-header h2{
+      color:#ff1744;
+      text-shadow:0 0 30px rgba(255,23,68,1);
+      font-size:48px;
+      margin:20px 0;
+    }
+    #gameOverModal .stats{
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+      margin:24px 0;
+    }
+    #gameOverModal .stat-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:16px;
+      background:rgba(255,23,68,.1);
+      border-radius:8px;
+      border:1px solid rgba(255,23,68,.3);
+    }
+    #gameOverModal .stat-label{
+      font-size:14px;
+      opacity:.8;
+      text-transform:uppercase;
+      letter-spacing:1px;
+    }
+    #gameOverModal .stat-value{
+      font-size:28px;
+      font-weight:700;
+      color:#ff1744;
+      text-shadow:0 0 10px rgba(255,23,68,.5);
+    }
+    #gameOverModal .btn-restart{
+      width:100%;
+      font-size:18px;
+      padding:18px;
+      margin-top:10px;
+      border:2px solid #00d17a;
+      background:#00d17a;
+      color:#000;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:1px;
+      cursor:pointer;
+      border-radius:8px;
+      transition:.2s;
+      box-shadow:0 4px 20px rgba(0,209,122,.4);
+    }
+    #gameOverModal .btn-restart:hover{
+      transform:translateY(-2px);
+      box-shadow:0 6px 30px rgba(0,209,122,.6);
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div id="loadingScreen">
+    <div class="loading-pill-container">
+      <canvas id="loadingPill" width="120" height="70"></canvas>
+    </div>
+    <div class="loading-title">PUMP THE PILL</div>
+    <div class="loading-bar-container">
+      <div class="loading-bar" id="loadingBar"></div>
+    </div>
+    <div class="loading-percentage" id="loadingPercentage">0%</div>
+  </div>
+
+  <div class="wrap">
+    <header>
+      <a href="https://twitter.com/intent/user?screen_name=YourTwitterHandle" target="_blank" class="x-logo" title="Follow us on X">
+        𝕏
+      </a>
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px">
+        <h1>Pump the Pill</h1>
+        <canvas id="headerPill" width="40" height="24" style="display:block"></canvas>
+      </div>
+    </header>
+
+    <div class="panel" style="justify-content:center;background:rgba(0,209,122,.05);border-color:rgba(0,209,122,.3)">
+      <span style="font-size:14px;font-weight:600;letter-spacing:.5px;color:#00d17a">📜 Contract: Coming soon...</span>
+    </div>
+
+    <div class="panel">
+      <button class="btn primary" id="playBtn">▶️ Play</button>
+      <button class="btn" id="pauseBtn">⏸️ Pause</button>
+      <button class="btn" id="restartBtn">🔄 Restart</button>
+      <span class="badge" id="bestBadge">🏆 Best: 0</span>
+      <span class="badge" id="seedBadge">🎲 Seed: —</span>
+      <span class="badge" style="background:rgba(255,215,0,.1);border-color:#ffd700;color:#ffd700">🎮 MULTIPLAYER SOON</span>
+    </div>
+
+    <canvas id="game" width="960" height="540" aria-label="Pump the Pill"></canvas>
+
+    <div class="hud">
+      <div class="left">
+        <span class="badge">Score: <b id="score">0</b></span>
+        <span class="badge">Pump: <b id="pump">0</b>%</span>
+        <div class="meter" style="width:220px"><i id="pumpBar"></i></div>
+      </div>
+      <div class="right row">
+        <button class="btn" id="shareX">Share on X</button>
+        <button class="btn" id="copyMsg">📋 Copy Brag</button>
+        <button class="btn" id="commandsBtn">🎮 Commands</button>
+        <button class="btn" id="howBtn">❓ Rules</button>
+      </div>
+    </div>
+
+    <footer>
+      <h3 style="margin-top:24px;margin-bottom:12px;display:flex;align-items:center;gap:8px">🏆 LEADERBOARD DEGEN</h3>
+      <div id="leaderboard" style="background:rgba(0,0,0,.3);border-radius:12px;padding:16px;border:1px solid rgba(255,255,255,.1)">
+        <div id="leaderboardList" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+      <div style="text-align:center;margin-top:32px;padding-top:24px;border-top:1px solid rgba(255,255,255,.1);opacity:.7;font-size:12px;line-height:1.8">
+        <p style="margin:0 0 8px 0">© 2025 Pump The Pill - All Rights Reserved</p>
+        <p style="margin:0;font-weight:600">Built by <a href="https://www.trencheslabs.io/" target="_blank" style="color:#00d17a;text-decoration:none;transition:.2s" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Trenches Labs</a></p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Modal Rules -->
+  <div id="rulesModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <canvas id="modalPill" width="30" height="18" style="display:block"></canvas>
+        <h2>GAME RULES</h2>
+        <button class="modal-close" onclick="closeRulesModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="rule">
+          <div class="icon" style="filter:drop-shadow(0 0 8px #ff6b00)">🔥</div>
+          <div class="text">
+            <strong>How to Play</strong>
+            Click / Space / Tap to PUMP the pill up
+          </div>
+        </div>
+        <div class="rule danger">
+          <div class="icon" style="filter:drop-shadow(0 0 8px #ff1744)">📉</div>
+          <div class="text">
+            <strong>Avoid the RUG!</strong>
+            Red candles = RUG PULL (-99%) = REKT 💀
+          </div>
+        </div>
+        <div class="rule">
+          <div class="icon" style="filter:drop-shadow(0 0 8px #00d17a)">📈</div>
+          <div class="text">
+            <strong>Score & Survival</strong>
+            The longer you survive, the higher you score. Brag rights guaranteed!
+          </div>
+        </div>
+        <div class="rule" style="background:rgba(255,215,0,.1);border-left-color:#ffd700">
+          <div class="icon" style="filter:drop-shadow(0 0 12px #ffd700);font-size:32px">💰</div>
+          <div class="text">
+            <strong style="color:#ffd700">FREE CREATOR FEES!</strong>
+            Every 20min to the top winner
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        No paper hands allowed here! 💎🙌<br>
+        <strong>Wagmi or ngmi? Let's play degen 🎰</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Commands -->
+  <div id="commandsModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="icon" style="filter:drop-shadow(0 0 8px #00d17a);font-size:32px">🎮</div>
+        <h2>GAME CONTROLS</h2>
+        <button class="modal-close" onclick="closeCommandsModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="rule">
+          <div class="icon" style="filter:drop-shadow(0 0 8px #00d17a);font-size:36px">🖥️</div>
+          <div class="text">
+            <strong style="color:#00d17a">PC / Desktop</strong>
+            Press <code class="k">SPACE</code> or <strong>Click</strong> to pump the pill up
+          </div>
+        </div>
+        <div class="rule">
+          <div class="icon" style="filter:drop-shadow(0 0 8px #00d17a);font-size:36px">📱</div>
+          <div class="text">
+            <strong style="color:#00d17a">Mobile / Tablet</strong>
+            <strong>Tap</strong> anywhere on the screen to pump the pill up
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        Master the controls to avoid the RUG! 💎🙌
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Wallet -->
+  <div id="walletModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="icon" style="filter:drop-shadow(0 0 12px #ffd700);font-size:32px">💰</div>
+        <h2>DEPOSIT YOUR SOLANA WALLET</h2>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom:16px">
+          <label style="font-size:12px;color:#00d17a;font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">
+            Solana Address for Rewards
+          </label>
+          <input type="text" id="walletInput" placeholder="Ex: 7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU"
+            style="width:100%;padding:12px;background:rgba(0,0,0,.5);border:1px solid rgba(0,209,122,.3);border-radius:8px;color:var(--text);font-family:'Courier New',monospace;font-size:12px;box-sizing:border-box" />
+          <div id="walletStatus" style="font-size:11px;opacity:.7;margin-top:8px"></div>
+        </div>
+        <button class="btn primary" id="saveWalletBtn" style="width:100%;font-size:14px;padding:14px">
+          💾 SAVE AND PLAY
+        </button>
+        <button class="btn" id="skipWalletBtn" style="width:100%;font-size:12px;padding:10px;margin-top:8px;opacity:.7">
+          Skip (no reward)
+        </button>
+      </div>
+      <div class="modal-footer">
+        Deposit your wallet to be eligible for rewards! 🚀💎
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Game Over -->
+  <div id="gameOverModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header" style="flex-direction:column;border:none">
+        <div style="font-size:80px;margin:20px 0">💀</div>
+        <h2>GAME OVER</h2>
+        <p style="color:#ff1744;font-size:18px;font-weight:600;margin:0">RUG PULL -99%</p>
+      </div>
+      <div class="modal-body">
+        <div class="stats">
+          <div class="stat-row">
+            <span class="stat-label">Your Score</span>
+            <span class="stat-value" id="finalScore">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Best Score</span>
+            <span class="stat-value" id="finalBest">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Rank</span>
+            <span class="stat-value" id="finalRank">#1</span>
+          </div>
+        </div>
+        <button class="btn-restart" id="restartGameBtn">
+          🔄 PLAY AGAIN
+        </button>
+        <button class="btn" id="shareGameBtn" style="width:100%;font-size:16px;padding:14px;margin-top:10px">
+          📤 SHARE ON X
+        </button>
+      </div>
+      <div class="modal-footer" style="border-color:rgba(255,23,68,.3)">
+        Better luck next time degen! 🎰
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <script>
+  // ========= FIREBASE CONFIG =========
+  const firebaseConfig = {
+    apiKey: "AIzaSyDX9Cx7E5IAAUN8_OBT1a2-CJ0UMWbB7VY",
+    authDomain: "pump-the-pill.firebaseapp.com",
+    projectId: "pump-the-pill",
+    storageBucket: "pump-the-pill.firebasestorage.app",
+    messagingSenderId: "401092828647",
+    appId: "1:401092828647:web:abc123" // Placeholder, remplace si tu as le vrai
+  };
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  // ========= CONFIG =========
+  const CFG = {
+    gravity: 0.5,          // gravité verticale (Flappy style)
+    thrust: 8.5,           // puissance de propulsion (impulse instantanée)
+    maxVy: 10.0,           // vitesse verticale max (clamp)
+    speed: 3.2,            // vitesse horizontale des obstacles
+    speedGain: 0.02,       // accélération progressive
+    tubeGap: 160,          // taille de l'ouverture (gap entre tuyaux)
+    gapMin: 110,           // ouverture minimale
+    spawnEvery: 1800,      // ms entre obstacles (≈ 1.8s, Flappy style)
+    runTarget: 120,        // durée cible d'un run réussi (s) - 2 minutes
+    pill: { r: 20, green:'#00d17a', white:'#ffffff' }, // Capsule 💊 Pump.fun (vert/blanc)
+    seed: Math.floor(Math.random()*1e9)
+  };
+
+  // ========= STATE =========
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const scoreEl = document.getElementById('score');
+  const pumpEl = document.getElementById('pump');
+  const pumpBar = document.getElementById('pumpBar');
+  const bestBadge = document.getElementById('bestBadge');
+  const seedBadge = document.getElementById('seedBadge');
+
+  let state = 'menu'; // 'menu' | 'play' | 'pause' | 'over' | 'countdown'
+  let last = 0, accSpawn = 0, elapsed = 0;
+  let obstacles = [];
+  let score = 0, best = Number(localStorage.getItem('pill_best')||0);
+  let pump = 0; // 0..100
+  let pressing = false;
+  let rng = mulberry32(CFG.seed);
+  seedBadge.textContent = '🎲 Seed: '+CFG.seed;
+  bestBadge.textContent = '🏆 Best: ' + best;
+
+  const player = { x: 200, y: canvas.height/2, vy: 0 };
+  let countdownValue = 3;
+
+  // ========= WALLET SYSTEM =========
+  let playerWallet = localStorage.getItem('pill_wallet') || '';
+
+  function validateSolanaAddress(address) {
+    // Adresses Solana : 32-44 caractères alphanumériques (base58)
+    if (!address || address.length < 32 || address.length > 44) return false;
+    // Vérifie que c'est bien en base58 (pas de 0, O, I, l)
+    const base58Regex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+    return base58Regex.test(address);
+  }
+
+  function saveWallet() {
+    const input = document.getElementById('walletInput');
+    const status = document.getElementById('walletStatus');
+    const address = input.value.trim();
+
+    if (!address) {
+      playerWallet = '';
+      localStorage.removeItem('pill_wallet');
+      status.textContent = '❌ Adresse supprimée';
+      status.style.color = '#ff1744';
+      return;
+    }
+
+    if (validateSolanaAddress(address)) {
+      playerWallet = address;
+      localStorage.setItem('pill_wallet', address);
+      status.textContent = '✅ Adresse sauvegardée ! Prêt pour les récompenses 💰';
+      status.style.color = '#00d17a';
+    } else {
+      status.textContent = '❌ Adresse Solana invalide (32-44 caractères base58)';
+      status.style.color = '#ff1744';
+    }
+  }
+
+  // ========= WALLET MODAL =========
+  function openWalletModal() {
+    const modal = document.getElementById('walletModal');
+    const input = document.getElementById('walletInput');
+    const status = document.getElementById('walletStatus');
+
+    // Load saved address if it exists
+    if (playerWallet) {
+      input.value = playerWallet;
+      status.textContent = '✅ Address already saved';
+      status.style.color = '#00d17a';
+    } else {
+      input.value = '';
+      status.textContent = '';
+    }
+
+    modal.classList.add('show');
+  }
+
+  function closeWalletModal() {
+    document.getElementById('walletModal').classList.remove('show');
+  }
+
+  function saveWalletAndPlay() {
+    const input = document.getElementById('walletInput');
+    const status = document.getElementById('walletStatus');
+    const address = input.value.trim();
+
+    if (address && validateSolanaAddress(address)) {
+      playerWallet = address;
+      localStorage.setItem('pill_wallet', address);
+      closeWalletModal();
+      startCountdown();
+    } else if (address) {
+      status.textContent = '❌ Invalid Solana address (32-44 base58 characters)';
+      status.style.color = '#ff1744';
+    } else {
+      status.textContent = '❌ Please enter an address';
+      status.style.color = '#ff1744';
+    }
+  }
+
+  function skipWalletAndPlay() {
+    playerWallet = '';
+    localStorage.removeItem('pill_wallet');
+    closeWalletModal();
+    startCountdown();
+  }
+
+  // ========= LEADERBOARD (FIREBASE) =========
+  function getLeaderboard(){
+    // Cette fonction est maintenant asynchrone et se fait via Firebase
+    // On utilise updateLeaderboardUI() qui écoute en temps réel
+    return [];
+  }
+
+  async function saveToLeaderboard(score){
+    try {
+      const timestamp = Date.now();
+      const scoreData = {
+        score: Math.floor(score),
+        date: timestamp,
+        wallet: playerWallet || null
+      };
+
+      console.log('🔥 Trying to save to Firebase:', scoreData);
+      console.log('📱 Player wallet:', playerWallet);
+
+      await db.collection('leaderboard').add(scoreData);
+      console.log('✅ Score saved to Firebase successfully!');
+    } catch (error) {
+      console.error('❌ Error saving score to Firebase:', error);
+      // Fallback vers localStorage si Firebase échoue
+      let lb = JSON.parse(localStorage.getItem('pill_leaderboard') || '[]');
+      lb.push({ score: Math.floor(score), date: timestamp, wallet: playerWallet || null });
+      lb.sort((a,b) => b.score - a.score);
+      lb = lb.slice(0, 10);
+      localStorage.setItem('pill_leaderboard', JSON.stringify(lb));
+      updateLeaderboardUI();
+    }
+  }
+
+  function updateLeaderboardUI(){
+    const listEl = document.getElementById('leaderboardList');
+
+    // Écouter Firebase en temps réel et récupérer le top 10
+    db.collection('leaderboard')
+      .orderBy('score', 'desc')
+      .limit(10)
+      .onSnapshot((snapshot) => {
+        const lb = [];
+        snapshot.forEach((doc) => {
+          lb.push(doc.data());
+        });
+
+        if(lb.length === 0){
+          listEl.innerHTML = '<p style="opacity:.5;text-align:center">No scores yet... Be the first degen! 🚀</p>';
+          return;
+        }
+
+        listEl.innerHTML = lb.map((entry, i) => {
+          const emoji = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`;
+          const timeAgo = getTimeAgo(entry.date);
+          const badge = entry.score >= 40 ? '👑 Legend' : entry.score >= 20 ? '💎 Diamond Hands' : '📄 Paper Hands';
+
+          // Formater l'adresse du portefeuille (afficher début...fin)
+          let walletDisplay = '';
+          if (entry.wallet) {
+            const start = entry.wallet.substring(0, 4);
+            const end = entry.wallet.substring(entry.wallet.length - 4);
+            walletDisplay = `<span style="opacity:.7;font-size:11px;color:#00d17a">💰 ${start}...${end}</span>`;
+          }
+
+          return `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(255,255,255,.05);border-radius:8px;border:1px solid rgba(255,255,255,.08)">
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                <span style="font-size:18px;width:32px">${emoji}</span>
+                <span style="font-weight:600;color:#00d17a">${entry.score} pts</span>
+                <span style="opacity:.6;font-size:12px">${badge}</span>
+                ${walletDisplay}
+              </div>
+              <span style="opacity:.5;font-size:11px">${timeAgo}</span>
+            </div>
+          `;
+        }).join('');
+      }, (error) => {
+        console.error('Error loading leaderboard:', error);
+        // Fallback vers localStorage
+        const lb = JSON.parse(localStorage.getItem('pill_leaderboard') || '[]');
+        if(lb.length === 0){
+          listEl.innerHTML = '<p style="opacity:.5;text-align:center">No scores yet... Be the first degen! 🚀</p>';
+          return;
+        }
+        listEl.innerHTML = lb.map((entry, i) => {
+          const emoji = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`;
+          const timeAgo = getTimeAgo(entry.date);
+          const badge = entry.score >= 40 ? '👑 Legend' : entry.score >= 20 ? '💎 Diamond Hands' : '📄 Paper Hands';
+          let walletDisplay = '';
+          if (entry.wallet) {
+            const start = entry.wallet.substring(0, 4);
+            const end = entry.wallet.substring(entry.wallet.length - 4);
+            walletDisplay = `<span style="opacity:.7;font-size:11px;color:#00d17a">💰 ${start}...${end}</span>`;
+          }
+          return `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(255,255,255,.05);border-radius:8px;border:1px solid rgba(255,255,255,.08)">
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                <span style="font-size:18px;width:32px">${emoji}</span>
+                <span style="font-weight:600;color:#00d17a">${entry.score} pts</span>
+                <span style="opacity:.6;font-size:12px">${badge}</span>
+                ${walletDisplay}
+              </div>
+              <span style="opacity:.5;font-size:11px">${timeAgo}</span>
+            </div>
+          `;
+        }).join('');
+      });
+  }
+
+  function getTimeAgo(timestamp){
+    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+    if(seconds < 60) return 'just now';
+    const minutes = Math.floor(seconds / 60);
+    if(minutes < 60) return `${minutes}min ago`;
+    const hours = Math.floor(minutes / 60);
+    if(hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+  }
+
+  // Init leaderboard
+  updateLeaderboardUI();
+
+  function mulberry32(a){return function(){let t=a+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296}};
+
+  // ========= INPUT (Flappy Bird style - tap to flap) =========
+  function flap(){
+    if(state==='play'){
+      player.vy = -CFG.thrust; // impulse vers le haut
+    }
+  }
+
+  window.addEventListener('keydown',e=>{
+    if(e.code==='Space'){
+      e.preventDefault();
+      flap();
+    }
+  });
+  canvas.addEventListener('pointerdown',()=> flap());
+  window.addEventListener('blur',()=>{ if(state==='play') togglePause(true); });
+
+  // ========= COUNTDOWN =========
+  function startCountdown() {
+    state = 'countdown';
+    countdownValue = 3;
+    obstacles.length = 0;
+    player.y = canvas.height/2;
+    player.vy = 0;
+
+    const countdownInterval = setInterval(() => {
+      countdownValue--;
+      renderCountdown();
+
+      if (countdownValue === 0) {
+        clearInterval(countdownInterval);
+        setTimeout(() => {
+          start();
+        }, 300); // Petit délai après "PUMP!"
+      }
+    }, 1000);
+
+    renderCountdown();
+  }
+
+  function renderCountdown() {
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    // Fond
+    drawTubeBackground(ctx, w, h, CFG.speed);
+
+    // Texte du compte à rebours
+    ctx.save();
+    ctx.fillStyle = 'rgba(0,0,0,.7)';
+    ctx.fillRect(0, 0, w, h);
+
+    const text = countdownValue > 0 ? countdownValue.toString() : 'PUMP THE PILL';
+    const color = '#00d17a';
+
+    // Effet de glow
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 50;
+
+    ctx.fillStyle = color;
+    const fontSize = countdownValue > 0 ? 120 : 80;
+    ctx.font = `bold ${fontSize}px system-ui,Segoe UI`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, w/2, h/2);
+
+    // Texte secondaire
+    if (countdownValue > 0) {
+      ctx.shadowBlur = 20;
+      ctx.font = 'bold 24px system-ui,Segoe UI';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText('Get Ready', w/2, h/2 + 80);
+    }
+
+    ctx.restore();
+  }
+
+  // ========= GAME LOOP =========
+  function start(){
+    state='play';
+    last=performance.now();
+    accSpawn=0; elapsed=0; score=0; pump=0;
+    obstacles.length=0; rng = mulberry32(CFG.seed);
+    player.y=canvas.height/2; player.vy=0;
+    requestAnimationFrame(loop);
+  }
+
+  function togglePause(force){
+    if(force===true){ state='pause'; return; }
+    state = (state==='play') ? 'pause' : (state==='pause' ? 'play':'play');
+    if(state==='play'){ last=performance.now(); requestAnimationFrame(loop);}
+  }
+
+  function gameOver(){
+    state='over';
+    localStorage.setItem('pill_best', Math.max(best,score));
+    best = Math.max(best,score);
+    bestBadge.textContent = '🏆 Best: ' + best;
+    saveToLeaderboard(score); // Ajouter au leaderboard
+
+    // Effet de tremblement sur le canvas
+    canvas.classList.add('shake');
+    setTimeout(() => canvas.classList.remove('shake'), 500);
+
+    // Afficher le modal Game Over après le shake
+    setTimeout(() => {
+      showGameOverModal();
+    }, 600);
+  }
+
+  function showGameOverModal(){
+    const modal = document.getElementById('gameOverModal');
+    const finalScoreEl = document.getElementById('finalScore');
+    const finalBestEl = document.getElementById('finalBest');
+    const finalRankEl = document.getElementById('finalRank');
+
+    // Remplir les stats
+    finalScoreEl.textContent = Math.floor(score);
+    finalBestEl.textContent = Math.floor(best);
+
+    // Calculer le rang (estimation basée sur le score)
+    let rank = '📄 Paper Hands';
+    if(score >= 40) rank = '👑 Degen Legend';
+    else if(score >= 20) rank = '💎 Diamond Hands';
+    finalRankEl.textContent = rank;
+
+    modal.classList.add('show');
+  }
+
+  function closeGameOverModal(){
+    document.getElementById('gameOverModal').classList.remove('show');
+  }
+
+  function loop(ts){
+    if(state!=='play') return;
+    const dt = Math.min(33, ts-last); last=ts; // clamp dt
+    const dtS = dt/1000; // seconds
+    elapsed += dtS; accSpawn += dt;
+
+    // ramp up difficulty to hit 10–15s runs
+    const t = Math.min(1, elapsed/CFG.runTarget);
+    const speed = CFG.speed + CFG.speedGain * elapsed * 6;
+    const gap = Math.max(CFG.gapMin, CFG.tubeGap - 90 * t);
+
+    // physics (Flappy Bird style - gravity always pulls down)
+    player.vy += CFG.gravity;
+    player.vy = clamp(player.vy, -CFG.maxVy, CFG.maxVy);
+    player.y += player.vy;
+
+    // spawn obstacles
+    if(accSpawn >= CFG.spawnEvery){
+      accSpawn=0;
+      const mid = 0.30 + rng()*0.40; // between 30% and 70% of canvas
+      const center = mid * canvas.height;
+      const half = gap/2;
+      obstacles.push({ x: canvas.width+40, top: center - half, bottom: center + half, w: 70 });
+    }
+
+    // move + collide
+    for(let i=obstacles.length-1;i>=0;i--){
+      const o = obstacles[i];
+      o.x -= speed;
+      if(o.x+o.w < 0) obstacles.splice(i,1);
+    }
+
+    // scoring & pump
+    score += dtS * (2 + t*3); // score by time & difficulty
+    pump = Math.min(100, (elapsed/CFG.runTarget)*100);
+
+    // collisions with walls
+    if(player.y < 0 || player.y > canvas.height) return gameOver();
+
+    // collisions with obstacles (tubes)
+    for(const o of obstacles){
+      if(player.x > o.x-20 && player.x < o.x + o.w + 20){
+        // inside obstacle column
+        if(player.y < o.top || player.y > o.bottom){
+          return gameOver();
+        }
+      }
+    }
+
+    // draw
+    render({ speed, gap });
+
+    // UI updates
+    scoreEl.textContent = Math.floor(score);
+    pumpEl.textContent = Math.floor(pump);
+    pumpBar.style.width = pump+'%';
+
+    requestAnimationFrame(loop);
+  }
+
+  // ========= RENDER =========
+  function render(vars){
+    const { speed, gap } = vars;
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0,0,w,h);
+
+    // parallax tube walls
+    drawTubeBackground(ctx, w, h, speed);
+
+    // obstacles
+    obstacles.forEach(o=> drawObstacle(ctx,o));
+
+    // player (pill)
+    drawPill(ctx, player.x, player.y, CFG.pill.r);
+
+    // vignette
+    const g = ctx.createLinearGradient(0,0,0,h);
+    g.addColorStop(0,'rgba(124,58,237,.08)');
+    g.addColorStop(1,'rgba(34,211,238,.06)');
+    ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+
+    // top HUD shadow
+    ctx.fillStyle='rgba(0,0,0,.25)';
+    ctx.fillRect(0,0,w,40);
+    ctx.fillRect(0,h-40,w,40);
+
+    // labels
+    ctx.fillStyle='rgba(255,255,255,.75)';
+    ctx.font='600 18px system-ui,Segoe UI';
+    ctx.fillText('Score '+Math.floor(score), 16, 26);
+    ctx.fillText('Pump '+Math.floor(pump)+'%', w-150, 26);
+
+    if(state==='menu') drawCenterText('Press Play button to start');
+    if(state==='pause') drawCenterText('⏸️ PAUSED');
+    if(state==='over') drawCenterText('💀 REKT -99% 💀 CLICK TO RETRY');
+  }
+
+  function drawCenterText(t){
+    ctx.save();
+    ctx.fillStyle='rgba(0,0,0,.45)';
+    ctx.fillRect(0,canvas.height/2-40,canvas.width,80);
+    ctx.fillStyle='#fff';
+    ctx.font='700 28px system-ui,Segoe UI';
+    ctx.textAlign='center';
+    ctx.fillText(t, canvas.width/2, canvas.height/2+10);
+    ctx.restore();
+  }
+
+  function drawObstacle(ctx,o){
+    ctx.save();
+
+    // BOUGIES DE RUG - Style chandelier rouge baissier
+    const candleWidth = o.w;
+    const wickWidth = 4;
+
+    // Bougie du haut (baissière rouge)
+    if(o.top > 0){
+      const candleHeight = Math.min(100, o.top * 0.4);
+      const wickHeight = o.top;
+
+      // Mèche (wick) fine
+      ctx.fillStyle='#8b0000';
+      ctx.fillRect(o.x + candleWidth/2 - wickWidth/2, 0, wickWidth, wickHeight);
+
+      // Corps de la bougie (body)
+      const bodyTop = wickHeight - candleHeight;
+      const grd = ctx.createLinearGradient(o.x, bodyTop, o.x + candleWidth, bodyTop);
+      grd.addColorStop(0,'#660000');
+      grd.addColorStop(0.5,'#ff1744');
+      grd.addColorStop(1,'#660000');
+      ctx.fillStyle=grd;
+      ctx.fillRect(o.x, bodyTop, candleWidth, candleHeight);
+
+      // Bordure de bougie
+      ctx.strokeStyle='#330000';
+      ctx.lineWidth=3;
+      ctx.strokeRect(o.x, bodyTop, candleWidth, candleHeight);
+
+      // Ombres 3D
+      ctx.fillStyle='#330000';
+      ctx.fillRect(o.x + candleWidth - 8, bodyTop, 8, candleHeight);
+      ctx.fillStyle='rgba(255,100,100,.3)';
+      ctx.fillRect(o.x, bodyTop, 8, candleHeight);
+
+      // Texte RUG avec effet néon
+      ctx.save();
+      ctx.shadowColor='#ff0000';
+      ctx.shadowBlur=15;
+      ctx.fillStyle='#ffffff';
+      ctx.font='bold 22px monospace';
+      ctx.textAlign='center';
+      ctx.fillText('RUG', o.x + candleWidth/2, bodyTop + candleHeight/2 + 8);
+      ctx.restore();
+    }
+
+    // Bougie du bas (baissière rouge)
+    if(o.bottom < canvas.height){
+      const candleHeight = Math.min(100, (canvas.height - o.bottom) * 0.4);
+      const wickHeight = canvas.height - o.bottom;
+
+      // Mèche (wick) fine
+      ctx.fillStyle='#8b0000';
+      ctx.fillRect(o.x + candleWidth/2 - wickWidth/2, o.bottom, wickWidth, wickHeight);
+
+      // Corps de la bougie (body)
+      const bodyTop = o.bottom;
+      const grd = ctx.createLinearGradient(o.x, bodyTop, o.x + candleWidth, bodyTop);
+      grd.addColorStop(0,'#660000');
+      grd.addColorStop(0.5,'#ff1744');
+      grd.addColorStop(1,'#660000');
+      ctx.fillStyle=grd;
+      ctx.fillRect(o.x, bodyTop, candleWidth, candleHeight);
+
+      // Bordure de bougie
+      ctx.strokeStyle='#330000';
+      ctx.lineWidth=3;
+      ctx.strokeRect(o.x, bodyTop, candleWidth, candleHeight);
+
+      // Ombres 3D
+      ctx.fillStyle='#330000';
+      ctx.fillRect(o.x + candleWidth - 8, bodyTop, 8, candleHeight);
+      ctx.fillStyle='rgba(255,100,100,.3)';
+      ctx.fillRect(o.x, bodyTop, 8, candleHeight);
+
+      // Texte RUG avec effet néon
+      ctx.save();
+      ctx.shadowColor='#ff0000';
+      ctx.shadowBlur=15;
+      ctx.fillStyle='#ffffff';
+      ctx.font='bold 22px monospace';
+      ctx.textAlign='center';
+      ctx.fillText('RUG', o.x + candleWidth/2, bodyTop + candleHeight/2 + 8);
+      ctx.restore();
+    }
+
+    ctx.restore();
+  }
+
+  function drawPill(ctx,x,y,r){
+    ctx.save();
+    ctx.translate(x,y);
+
+    // Angle de rotation basé sur la vélocité (effet Flappy)
+    const rotationAngle = Math.min(Math.max(player.vy * 0.05, -0.5), 0.5);
+    ctx.rotate(rotationAngle);
+
+    // PILULE CAPSULE STYLE 💊 - Couleurs Pump.fun (vert et blanc)
+    const pillWidth = r * 2.8;
+    const pillHeight = r * 1.4;
+
+    // Glow vert Pump.fun
+    ctx.shadowColor='rgba(0,209,122,.7)';
+    ctx.shadowBlur=25;
+
+    // Corps principal de la capsule (shape arrondie)
+    ctx.beginPath();
+    ctx.arc(-pillWidth/4, 0, pillHeight/2, Math.PI/2, -Math.PI/2);
+    ctx.arc(pillWidth/4, 0, pillHeight/2, -Math.PI/2, Math.PI/2);
+    ctx.closePath();
+    ctx.fillStyle='#ffffff';
+    ctx.fill();
+
+    ctx.shadowBlur=0;
+
+    // Moitié VERTE (gauche) - Couleur Pump.fun
+    ctx.beginPath();
+    ctx.arc(-pillWidth/4, 0, pillHeight/2, Math.PI/2, -Math.PI/2);
+    ctx.lineTo(0, -pillHeight/2);
+    ctx.lineTo(0, pillHeight/2);
+    ctx.closePath();
+    ctx.fillStyle='#00d17a'; // Vert Pump.fun
+    ctx.fill();
+
+    // Moitié BLANCHE (droite)
+    ctx.beginPath();
+    ctx.arc(pillWidth/4, 0, pillHeight/2, -Math.PI/2, Math.PI/2);
+    ctx.lineTo(0, pillHeight/2);
+    ctx.lineTo(0, -pillHeight/2);
+    ctx.closePath();
+    ctx.fillStyle='#ffffff';
+    ctx.fill();
+
+    // Barre centrale de séparation
+    ctx.fillStyle='#e0e0e0';
+    ctx.fillRect(-2, -pillHeight/2, 4, pillHeight);
+
+    // Brillance sur la partie verte
+    ctx.globalAlpha=.35;
+    ctx.fillStyle='#ffffff';
+    ctx.beginPath();
+    ctx.ellipse(-pillWidth/4, -pillHeight/4, pillHeight/4, pillHeight/3, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    // Brillance sur la partie blanche
+    ctx.beginPath();
+    ctx.ellipse(pillWidth/4, -pillHeight/4, pillHeight/4, pillHeight/3, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    // Contour de la capsule
+    ctx.globalAlpha=1;
+    ctx.strokeStyle='#2a2a2a';
+    ctx.lineWidth=3;
+    ctx.beginPath();
+    ctx.arc(-pillWidth/4, 0, pillHeight/2, Math.PI/2, -Math.PI/2);
+    ctx.arc(pillWidth/4, 0, pillHeight/2, -Math.PI/2, Math.PI/2);
+    ctx.closePath();
+    ctx.stroke();
+
+    // Mini sparkles verts autour (effet Pump)
+    const t = performance.now() / 300;
+    ctx.globalAlpha=.7;
+    for(let i=0; i<3; i++){
+      const angle = t + (i * Math.PI * 2 / 3);
+      const dist = pillHeight * 0.9;
+      const sx = Math.cos(angle) * dist;
+      const sy = Math.sin(angle) * dist;
+      ctx.fillStyle='#00d17a';
+      ctx.beginPath();
+      ctx.arc(sx, sy, 3, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+
+  function capsulePath(ctx,x,y,w,h,r){
+    const r2 = Math.min(r, h/2, w/2);
+    ctx.beginPath();
+    ctx.moveTo(x+r2,y);
+    ctx.lineTo(x+w-r2,y);
+    ctx.quadraticCurveTo(x+w,y, x+w,y+r2);
+    ctx.lineTo(x+w,y+h-r2);
+    ctx.quadraticCurveTo(x+w,y+h, x+w-r2,y+h);
+    ctx.lineTo(x+r2,y+h);
+    ctx.quadraticCurveTo(x,y+h, x,y+h-r2);
+    ctx.lineTo(x,y+r2);
+    ctx.quadraticCurveTo(x,y, x+r2,y);
+    ctx.closePath();
+  }
+
+  function drawTubeBackground(ctx,w,h,speed){
+    // Fond DEGEN - Sombre et agressif
+    const g = ctx.createLinearGradient(0,0,0,h);
+    g.addColorStop(0,'#0a0a0a'); // noir profond
+    g.addColorStop(0.5,'#1a0f0f'); // rouge très sombre
+    g.addColorStop(1,'#0f0a0a');
+    ctx.fillStyle=g;
+    ctx.fillRect(0,0,w,h);
+
+    // Grille de trading en arrière-plan (effet terminal)
+    const t = performance.now()/1000;
+    const gridOff = (t * speed * 5) % 40;
+
+    ctx.strokeStyle='rgba(255,0,0,.08)';
+    ctx.lineWidth=1;
+    // Lignes horizontales
+    for(let i=0; i<h; i+=40){
+      ctx.beginPath();
+      ctx.moveTo(0, i);
+      ctx.lineTo(w, i);
+      ctx.stroke();
+    }
+    // Lignes verticales qui scrollent
+    for(let i=0; i<w+40; i+=40){
+      const x = i - gridOff;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, h);
+      ctx.stroke();
+    }
+
+    // Graphiques de pump en arrière-plan (lignes vertes aléatoires)
+    ctx.strokeStyle='rgba(0,209,122,.15)';
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    for(let i=0; i<w; i+=20){
+      const x = i - (t * speed * 3) % w;
+      const y = h/2 + Math.sin(x * 0.02 + t) * 60;
+      if(i===0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // Chiffres verts qui défilent (effet Matrix/Terminal)
+    ctx.fillStyle='rgba(0,209,122,.25)';
+    ctx.font='bold 14px monospace';
+    for(let i=0; i<8; i++){
+      const tx = (i * 130 - t * speed * 15) % w;
+      const ty = 30 + (i * 70) % (h - 60);
+      ctx.fillText('$PUMP', tx, ty);
+      ctx.fillText('+420%', tx, ty + 20);
+    }
+
+    // Textes rouges de RUG qui défilent
+    ctx.fillStyle='rgba(255,59,59,.2)';
+    for(let i=0; i<6; i++){
+      const tx = (i * 180 + t * speed * 12) % w;
+      const ty = 80 + (i * 90) % (h - 100);
+      ctx.fillText('RUG', tx, ty);
+      ctx.fillText('-99%', tx, ty + 20);
+    }
+
+    // Effet scanline (vieux CRT)
+    for(let i=0; i<h; i+=4){
+      ctx.fillStyle='rgba(0,0,0,.15)';
+      ctx.fillRect(0, i, w, 2);
+    }
+  }
+
+  function clamp(v,a,b){ return Math.max(a, Math.min(b,v)); }
+
+  // ========= UI BUTTONS =========
+  document.getElementById('playBtn').onclick = ()=>{ if(state!=='play') openWalletModal(); };
+  document.getElementById('restartBtn').onclick = ()=>{ state='menu'; openWalletModal(); };
+  document.getElementById('pauseBtn').onclick = ()=> togglePause();
+  document.getElementById('saveWalletBtn').onclick = ()=> saveWalletAndPlay();
+  document.getElementById('skipWalletBtn').onclick = ()=> skipWalletAndPlay();
+  // Modal Rules
+  function openRulesModal(){
+    document.getElementById('rulesModal').classList.add('show');
+  }
+  function closeRulesModal(){
+    document.getElementById('rulesModal').classList.remove('show');
+  }
+  document.getElementById('rulesModal').onclick = (e)=>{
+    if(e.target.id === 'rulesModal') closeRulesModal();
+  };
+
+  document.getElementById('howBtn').onclick = ()=> openRulesModal();
+
+  // Modal Commands
+  function openCommandsModal(){
+    document.getElementById('commandsModal').classList.add('show');
+  }
+  function closeCommandsModal(){
+    document.getElementById('commandsModal').classList.remove('show');
+  }
+  document.getElementById('commandsModal').onclick = (e)=>{
+    if(e.target.id === 'commandsModal') closeCommandsModal();
+  };
+
+  document.getElementById('commandsBtn').onclick = ()=> openCommandsModal();
+
+  document.getElementById('shareX').onclick = ()=>{
+    const s = Math.floor(best);
+    const text = encodeURIComponent(`Just dodged ${s} RUG candles on Pump The Pill 💊🔥\n\nThink you can survive longer degen?\n\n#Solana #Pumpfun #WAGMI`);
+    const url = encodeURIComponent(window.location.href);
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`,'_blank');
+  };
+  document.getElementById('copyMsg').onclick = async ()=>{
+    const s = Math.floor(best);
+    const msg = `💊 Dodged ${s} RUG candles on Pump The Pill! Not bad for a degen 🔥 #Pumpfun`;
+    try{ await navigator.clipboard.writeText(msg); alert('📋 Copied! Flex on your friends 💎'); }catch(e){ alert(msg); }
+  };
+
+  // Game Over Modal buttons
+  document.getElementById('restartGameBtn').onclick = ()=> {
+    closeGameOverModal();
+    state='menu';
+    openWalletModal();
+  };
+  document.getElementById('shareGameBtn').onclick = ()=>{
+    const s = Math.floor(score);
+    const text = encodeURIComponent(`Just scored ${s} points on Pump The Pill! 💊💀\n\nThink you can beat me degen?\n\n#Solana #Pumpfun #WAGMI`);
+    const url = encodeURIComponent(window.location.href);
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`,'_blank');
+  };
+  document.getElementById('gameOverModal').onclick = (e)=>{
+    if(e.target.id === 'gameOverModal') closeGameOverModal();
+  };
+
+  // kick off in menu render
+  render({speed:CFG.speed,gap:CFG.tubeGap});
+
+  // ========= HEADER PILL ANIMATION =========
+  const headerCanvas = document.getElementById('headerPill');
+  const hctx = headerCanvas.getContext('2d');
+
+  function animateHeaderPill(){
+    hctx.clearRect(0, 0, headerCanvas.width, headerCanvas.height);
+
+    const centerX = headerCanvas.width / 2;
+    const centerY = headerCanvas.height / 2;
+    const r = 7; // Un peu plus grande pour remplacer "— Mini Runner"
+    const pillWidth = r * 2.8;
+    const pillHeight = r * 1.4;
+
+    hctx.save();
+    hctx.translate(centerX, centerY);
+
+    // MEME CODE QUE LE JEU
+    // Rotation lente basée sur le temps
+    const rotationAngle = Math.sin(performance.now() / 1000) * 0.2;
+    hctx.rotate(rotationAngle);
+
+    // Glow vert Pump.fun
+    hctx.shadowColor='rgba(0,209,122,.7)';
+    hctx.shadowBlur=12;
+
+    // Corps principal de la capsule
+    hctx.beginPath();
+    hctx.arc(-pillWidth/4, 0, pillHeight/2, Math.PI/2, -Math.PI/2);
+    hctx.arc(pillWidth/4, 0, pillHeight/2, -Math.PI/2, Math.PI/2);
+    hctx.closePath();
+    hctx.fillStyle='#ffffff';
+    hctx.fill();
+
+    hctx.shadowBlur=0;
+
+    // Moitié VERTE (gauche) - Couleur Pump.fun
+    hctx.beginPath();
+    hctx.arc(-pillWidth/4, 0, pillHeight/2, Math.PI/2, -Math.PI/2);
+    hctx.lineTo(0, -pillHeight/2);
+    hctx.lineTo(0, pillHeight/2);
+    hctx.closePath();
+    hctx.fillStyle='#00d17a';
+    hctx.fill();
+
+    // Moitié BLANCHE (droite)
+    hctx.beginPath();
+    hctx.arc(pillWidth/4, 0, pillHeight/2, -Math.PI/2, Math.PI/2);
+    hctx.lineTo(0, pillHeight/2);
+    hctx.lineTo(0, -pillHeight/2);
+    hctx.closePath();
+    hctx.fillStyle='#ffffff';
+    hctx.fill();
+
+    // Barre centrale de séparation
+    hctx.fillStyle='#e0e0e0';
+    hctx.fillRect(-1.5, -pillHeight/2, 3, pillHeight);
+
+    // Brillance sur la partie verte
+    hctx.globalAlpha=.35;
+    hctx.fillStyle='#ffffff';
+    hctx.beginPath();
+    hctx.ellipse(-pillWidth/4, -pillHeight/4, pillHeight/4, pillHeight/3, 0, 0, Math.PI*2);
+    hctx.fill();
+
+    // Brillance sur la partie blanche
+    hctx.beginPath();
+    hctx.ellipse(pillWidth/4, -pillHeight/4, pillHeight/4, pillHeight/3, 0, 0, Math.PI*2);
+    hctx.fill();
+
+    // Contour de la capsule
+    hctx.globalAlpha=1;
+    hctx.strokeStyle='#2a2a2a';
+    hctx.lineWidth=1;
+    hctx.beginPath();
+    hctx.arc(-pillWidth/4, 0, pillHeight/2, Math.PI/2, -Math.PI/2);
+    hctx.arc(pillWidth/4, 0, pillHeight/2, -Math.PI/2, Math.PI/2);
+    hctx.closePath();
+    hctx.stroke();
+
+    // Mini sparkles verts autour (effet Pump)
+    const t = performance.now() / 300;
+    hctx.globalAlpha=.7;
+    for(let i=0; i<3; i++){
+      const angle = t + (i * Math.PI * 2 / 3);
+      const dist = pillHeight * 0.9;
+      const sx = Math.cos(angle) * dist;
+      const sy = Math.sin(angle) * dist;
+      hctx.fillStyle='#00d17a';
+      hctx.beginPath();
+      hctx.arc(sx, sy, 1, 0, Math.PI*2);
+      hctx.fill();
+    }
+
+    hctx.restore();
+
+    requestAnimationFrame(animateHeaderPill);
+  }
+
+  animateHeaderPill();
+
+  // ========= MODAL PILL ANIMATION =========
+  const modalCanvas = document.getElementById('modalPill');
+  const mctx = modalCanvas.getContext('2d');
+
+  function animateModalPill(){
+    mctx.clearRect(0, 0, modalCanvas.width, modalCanvas.height);
+
+    const centerX = modalCanvas.width / 2;
+    const centerY = modalCanvas.height / 2;
+    const r = 5;
+    const pillWidth = r * 2.8;
+    const pillHeight = r * 1.4;
+
+    mctx.save();
+    mctx.translate(centerX, centerY);
+
+    const rotationAngle = Math.sin(performance.now() / 1000) * 0.2;
+    mctx.rotate(rotationAngle);
+
+    // Glow vert Pump.fun
+    mctx.shadowColor='rgba(0,209,122,.7)';
+    mctx.shadowBlur=8;
+
+    // Corps principal de la capsule
+    mctx.beginPath();
+    mctx.arc(-pillWidth/4, 0, pillHeight/2, Math.PI/2, -Math.PI/2);
+    mctx.arc(pillWidth/4, 0, pillHeight/2, -Math.PI/2, Math.PI/2);
+    mctx.closePath();
+    mctx.fillStyle='#ffffff';
+    mctx.fill();
+
+    mctx.shadowBlur=0;
+
+    // Moitié VERTE
+    mctx.beginPath();
+    mctx.arc(-pillWidth/4, 0, pillHeight/2, Math.PI/2, -Math.PI/2);
+    mctx.lineTo(0, -pillHeight/2);
+    mctx.lineTo(0, pillHeight/2);
+    mctx.closePath();
+    mctx.fillStyle='#00d17a';
+    mctx.fill();
+
+    // Moitié BLANCHE
+    mctx.beginPath();
+    mctx.arc(pillWidth/4, 0, pillHeight/2, -Math.PI/2, Math.PI/2);
+    mctx.lineTo(0, pillHeight/2);
+    mctx.lineTo(0, -pillHeight/2);
+    mctx.closePath();
+    mctx.fillStyle='#ffffff';
+    mctx.fill();
+
+    // Barre centrale
+    mctx.fillStyle='#e0e0e0';
+    mctx.fillRect(-1.5, -pillHeight/2, 3, pillHeight);
+
+    // Brillances
+    mctx.globalAlpha=.35;
+    mctx.fillStyle='#ffffff';
+    mctx.beginPath();
+    mctx.ellipse(-pillWidth/4, -pillHeight/4, pillHeight/4, pillHeight/3, 0, 0, Math.PI*2);
+    mctx.fill();
+    mctx.beginPath();
+    mctx.ellipse(pillWidth/4, -pillHeight/4, pillHeight/4, pillHeight/3, 0, 0, Math.PI*2);
+    mctx.fill();
+
+    // Contour
+    mctx.globalAlpha=1;
+    mctx.strokeStyle='#2a2a2a';
+    mctx.lineWidth=1;
+    mctx.beginPath();
+    mctx.arc(-pillWidth/4, 0, pillHeight/2, Math.PI/2, -Math.PI/2);
+    mctx.arc(pillWidth/4, 0, pillHeight/2, -Math.PI/2, Math.PI/2);
+    mctx.closePath();
+    mctx.stroke();
+
+    // Sparkles
+    const t = performance.now() / 300;
+    mctx.globalAlpha=.7;
+    for(let i=0; i<3; i++){
+      const angle = t + (i * Math.PI * 2 / 3);
+      const dist = pillHeight * 0.9;
+      const sx = Math.cos(angle) * dist;
+      const sy = Math.sin(angle) * dist;
+      mctx.fillStyle='#00d17a';
+      mctx.beginPath();
+      mctx.arc(sx, sy, 1, 0, Math.PI*2);
+      mctx.fill();
+    }
+
+    mctx.restore();
+
+    requestAnimationFrame(animateModalPill);
+  }
+
+  animateModalPill();
+
+  // ========= LOADING SCREEN =========
+  const loadingPillCanvas = document.getElementById('loadingPill');
+  const loadingPillCtx = loadingPillCanvas.getContext('2d');
+
+  function animateLoadingPill() {
+    loadingPillCtx.clearRect(0, 0, loadingPillCanvas.width, loadingPillCanvas.height);
+
+    const centerX = loadingPillCanvas.width / 2;
+    const centerY = loadingPillCanvas.height / 2;
+    const r = 15;
+    const pillWidth = r * 2.8;
+    const pillHeight = r * 1.4;
+
+    loadingPillCtx.save();
+    loadingPillCtx.translate(centerX, centerY);
+
+    // Rotation continue
+    const rotationAngle = (performance.now() / 1000) * Math.PI / 2;
+    loadingPillCtx.rotate(rotationAngle);
+
+    // Glow vert Pump.fun
+    loadingPillCtx.shadowColor = 'rgba(0,209,122,.9)';
+    loadingPillCtx.shadowBlur = 25;
+
+    // Corps principal de la capsule
+    loadingPillCtx.beginPath();
+    loadingPillCtx.arc(-pillWidth/4, 0, pillHeight/2, Math.PI/2, -Math.PI/2);
+    loadingPillCtx.arc(pillWidth/4, 0, pillHeight/2, -Math.PI/2, Math.PI/2);
+    loadingPillCtx.closePath();
+    loadingPillCtx.fillStyle = '#ffffff';
+    loadingPillCtx.fill();
+
+    loadingPillCtx.shadowBlur = 0;
+
+    // Moitié VERTE
+    loadingPillCtx.beginPath();
+    loadingPillCtx.arc(-pillWidth/4, 0, pillHeight/2, Math.PI/2, -Math.PI/2);
+    loadingPillCtx.lineTo(0, -pillHeight/2);
+    loadingPillCtx.lineTo(0, pillHeight/2);
+    loadingPillCtx.closePath();
+    loadingPillCtx.fillStyle = '#00d17a';
+    loadingPillCtx.fill();
+
+    // Moitié BLANCHE
+    loadingPillCtx.beginPath();
+    loadingPillCtx.arc(pillWidth/4, 0, pillHeight/2, -Math.PI/2, Math.PI/2);
+    loadingPillCtx.lineTo(0, pillHeight/2);
+    loadingPillCtx.lineTo(0, -pillHeight/2);
+    loadingPillCtx.closePath();
+    loadingPillCtx.fillStyle = '#ffffff';
+    loadingPillCtx.fill();
+
+    // Barre centrale
+    loadingPillCtx.fillStyle = '#e0e0e0';
+    loadingPillCtx.fillRect(-2, -pillHeight/2, 4, pillHeight);
+
+    // Brillances
+    loadingPillCtx.globalAlpha = .35;
+    loadingPillCtx.fillStyle = '#ffffff';
+    loadingPillCtx.beginPath();
+    loadingPillCtx.ellipse(-pillWidth/4, -pillHeight/4, pillHeight/4, pillHeight/3, 0, 0, Math.PI*2);
+    loadingPillCtx.fill();
+    loadingPillCtx.beginPath();
+    loadingPillCtx.ellipse(pillWidth/4, -pillHeight/4, pillHeight/4, pillHeight/3, 0, 0, Math.PI*2);
+    loadingPillCtx.fill();
+
+    // Contour
+    loadingPillCtx.globalAlpha = 1;
+    loadingPillCtx.strokeStyle = '#2a2a2a';
+    loadingPillCtx.lineWidth = 2;
+    loadingPillCtx.beginPath();
+    loadingPillCtx.arc(-pillWidth/4, 0, pillHeight/2, Math.PI/2, -Math.PI/2);
+    loadingPillCtx.arc(pillWidth/4, 0, pillHeight/2, -Math.PI/2, Math.PI/2);
+    loadingPillCtx.closePath();
+    loadingPillCtx.stroke();
+
+    // Sparkles
+    const t = performance.now() / 300;
+    loadingPillCtx.globalAlpha = .7;
+    for(let i=0; i<3; i++){
+      const angle = t + (i * Math.PI * 2 / 3);
+      const dist = pillHeight * 1.2;
+      const sx = Math.cos(angle) * dist;
+      const sy = Math.sin(angle) * dist;
+      loadingPillCtx.fillStyle = '#00d17a';
+      loadingPillCtx.beginPath();
+      loadingPillCtx.arc(sx, sy, 2.5, 0, Math.PI*2);
+      loadingPillCtx.fill();
+    }
+
+    loadingPillCtx.restore();
+
+    requestAnimationFrame(animateLoadingPill);
+  }
+
+  animateLoadingPill();
+
+  // Simuler le chargement
+  let loadProgress = 0;
+  const loadingBar = document.getElementById('loadingBar');
+  const loadingPercentage = document.getElementById('loadingPercentage');
+  const loadingScreen = document.getElementById('loadingScreen');
+
+  const loadingInterval = setInterval(() => {
+    loadProgress += Math.random() * 15 + 5;
+    if (loadProgress >= 100) {
+      loadProgress = 100;
+      clearInterval(loadingInterval);
+
+      setTimeout(() => {
+        loadingScreen.classList.add('hidden');
+        setTimeout(() => {
+          loadingScreen.style.display = 'none';
+        }, 500);
+      }, 500);
+    }
+
+    loadingBar.style.width = loadProgress + '%';
+    loadingPercentage.textContent = Math.floor(loadProgress) + '%';
+  }, 200);
+  </script>
+</body>
+</html>
