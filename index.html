@@ -373,6 +373,11 @@
       0%,100%{transform:translateY(0)}
       50%{transform:translateY(-5px)}
     }
+    @keyframes powerUpPop{
+      0%{transform:translate(-50%, -50%) scale(0);opacity:0}
+      50%{transform:translate(-50%, -50%) scale(1.1)}
+      100%{transform:translate(-50%, -50%) scale(1);opacity:1}
+    }
     .modal-body .rule .text{
       flex:1;
     }
@@ -491,12 +496,13 @@
     </div>
 
     <div class="panel">
-      <button class="btn primary" id="playBtn">▶️ Play</button>
+      <button class="btn primary" id="playBtn">▶️ Play Solo</button>
+      <button class="btn primary" id="multiplayerBtn" style="background:rgba(255,215,0,.8);border-color:#ffd700;color:#000">🎮 Multiplayer</button>
       <button class="btn" id="pauseBtn">⏸️ Pause</button>
       <button class="btn" id="restartBtn">🔄 Restart</button>
       <span class="badge" id="bestBadge">🏆 Best: 0</span>
-      <span class="badge" id="seedBadge">🎲 Seed: —</span>
-      <span class="badge" style="background:rgba(255,215,0,.1);border-color:#ffd700;color:#ffd700">🎮 MULTIPLAYER SOON</span>
+      <span class="badge" id="onlinePlayersBadge" style="background:rgba(0,209,122,.15);border-color:#00d17a">👥 Online: 0</span>
+      <span class="badge" id="totalGamesBadge" style="background:rgba(255,215,0,.15);border-color:#ffd700">🎮 Games: 0</span>
     </div>
 
     <canvas id="game" width="960" height="540" aria-label="Pump the Pill"></canvas>
@@ -657,6 +663,9 @@
         <button class="btn-restart" id="restartGameBtn">
           🔄 PLAY AGAIN
         </button>
+        <button class="btn" id="leaveRoomBtn" style="width:100%;font-size:16px;padding:14px;margin-top:10px;display:none;background:rgba(255,23,68,.2);border-color:#ff1744;color:#ff1744">
+          🚪 LEAVE ROOM
+        </button>
         <button class="btn" id="shareGameBtn" style="width:100%;font-size:16px;padding:14px;margin-top:10px">
           📤 SHARE ON X
         </button>
@@ -667,9 +676,134 @@
     </div>
   </div>
 
+  <!-- Modal Multiplayer Lobby -->
+  <div id="multiplayerModal" class="modal">
+    <div class="modal-content" style="max-width:600px">
+      <div class="modal-header">
+        <div class="icon" style="filter:drop-shadow(0 0 12px #00d17a);font-size:32px">🎮</div>
+        <h2>MULTIPLAYER LOBBY</h2>
+        <button class="modal-close" onclick="closeMultiplayerModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom:20px">
+          <label style="font-size:12px;color:#00d17a;font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">
+            Your Name
+          </label>
+          <input type="text" id="playerNameInput" placeholder="Enter your degen name..."
+            style="width:100%;padding:12px;background:rgba(0,0,0,.5);border:1px solid rgba(0,209,122,.3);border-radius:8px;color:var(--text);font-family:'Courier New',monospace;font-size:12px;box-sizing:border-box" />
+        </div>
+
+        <div style="margin-bottom:20px">
+          <label style="font-size:12px;color:#ffd700;font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">
+            💰 Solana Wallet (Required for Rewards)
+          </label>
+          <input type="text" id="multiplayerWalletInput" placeholder="Ex: 7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU"
+            style="width:100%;padding:12px;background:rgba(0,0,0,.5);border:1px solid rgba(255,215,0,.3);border-radius:8px;color:var(--text);font-family:'Courier New',monospace;font-size:11px;box-sizing:border-box" />
+          <div id="multiplayerWalletStatus" style="font-size:11px;margin-top:6px;opacity:.8"></div>
+        </div>
+
+        <div id="maxPlayersSection" style="margin-bottom:20px;display:none">
+          <label style="font-size:12px;color:#00d17a;font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">
+            👥 Max Players
+          </label>
+          <div style="display:flex;gap:8px">
+            <button class="btn max-players-btn" data-max="2" style="flex:1;padding:12px;background:rgba(0,209,122,.1);border-color:rgba(0,209,122,.3)" onclick="selectMaxPlayers(2)">
+              2 Players
+            </button>
+            <button class="btn max-players-btn" data-max="3" style="flex:1;padding:12px;background:rgba(0,209,122,.1);border-color:rgba(0,209,122,.3)" onclick="selectMaxPlayers(3)">
+              3 Players
+            </button>
+            <button class="btn max-players-btn selected" data-max="4" style="flex:1;padding:12px;background:#00d17a;border-color:#00d17a;color:#000" onclick="selectMaxPlayers(4)">
+              4 Players
+            </button>
+          </div>
+        </div>
+
+        <div id="mainButtons" style="display:flex;gap:10px;margin-bottom:20px">
+          <button class="btn primary" id="showCreateRoomBtn" style="flex:1;padding:14px">
+            🎲 CREATE ROOM
+          </button>
+          <button class="btn" id="joinRoomBtn" style="flex:1;padding:14px">
+            🚪 JOIN BY ID
+          </button>
+        </div>
+
+        <div id="createRoomButtons" style="display:none;gap:10px;margin-bottom:20px">
+          <button class="btn" id="backBtn" style="flex:1;padding:14px">
+            ← BACK
+          </button>
+          <button class="btn primary" id="confirmCreateRoomBtn" style="flex:2;padding:14px">
+            ✅ CONFIRM & CREATE
+          </button>
+        </div>
+
+        <!-- Available Rooms List -->
+        <div id="availableRoomsSection" style="margin-bottom:20px">
+          <h3 style="font-size:14px;color:#00d17a;margin:0 0 12px 0;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;justify-content:space-between">
+            <span>🎮 Available Rooms</span>
+            <span id="roomsCount" style="font-size:12px;opacity:.7">0</span>
+          </h3>
+          <div id="availableRoomsList" style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto">
+            <div style="text-align:center;padding:20px;opacity:.5;font-size:13px">
+              Loading rooms...
+            </div>
+          </div>
+        </div>
+
+        <div id="roomIdSection" style="display:none;margin-bottom:20px">
+          <label style="font-size:12px;color:#00d17a;font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">
+            Room ID
+          </label>
+          <input type="text" id="roomIdInput" placeholder="Enter room ID..."
+            style="width:100%;padding:12px;background:rgba(0,0,0,.5);border:1px solid rgba(0,209,122,.3);border-radius:8px;color:var(--text);font-family:'Courier New',monospace;font-size:12px;box-sizing:border-box" />
+          <button class="btn primary" id="joinRoomConfirmBtn" style="width:100%;margin-top:10px;padding:12px">
+            ✅ JOIN
+          </button>
+        </div>
+
+        <div id="roomInfo" style="display:none">
+          <div style="background:rgba(0,209,122,.1);border:1px solid rgba(0,209,122,.3);border-radius:8px;padding:16px;margin-bottom:20px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <span style="font-size:14px;font-weight:600;color:#00d17a">Room ID:</span>
+              <span id="currentRoomId" style="font-size:18px;font-weight:700;color:#00d17a">----</span>
+            </div>
+            <button class="btn" id="copyRoomIdBtn" style="width:100%;padding:10px">
+              📋 COPY ROOM ID
+            </button>
+          </div>
+
+          <div style="margin-bottom:16px">
+            <h3 style="font-size:14px;color:#00d17a;margin:0 0 12px 0;text-transform:uppercase;letter-spacing:.5px">
+              Players (<span id="playerCount">0</span>/<span id="maxPlayerCount">4</span>)
+            </h3>
+            <div id="playersList" style="display:flex;flex-direction:column;gap:8px"></div>
+          </div>
+
+          <button class="btn primary" id="startMultiplayerBtn" style="width:100%;font-size:16px;padding:16px;display:none">
+            🚀 START GAME
+          </button>
+
+          <!-- TEST ONLY: Bot spawn button -->
+          <button class="btn" id="spawnBotsBtn" style="width:100%;padding:12px;margin-top:10px;background:rgba(255,165,0,.2);border-color:#ffa500;display:none">
+            🤖 ADD BOTS (TEST)
+          </button>
+
+          <button class="btn" id="leaveRoomBtn" style="width:100%;padding:12px;margin-top:10px;background:rgba(255,23,68,.1);border-color:#ff1744">
+            🚪 LEAVE ROOM
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <strong>💰 Wallet Required!</strong> All players must deposit their Solana wallet to be eligible for rewards.<br>
+        Race against other degens in real-time! 🏁💎
+      </div>
+    </div>
+  </div>
+
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
   <script>
   // ========= FIREBASE CONFIG =========
@@ -677,6 +811,7 @@
     apiKey: "AIzaSyDX9Cx7E5IAAUN8_OBT1a2-CJ0UMWbB7VY",
     authDomain: "pump-the-pill.firebaseapp.com",
     projectId: "pump-the-pill",
+    databaseURL: "https://pump-the-pill-default-rtdb.europe-west1.firebasedatabase.app", // URL Realtime Database
     storageBucket: "pump-the-pill.firebasestorage.app",
     messagingSenderId: "401092828647",
     appId: "1:401092828647:web:abc123" // Placeholder, remplace si tu as le vrai
@@ -685,6 +820,171 @@
   // Initialize Firebase
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
+  const rtdb = firebase.database();
+
+  // ========= ONLINE STATS TRACKING =========
+  let onlinePresenceRef = null;
+  let onlineCountRef = rtdb.ref('stats/onlinePlayers');
+  let totalGamesRef = rtdb.ref('stats/totalGames');
+
+  // Track online players
+  function initializeOnlinePresence() {
+    const sessionId = Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    onlinePresenceRef = rtdb.ref('presence/' + sessionId);
+
+    // Set user as online
+    onlinePresenceRef.set({
+      online: true,
+      lastSeen: firebase.database.ServerValue.TIMESTAMP
+    });
+
+    // Remove on disconnect
+    onlinePresenceRef.onDisconnect().remove();
+
+    // Listen to online count
+    rtdb.ref('presence').on('value', (snapshot) => {
+      const onlineCount = snapshot.numChildren();
+      document.getElementById('onlinePlayersBadge').textContent = `👥 Online: ${onlineCount}`;
+    });
+
+    // Listen to total games count
+    totalGamesRef.on('value', (snapshot) => {
+      const totalGames = snapshot.val() || 0;
+      document.getElementById('totalGamesBadge').textContent = `🎮 Games: ${totalGames}`;
+    });
+  }
+
+  // Increment total games counter
+  async function incrementTotalGames() {
+    try {
+      await totalGamesRef.transaction((current) => {
+        return (current || 0) + 1;
+      });
+    } catch (error) {
+      console.error('Error incrementing total games:', error);
+    }
+  }
+
+  // Initialize on page load
+  initializeOnlinePresence();
+
+  // ========= BOT SYSTEM FOR TESTING (REMOVE BEFORE PRODUCTION) =========
+  const ENABLE_BOTS = false; // Set to false to disable bots
+  let testBots = [];
+
+  function createTestBot(name, colorIndex) {
+    const botId = 'bot_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    return {
+      id: botId,
+      name: name,
+      colorIndex: colorIndex,
+      y: 270,
+      vy: 0,
+      score: 0,
+      alive: true,
+      wallet: 'BOT' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+      // Bot AI parameters
+      targetY: 270,
+      reactionTime: 0,
+      skill: 0.5 + Math.random() * 0.5 // 0.5 to 1.0 (difficulty)
+    };
+  }
+
+  async function spawnBotsInRoom(roomId, numBots) {
+    if (!ENABLE_BOTS) return;
+
+    const botNames = ['DegBot', 'Trencher', 'MoonBoi', 'DiamondAI'];
+    const roomRef = rtdb.ref('rooms/' + roomId);
+
+    for (let i = 0; i < numBots; i++) {
+      const bot = createTestBot(botNames[i] || `Bot${i+1}`, i + 1);
+      testBots.push(bot);
+
+      // Add bot to room
+      await roomRef.child('players/' + bot.id).set({
+        name: bot.name,
+        color: PLAYER_COLORS[bot.colorIndex],
+        wallet: bot.wallet,
+        ready: true,
+        alive: true,
+        score: 0,
+        y: bot.y,
+        vy: bot.vy
+      });
+
+      console.log('🤖 Bot spawned:', bot.name);
+    }
+  }
+
+  function updateBotAI(bot, obstacles, deltaTime, currentRoom) {
+    if (!bot.alive || !currentRoom) return;
+
+    // Find nearest obstacle
+    let nearestObstacle = null;
+    let minDist = Infinity;
+
+    for (let obs of obstacles) {
+      if (obs.x > 200 && obs.x < 600) {
+        const dist = obs.x - 200;
+        if (dist < minDist) {
+          minDist = dist;
+          nearestObstacle = obs;
+        }
+      }
+    }
+
+    // Calculate target Y position (center of gap)
+    if (nearestObstacle) {
+      const gapCenter = (nearestObstacle.top + nearestObstacle.bottom) / 2;
+      bot.targetY = gapCenter + (Math.random() - 0.5) * 30 * (1 - bot.skill);
+    } else {
+      bot.targetY = 270; // Center of screen
+    }
+
+    // Simple AI: thrust if below target
+    const threshold = 20 + (1 - bot.skill) * 40;
+    if (bot.y > bot.targetY + threshold) {
+      // Thrust up
+      bot.vy = -8.5;
+    }
+
+    // Apply physics (same as player)
+    bot.vy += 0.5; // gravity
+    bot.vy = Math.max(-10, Math.min(10, bot.vy)); // clamp
+    bot.y += bot.vy;
+
+    // Check collision
+    if (bot.y < 20 || bot.y > 520) {
+      bot.alive = false;
+      return;
+    }
+
+    // Check obstacle collision
+    for (let obs of obstacles) {
+      if (obs.x > 180 && obs.x < 220) { // Near bot position
+        if (bot.y < obs.top + 20 || bot.y > obs.bottom - 20) {
+          bot.alive = false;
+          return;
+        }
+      }
+    }
+
+    // Update score
+    bot.score += deltaTime * (2 + bot.score * 0.01) * 0.001;
+
+    // Update Firebase
+    rtdb.ref('rooms/' + currentRoom + '/players/' + bot.id).update({
+      y: bot.y,
+      vy: bot.vy,
+      score: bot.score,
+      alive: bot.alive
+    });
+  }
+
+  function clearTestBots() {
+    testBots = [];
+    console.log('🧹 Bots cleared');
+  }
 
   // ========= CONFIG =========
   const CFG = {
@@ -698,8 +998,606 @@
     spawnEvery: 1800,      // ms entre obstacles (≈ 1.8s, Flappy style)
     runTarget: 120,        // durée cible d'un run réussi (s) - 2 minutes
     pill: { r: 20, green:'#00d17a', white:'#ffffff' }, // Capsule 💊 Pump.fun (vert/blanc)
-    seed: Math.floor(Math.random()*1e9)
+    seed: Math.floor(Math.random()*1e9),
+    powerUpSpawnInterval: 8000, // Power-up toutes les 8 secondes
   };
+
+  // ========= POWER-UPS CONFIG =========
+  const POWER_UPS = {
+    MUSHROOM: {
+      id: 'mushroom',
+      emoji: '🍄',
+      name: 'Extra Life',
+      color: '#ff6b6b',
+      duration: 0 // Instant effect
+    },
+    CHRONO: {
+      id: 'chrono',
+      emoji: '⏰',
+      name: 'Time Slow',
+      color: '#4dabf7',
+      duration: 5000 // 5 seconds
+    },
+    STAR: {
+      id: 'star',
+      emoji: '⭐',
+      name: '2x Score',
+      color: '#ffd700',
+      duration: 8000 // 8 seconds
+    },
+    SHIELD: {
+      id: 'shield',
+      emoji: '🛡️',
+      name: 'Shield',
+      color: '#00d9ff',
+      duration: 0 // Instant - protects from 1 hit
+    },
+    SPEED: {
+      id: 'speed',
+      emoji: '⚡',
+      name: 'Speed Boost',
+      color: '#ffeb3b',
+      duration: 6000 // 6 seconds
+    },
+    FIRE: {
+      id: 'fire',
+      emoji: '🔥',
+      name: 'Fire Mode',
+      color: '#ff5722',
+      duration: 5000 // 5 seconds
+    },
+    TORNADO: {
+      id: 'tornado',
+      emoji: '🌀',
+      name: 'Tornado',
+      color: '#9c27b0',
+      duration: 0 // Instant effect
+    },
+    BOMB: {
+      id: 'bomb',
+      emoji: '💣',
+      name: 'Clear Screen',
+      color: '#000000',
+      duration: 0 // Instant effect
+    },
+    NITRO: {
+      id: 'nitro',
+      emoji: '🚀',
+      name: 'Nitro Boost',
+      color: '#00ffff',
+      duration: 3000 // 3 seconds
+    }
+  };
+
+  // ========= MULTIPLAYER SYSTEM =========
+  const PLAYER_COLORS = [
+    { name: 'Green', primary: '#00d17a', secondary: '#00ff88', depth: 1.0, xOffset: 0 }, // Front (normal size)
+    { name: 'Blue', primary: '#00b4ff', secondary: '#00e0ff', depth: 0.85, xOffset: -30 }, // Middle-back left
+    { name: 'Red', primary: '#ff1744', secondary: '#ff5252', depth: 0.85, xOffset: 30 }, // Middle-back right
+    { name: 'Yellow', primary: '#ffd700', secondary: '#ffed4e', depth: 0.7, xOffset: 0 }, // Far back (smaller)
+  ];
+
+  let isMultiplayer = false;
+  let currentRoom = null;
+  let playerId = null;
+  let playerColor = null;
+  let playerColorIndex = 0; // Store local player's color index
+  let roomRef = null;
+  let playerRef = null;
+  let otherPlayers = {};
+  let roomListener = null;
+  let availableRoomsListener = null;
+  let selectedMaxPlayers = 4; // Default: 4 players
+
+  function generateRoomId() {
+    return Math.random().toString(36).substring(2, 8).toUpperCase();
+  }
+
+  function generatePlayerId() {
+    return 'player_' + Math.random().toString(36).substring(2, 15);
+  }
+
+  function selectMaxPlayers(max) {
+    selectedMaxPlayers = max;
+
+    // Update button styles
+    document.querySelectorAll('.max-players-btn').forEach(btn => {
+      const btnMax = parseInt(btn.getAttribute('data-max'));
+      if (btnMax === max) {
+        btn.style.background = '#00d17a';
+        btn.style.borderColor = '#00d17a';
+        btn.style.color = '#000';
+        btn.classList.add('selected');
+      } else {
+        btn.style.background = 'rgba(0,209,122,.1)';
+        btn.style.borderColor = 'rgba(0,209,122,.3)';
+        btn.style.color = 'var(--text)';
+        btn.classList.remove('selected');
+      }
+    });
+  }
+
+  function openMultiplayerModal() {
+    document.getElementById('multiplayerModal').classList.add('show');
+    document.getElementById('playerNameInput').value = localStorage.getItem('pill_player_name') || '';
+    document.getElementById('multiplayerWalletInput').value = playerWallet || '';
+
+    if (playerWallet) {
+      document.getElementById('multiplayerWalletStatus').textContent = '✅ Wallet saved';
+      document.getElementById('multiplayerWalletStatus').style.color = '#00d17a';
+    } else {
+      document.getElementById('multiplayerWalletStatus').textContent = '';
+    }
+
+    // Start listening to available rooms
+    listenToAvailableRooms();
+  }
+
+  function listenToAvailableRooms() {
+    if (availableRoomsListener) return; // Already listening
+
+    const roomsRef = rtdb.ref('rooms');
+
+    availableRoomsListener = roomsRef.on('value', (snapshot) => {
+      const rooms = snapshot.val();
+      updateAvailableRoomsList(rooms);
+    });
+  }
+
+  function updateAvailableRoomsList(rooms) {
+    const listEl = document.getElementById('availableRoomsList');
+    const countEl = document.getElementById('roomsCount');
+
+    if (!rooms) {
+      listEl.innerHTML = '<div style="text-align:center;padding:20px;opacity:.5;font-size:13px">No rooms available. Create one! 🎮</div>';
+      countEl.textContent = '0';
+      return;
+    }
+
+    // Filter only waiting rooms
+    const availableRooms = Object.entries(rooms).filter(([id, room]) => {
+      const playerCount = Object.keys(room.players || {}).length;
+      const maxPlayers = room.maxPlayers || 4;
+      return room.status === 'waiting' && playerCount < maxPlayers;
+    });
+
+    countEl.textContent = availableRooms.length;
+
+    if (availableRooms.length === 0) {
+      listEl.innerHTML = '<div style="text-align:center;padding:20px;opacity:.5;font-size:13px">No rooms available. Create one! 🎮</div>';
+      return;
+    }
+
+    listEl.innerHTML = availableRooms.map(([roomId, room]) => {
+      const playerCount = Object.keys(room.players || {}).length;
+      const maxPlayers = room.maxPlayers || 4;
+      const playersArray = Object.values(room.players || {});
+      const hostName = playersArray[0]?.name || 'Unknown';
+      const timeAgo = getTimeAgo(room.createdAt);
+
+      // Get player colors dots
+      const colorDots = playersArray.map(p =>
+        `<div style="width:12px;height:12px;border-radius:50%;background:${p.color.primary};box-shadow:0 0 6px ${p.color.primary}"></div>`
+      ).join('');
+
+      return `
+        <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(0,209,122,.05);border-radius:8px;border:1px solid rgba(0,209,122,.2);cursor:pointer;transition:.2s"
+             onmouseover="this.style.background='rgba(0,209,122,.1)'; this.style.borderColor='rgba(0,209,122,.4)'"
+             onmouseout="this.style.background='rgba(0,209,122,.05)'; this.style.borderColor='rgba(0,209,122,.2)'"
+             onclick="quickJoinRoom('${roomId}')">
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <span style="font-weight:700;font-size:16px;color:#00d17a">${roomId}</span>
+              <span style="font-size:11px;opacity:.6">${timeAgo}</span>
+            </div>
+            <div style="font-size:12px;opacity:.8">Host: ${hostName}</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
+              ${colorDots}
+              <span style="font-size:11px;opacity:.7">${playerCount}/${maxPlayers} players</span>
+            </div>
+          </div>
+          <button class="btn" style="padding:8px 16px;font-size:12px" onclick="event.stopPropagation(); quickJoinRoom('${roomId}')">
+            JOIN →
+          </button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function quickJoinRoom(roomId) {
+    const playerName = document.getElementById('playerNameInput').value.trim() || 'Anonymous Degen';
+    const walletAddress = document.getElementById('multiplayerWalletInput').value.trim();
+    const statusEl = document.getElementById('multiplayerWalletStatus');
+
+    // Validate wallet address
+    if (!walletAddress) {
+      statusEl.textContent = '❌ Wallet required to join';
+      statusEl.style.color = '#ff1744';
+      return;
+    }
+
+    if (!validateSolanaAddress(walletAddress)) {
+      statusEl.textContent = '❌ Invalid Solana address';
+      statusEl.style.color = '#ff1744';
+      return;
+    }
+
+    // Save wallet and player name
+    playerWallet = walletAddress;
+    localStorage.setItem('pill_wallet', walletAddress);
+    localStorage.setItem('pill_player_name', playerName);
+
+    try {
+      roomRef = rtdb.ref('rooms/' + roomId);
+      const snapshot = await roomRef.once('value');
+
+      if (!snapshot.exists()) {
+        alert('Room not found or closed!');
+        return;
+      }
+
+      const roomData = snapshot.val();
+      const playerCount = Object.keys(roomData.players || {}).length;
+      const maxPlayers = roomData.maxPlayers || 4;
+
+      if (playerCount >= maxPlayers) {
+        alert('Room is full!');
+        return;
+      }
+
+      if (roomData.status !== 'waiting') {
+        alert('Game already started!');
+        return;
+      }
+
+      currentRoom = roomId;
+      playerId = generatePlayerId();
+      playerColor = PLAYER_COLORS[playerCount];
+      playerColorIndex = playerCount; // Store locally
+
+      await roomRef.child('players/' + playerId).set({
+        name: playerName,
+        color: playerColor,
+        colorIndex: playerCount, // Store color index for consistent offset
+        wallet: playerWallet,
+        ready: true,
+        alive: true,
+        score: 0,
+        y: canvas.height / 2,
+        vy: 0
+      });
+
+      // Hide available rooms, show room info
+      document.getElementById('availableRoomsSection').style.display = 'none';
+      document.getElementById('currentRoomId').textContent = currentRoom;
+      document.getElementById('roomInfo').style.display = 'block';
+
+      document.getElementById('startMultiplayerBtn').style.display =
+        (roomData.host === playerId) ? 'block' : 'none';
+
+      listenToRoom();
+      console.log('✅ Joined room successfully!');
+    } catch (error) {
+      console.error('Error joining room:', error);
+      alert('Failed to join room: ' + error.message);
+    }
+  }
+
+  function closeMultiplayerModal() {
+    document.getElementById('multiplayerModal').classList.remove('show');
+  }
+
+  async function createRoom() {
+    const playerName = document.getElementById('playerNameInput').value.trim() || 'Anonymous Degen';
+    const walletAddress = document.getElementById('multiplayerWalletInput').value.trim();
+    const statusEl = document.getElementById('multiplayerWalletStatus');
+
+    // Validate wallet address
+    if (!walletAddress) {
+      statusEl.textContent = '❌ Wallet required for multiplayer rewards';
+      statusEl.style.color = '#ff1744';
+      return;
+    }
+
+    if (!validateSolanaAddress(walletAddress)) {
+      statusEl.textContent = '❌ Invalid Solana address (32-44 base58 characters)';
+      statusEl.style.color = '#ff1744';
+      return;
+    }
+
+    // Save wallet and player name
+    playerWallet = walletAddress;
+    localStorage.setItem('pill_wallet', walletAddress);
+    localStorage.setItem('pill_player_name', playerName);
+
+    currentRoom = generateRoomId();
+    playerId = generatePlayerId();
+    playerColor = PLAYER_COLORS[0]; // Host gets green
+    playerColorIndex = 0; // Store locally
+
+    const roomData = {
+      id: currentRoom,
+      host: playerId,
+      maxPlayers: selectedMaxPlayers,
+      seed: Math.floor(Math.random() * 1e9),
+      status: 'waiting', // waiting, countdown, playing, finished
+      createdAt: Date.now(),
+      players: {
+        [playerId]: {
+          name: playerName,
+          color: playerColor,
+          colorIndex: 0, // Host gets index 0
+          wallet: playerWallet,
+          ready: true,
+          alive: true,
+          score: 0,
+          y: canvas.height / 2,
+          vy: 0
+        }
+      }
+    };
+
+    try {
+      console.log('🔥 Creating room:', currentRoom);
+      console.log('🔥 Room data:', roomData);
+
+      roomRef = rtdb.ref('rooms/' + currentRoom);
+      await roomRef.set(roomData);
+
+      console.log('✅ Room created successfully!');
+
+      document.getElementById('currentRoomId').textContent = currentRoom;
+      document.getElementById('roomIdSection').style.display = 'none';
+      document.getElementById('availableRoomsSection').style.display = 'none';
+      document.getElementById('roomInfo').style.display = 'block';
+      document.getElementById('startMultiplayerBtn').style.display = 'block';
+
+      // Show bot spawn button for host (TEST ONLY)
+      document.getElementById('spawnBotsBtn').style.display = ENABLE_BOTS ? 'block' : 'none';
+
+      listenToRoom();
+    } catch (error) {
+      console.error('❌ Error creating room:', error);
+      statusEl.textContent = '❌ Error: ' + error.message;
+      statusEl.style.color = '#ff1744';
+      alert('Failed to create room: ' + error.message + '\n\nMake sure Firebase Realtime Database is enabled in your Firebase Console.');
+    }
+  }
+
+  async function joinRoom() {
+    document.getElementById('roomIdSection').style.display = 'block';
+  }
+
+  async function joinRoomConfirm() {
+    const roomId = document.getElementById('roomIdInput').value.trim().toUpperCase();
+    const playerName = document.getElementById('playerNameInput').value.trim() || 'Anonymous Degen';
+    const walletAddress = document.getElementById('multiplayerWalletInput').value.trim();
+    const statusEl = document.getElementById('multiplayerWalletStatus');
+
+    if (!roomId) {
+      alert('Please enter a room ID');
+      return;
+    }
+
+    // Validate wallet address
+    if (!walletAddress) {
+      statusEl.textContent = '❌ Wallet required for multiplayer rewards';
+      statusEl.style.color = '#ff1744';
+      return;
+    }
+
+    if (!validateSolanaAddress(walletAddress)) {
+      statusEl.textContent = '❌ Invalid Solana address (32-44 base58 characters)';
+      statusEl.style.color = '#ff1744';
+      return;
+    }
+
+    // Save wallet and player name
+    playerWallet = walletAddress;
+    localStorage.setItem('pill_wallet', walletAddress);
+    localStorage.setItem('pill_player_name', playerName);
+
+    try {
+      roomRef = rtdb.ref('rooms/' + roomId);
+      const snapshot = await roomRef.once('value');
+
+      if (!snapshot.exists()) {
+        alert('Room not found!');
+        return;
+      }
+
+      const roomData = snapshot.val();
+      const playerCount = Object.keys(roomData.players || {}).length;
+      const maxPlayers = roomData.maxPlayers || 4;
+
+      if (playerCount >= maxPlayers) {
+        alert(`Room is full! (Max ${maxPlayers} players)`);
+        return;
+      }
+
+      if (roomData.status !== 'waiting') {
+        alert('Game already started!');
+        return;
+      }
+
+      currentRoom = roomId;
+      playerId = generatePlayerId();
+      playerColor = PLAYER_COLORS[playerCount]; // Assign next available color
+      playerColorIndex = playerCount; // Store locally
+
+      await roomRef.child('players/' + playerId).set({
+        name: playerName,
+        color: playerColor,
+        colorIndex: playerCount, // Store color index for consistent offset
+        wallet: playerWallet,
+        ready: true,
+        alive: true,
+        score: 0,
+        y: canvas.height / 2,
+        vy: 0
+      });
+
+      document.getElementById('currentRoomId').textContent = currentRoom;
+      document.getElementById('roomIdSection').style.display = 'none';
+      document.getElementById('roomInfo').style.display = 'block';
+
+      // Only host can start the game
+      document.getElementById('startMultiplayerBtn').style.display =
+        (roomData.host === playerId) ? 'block' : 'none';
+
+      // Show bot spawn button for host (TEST ONLY)
+      document.getElementById('spawnBotsBtn').style.display =
+        (ENABLE_BOTS && roomData.host === playerId) ? 'block' : 'none';
+
+      listenToRoom();
+    } catch (error) {
+      console.error('Error joining room:', error);
+      alert('Failed to join room. Please try again.');
+    }
+  }
+
+  function listenToRoom() {
+    if (!roomRef) return;
+
+    roomListener = roomRef.on('value', (snapshot) => {
+      if (!snapshot.exists()) {
+        alert('Room closed!');
+        leaveRoom();
+        return;
+      }
+
+      const roomData = snapshot.val();
+      const players = roomData.players || {};
+      const maxPlayers = roomData.maxPlayers || 4;
+
+      // Update max player count display
+      document.getElementById('maxPlayerCount').textContent = maxPlayers;
+
+      // Update players list UI
+      updatePlayersListUI(players);
+
+      // Update other players data
+      otherPlayers = {};
+      for (const pid in players) {
+        if (pid !== playerId) {
+          otherPlayers[pid] = players[pid];
+        }
+      }
+
+      // Check if game should start
+      if (roomData.status === 'countdown' && state !== 'countdown' && state !== 'play') {
+        CFG.seed = roomData.seed;
+        isMultiplayer = true;
+        closeMultiplayerModal();
+        startCountdown();
+      }
+
+      // Update player positions in multiplayer
+      if (isMultiplayer && state === 'play') {
+        // Sync will happen in the render loop
+      }
+    });
+
+    // Setup disconnect handler
+    playerRef = roomRef.child('players/' + playerId);
+    playerRef.onDisconnect().remove();
+  }
+
+  function updatePlayersListUI(players) {
+    const listEl = document.getElementById('playersList');
+    const countEl = document.getElementById('playerCount');
+
+    const playerArray = Object.entries(players || {});
+    countEl.textContent = playerArray.length;
+
+    listEl.innerHTML = playerArray.map(([pid, player]) => {
+      const isYou = pid === playerId;
+      const colorDot = `<div style="width:20px;height:20px;border-radius:50%;background:${player.color.primary};box-shadow:0 0 10px ${player.color.primary}"></div>`;
+
+      // Format wallet address
+      let walletBadge = '';
+      if (player.wallet) {
+        const walletShort = player.wallet.substring(0, 4) + '...' + player.wallet.substring(player.wallet.length - 4);
+        walletBadge = `<div style="font-size:10px;color:#ffd700;opacity:.8">💰 ${walletShort}</div>`;
+      } else {
+        walletBadge = `<div style="font-size:10px;color:#ff1744;opacity:.8">⚠️ No wallet</div>`;
+      }
+
+      return `
+        <div style="display:flex;align-items:center;gap:12px;padding:10px;background:rgba(255,255,255,.05);border-radius:8px;border:1px solid rgba(255,255,255,.08)">
+          ${colorDot}
+          <div style="flex:1">
+            <div style="font-weight:600">${player.name}${isYou ? ' (You)' : ''}</div>
+            ${walletBadge}
+          </div>
+          <span style="opacity:.7;font-size:12px;color:${player.color.primary}">${player.color.name}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function startMultiplayerGame() {
+    if (!roomRef) return;
+
+    try {
+      await roomRef.update({ status: 'countdown' });
+    } catch (error) {
+      console.error('Error starting game:', error);
+    }
+  }
+
+  async function leaveRoom() {
+    if (playerRef) {
+      await playerRef.remove();
+    }
+    if (roomListener && roomRef) {
+      roomRef.off('value', roomListener);
+    }
+
+    currentRoom = null;
+    playerId = null;
+    playerColor = null;
+    roomRef = null;
+    playerRef = null;
+    otherPlayers = {};
+    isMultiplayer = false;
+
+    // Clear test bots
+    clearTestBots();
+
+    document.getElementById('roomInfo').style.display = 'none';
+    document.getElementById('roomIdSection').style.display = 'none';
+    document.getElementById('availableRoomsSection').style.display = 'block';
+
+    // Refresh available rooms list
+    listenToAvailableRooms();
+  }
+
+  async function updatePlayerPosition() {
+    if (!isMultiplayer || !playerRef || state !== 'play') return;
+
+    try {
+      await playerRef.update({
+        y: player.y,
+        vy: player.vy,
+        score: score,
+        alive: state === 'play'
+      });
+    } catch (error) {
+      console.error('Error updating position:', error);
+    }
+  }
+
+  // Copy room ID to clipboard
+  async function copyRoomId() {
+    const roomId = document.getElementById('currentRoomId').textContent;
+    try {
+      await navigator.clipboard.writeText(roomId);
+      alert('📋 Room ID copied! Share it with your friends!');
+    } catch (e) {
+      alert('Room ID: ' + roomId);
+    }
+  }
 
   // ========= STATE =========
   const canvas = document.getElementById('game');
@@ -708,7 +1606,6 @@
   const pumpEl = document.getElementById('pump');
   const pumpBar = document.getElementById('pumpBar');
   const bestBadge = document.getElementById('bestBadge');
-  const seedBadge = document.getElementById('seedBadge');
 
   let state = 'menu'; // 'menu' | 'play' | 'pause' | 'over' | 'countdown'
   let last = 0, accSpawn = 0, elapsed = 0;
@@ -717,11 +1614,36 @@
   let pump = 0; // 0..100
   let pressing = false;
   let rng = mulberry32(CFG.seed);
-  seedBadge.textContent = '🎲 Seed: '+CFG.seed;
-  bestBadge.textContent = '🏆 Best: ' + best;
+  bestBadge.textContent = '🏆 Best: ' + Math.floor(best);
 
   const player = { x: 200, y: canvas.height/2, vy: 0 };
   let countdownValue = 3;
+
+  // Helper function to get player X with nitro boost
+  function getPlayerX() {
+    const nitroOffset = playerPowerUps.nitroActive ? 80 : 0; // Move 80px forward with nitro
+    return player.x + nitroOffset;
+  }
+
+  // ========= POWER-UPS STATE =========
+  let powerUps = []; // Active power-ups on screen
+  let accPowerUp = 0; // Accumulator for power-up spawning
+  let lastPowerUpId = null; // Track last spawned power-up to avoid repetition
+  let playerPowerUps = {
+    hasExtraLife: false,
+    chronoActive: false,
+    chronoEnd: 0,
+    starActive: false,
+    starEnd: 0,
+    slowedByOthers: false, // If other players used chrono
+    hasShield: false,
+    speedActive: false,
+    speedEnd: 0,
+    fireActive: false,
+    fireEnd: 0,
+    nitroActive: false,
+    nitroEnd: 0
+  };
 
   // ========= WALLET SYSTEM =========
   let playerWallet = localStorage.getItem('pill_wallet') || '';
@@ -1012,9 +1934,31 @@
   function start(){
     state='play';
     last=performance.now();
-    accSpawn=0; elapsed=0; score=0; pump=0;
-    obstacles.length=0; rng = mulberry32(CFG.seed);
+    accSpawn=0; accPowerUp=0; elapsed=0; score=0; pump=0;
+    obstacles.length=0; powerUps.length=0; rng = mulberry32(CFG.seed);
+    lastPowerUpId = null; // Reset last power-up
     player.y=canvas.height/2; player.vy=0;
+
+    // Reset power-ups
+    playerPowerUps = {
+      hasExtraLife: false,
+      chronoActive: false,
+      chronoEnd: 0,
+      starActive: false,
+      starEnd: 0,
+      slowedByOthers: false,
+      hasShield: false,
+      speedActive: false,
+      speedEnd: 0,
+      fireActive: false,
+      fireEnd: 0,
+      nitroActive: false,
+      nitroEnd: 0
+    };
+
+    // Increment total games counter
+    incrementTotalGames();
+
     requestAnimationFrame(loop);
   }
 
@@ -1024,12 +1968,185 @@
     if(state==='play'){ last=performance.now(); requestAnimationFrame(loop);}
   }
 
-  function gameOver(){
+  function activatePowerUp(powerUp){
+    console.log('🎁 Power-up collected:', powerUp.name);
+
+    switch(powerUp.id){
+      case 'mushroom':
+        // Extra life
+        playerPowerUps.hasExtraLife = true;
+        showPowerUpNotification('🍄 Extra Life! One free respawn');
+        break;
+
+      case 'chrono':
+        // Slow down other players
+        playerPowerUps.chronoActive = true;
+        playerPowerUps.chronoEnd = Date.now() + powerUp.duration;
+        showPowerUpNotification('⏰ Time Slow! Others slowed for 5s');
+
+        // Notify other players via Firebase
+        if(isMultiplayer && playerRef){
+          playerRef.update({
+            chronoActive: true,
+            chronoEnd: playerPowerUps.chronoEnd
+          });
+        }
+        break;
+
+      case 'star':
+        // 2x score boost
+        playerPowerUps.starActive = true;
+        playerPowerUps.starEnd = Date.now() + powerUp.duration;
+        showPowerUpNotification('⭐ 2x Score Boost for 8s!');
+        break;
+
+      case 'shield':
+        // Shield - protects from 1 hit
+        playerPowerUps.hasShield = true;
+        showPowerUpNotification('🛡️ Shield Active! Blocks 1 hit');
+        break;
+
+      case 'speed':
+        // Speed boost - faster flight
+        playerPowerUps.speedActive = true;
+        playerPowerUps.speedEnd = Date.now() + powerUp.duration;
+        showPowerUpNotification('⚡ Speed Boost for 6s!');
+        break;
+
+      case 'fire':
+        // Fire mode - destroys obstacles in range
+        playerPowerUps.fireActive = true;
+        playerPowerUps.fireEnd = Date.now() + powerUp.duration;
+        showPowerUpNotification('🔥 Fire Mode! Destroy obstacles!');
+        break;
+
+      case 'tornado':
+        // Tornado - shuffles all players positions
+        if(isMultiplayer){
+          showPowerUpNotification('🌀 Tornado! Positions shuffled!');
+          // Notify all players via Firebase
+          if(playerRef){
+            playerRef.update({
+              tornadoTriggered: Date.now()
+            });
+          }
+        } else {
+          showPowerUpNotification('🌀 Tornado! (Multiplayer only)');
+        }
+        break;
+
+      case 'bomb':
+        // Bomb - clears all obstacles in front of the player
+        const beforeCount = obstacles.length;
+        obstacles = obstacles.filter(o => o.x <= player.x || o.x > player.x + 600);
+        const clearedCount = beforeCount - obstacles.length;
+        showPowerUpNotification(`💣 Boom! Cleared ${clearedCount} obstacles ahead!`);
+        break;
+
+      case 'nitro':
+        // Nitro - temporarily moves player forward faster
+        playerPowerUps.nitroActive = true;
+        playerPowerUps.nitroEnd = Date.now() + POWER_UPS.NITRO.duration;
+        showPowerUpNotification('🚀 Nitro Boost! Moving forward faster!');
+        break;
+    }
+  }
+
+  function showPowerUpNotification(message){
+    // Create floating notification
+    const notification = document.createElement('div');
+    notification.textContent = message;
+    notification.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,209,122,.95);
+      color: #000;
+      padding: 16px 24px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 18px;
+      z-index: 10000;
+      box-shadow: 0 0 30px rgba(0,209,122,.6);
+      animation: powerUpPop 0.5s ease;
+    `;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+      notification.style.opacity = '0';
+      notification.style.transition = 'opacity 0.3s';
+      setTimeout(() => notification.remove(), 300);
+    }, 2000);
+  }
+
+  function handleDeath(){
+    // Check shield first
+    if(playerPowerUps.hasShield){
+      playerPowerUps.hasShield = false;
+      showPowerUpNotification('🛡️ Shield Blocked the hit!');
+
+      // Flash effect
+      canvas.classList.add('shake');
+      setTimeout(() => canvas.classList.remove('shake'), 300);
+
+      return true; // Continue playing!
+    }
+
+    // Check extra life
+    if(playerPowerUps.hasExtraLife){
+      playerPowerUps.hasExtraLife = false;
+      player.y = canvas.height / 2;
+      player.vy = 0;
+      showPowerUpNotification('🍄 Extra Life Used! Keep going!');
+
+      // Flash effect
+      canvas.classList.add('shake');
+      setTimeout(() => canvas.classList.remove('shake'), 500);
+
+      // Remove obstacles near player to give breathing room
+      obstacles = obstacles.filter(o => o.x < player.x - 100 || o.x > player.x + 300);
+
+      return true; // Continue playing!
+    }
+
+    // No extra life, game over
+    gameOver();
+    return false; // Stop game loop
+  }
+
+  async function gameOver(){
     state='over';
-    localStorage.setItem('pill_best', Math.max(best,score));
+    localStorage.setItem('pill_best', Math.floor(Math.max(best,score)));
     best = Math.max(best,score);
-    bestBadge.textContent = '🏆 Best: ' + best;
+    bestBadge.textContent = '🏆 Best: ' + Math.floor(best);
     saveToLeaderboard(score); // Ajouter au leaderboard
+
+    // Save multiplayer match result
+    if (isMultiplayer && playerRef) {
+      try {
+        await playerRef.update({
+          alive: false,
+          finalScore: Math.floor(score),
+          gameOverTime: Date.now()
+        });
+
+        // If this was a multiplayer game, save match result
+        if (currentRoom && playerWallet) {
+          await db.collection('multiplayerMatches').add({
+            roomId: currentRoom,
+            playerId: playerId,
+            playerWallet: playerWallet,
+            score: Math.floor(score),
+            timestamp: Date.now(),
+            seed: CFG.seed
+          });
+          console.log('✅ Multiplayer match result saved for rewards!');
+        }
+      } catch (error) {
+        console.error('Error saving multiplayer result:', error);
+      }
+    }
 
     // Effet de tremblement sur le canvas
     canvas.classList.add('shake');
@@ -1046,6 +2163,8 @@
     const finalScoreEl = document.getElementById('finalScore');
     const finalBestEl = document.getElementById('finalBest');
     const finalRankEl = document.getElementById('finalRank');
+    const leaveRoomBtn = document.getElementById('leaveRoomBtn');
+    const restartBtn = document.getElementById('restartGameBtn');
 
     // Remplir les stats
     finalScoreEl.textContent = Math.floor(score);
@@ -1056,6 +2175,17 @@
     if(score >= 40) rank = '👑 Degen Legend';
     else if(score >= 20) rank = '💎 Diamond Hands';
     finalRankEl.textContent = rank;
+
+    // Show/hide buttons based on multiplayer mode
+    if (isMultiplayer) {
+      leaveRoomBtn.style.display = 'block';
+      restartBtn.style.display = 'none'; // Hide restart in multiplayer
+    } else {
+      leaveRoomBtn.style.display = 'none';
+      restartBtn.style.display = 'block';
+      restartBtn.textContent = '🔄 PLAY AGAIN';
+      restartBtn.style.background = '#00d17a';
+    }
 
     modal.classList.add('show');
   }
@@ -1070,15 +2200,25 @@
     const dtS = dt/1000; // seconds
     elapsed += dtS; accSpawn += dt;
 
+    // Update bots AI (TEST ONLY)
+    if (ENABLE_BOTS && isMultiplayer && testBots.length > 0) {
+      for (let bot of testBots) {
+        updateBotAI(bot, obstacles, dt, currentRoom);
+      }
+    }
+
     // ramp up difficulty to hit 10–15s runs
     const t = Math.min(1, elapsed/CFG.runTarget);
     const speed = CFG.speed + CFG.speedGain * elapsed * 6;
     const gap = Math.max(CFG.gapMin, CFG.tubeGap - 90 * t);
 
     // physics (Flappy Bird style - gravity always pulls down)
-    player.vy += CFG.gravity;
+    const gravityMod = playerPowerUps.speedActive ? 0.7 : 1; // Less gravity with speed
+    player.vy += CFG.gravity * gravityMod;
     player.vy = clamp(player.vy, -CFG.maxVy, CFG.maxVy);
-    player.y += player.vy;
+
+    const speedMod = playerPowerUps.speedActive ? 1.3 : 1; // Faster movement
+    player.y += player.vy * speedMod;
 
     // spawn obstacles
     if(accSpawn >= CFG.spawnEvery){
@@ -1086,29 +2226,129 @@
       const mid = 0.30 + rng()*0.40; // between 30% and 70% of canvas
       const center = mid * canvas.height;
       const half = gap/2;
-      obstacles.push({ x: canvas.width+40, top: center - half, bottom: center + half, w: 70 });
+      obstacles.push({
+        x: canvas.width+40,
+        top: center - half,
+        bottom: center + half,
+        w: 70,
+        initialCenter: center, // Store initial position for animation
+        waveOffset: rng() * Math.PI * 2 // Random wave offset for variety
+      });
+    }
+
+    // spawn power-ups (only in multiplayer)
+    if(isMultiplayer){
+      accPowerUp += dt;
+      if(accPowerUp >= CFG.powerUpSpawnInterval){
+        accPowerUp = 0;
+        const powerUpTypes = Object.values(POWER_UPS);
+
+        // Filter out the last power-up to avoid repetition
+        let availablePowerUps = powerUpTypes;
+        if(lastPowerUpId && powerUpTypes.length > 1){
+          availablePowerUps = powerUpTypes.filter(p => p.id !== lastPowerUpId);
+        }
+
+        // Select random power-up from available ones
+        const randomPowerUp = availablePowerUps[Math.floor(rng() * availablePowerUps.length)];
+        lastPowerUpId = randomPowerUp.id; // Remember this power-up
+
+        const yPos = 100 + rng() * (canvas.height - 200);
+
+        powerUps.push({
+          ...randomPowerUp,
+          x: canvas.width + 50,
+          y: yPos,
+          size: 30,
+          collected: false
+        });
+      }
     }
 
     // move + collide
     for(let i=obstacles.length-1;i>=0;i--){
       const o = obstacles[i];
       o.x -= speed;
+
+      // Animate obstacles in multiplayer (wave motion)
+      if(isMultiplayer){
+        const waveTime = elapsed * 0.8 + o.waveOffset; // Slower wave
+        const amplitude = 15; // Vertical movement amplitude
+        const waveY = Math.sin(waveTime) * amplitude;
+
+        // Update top and bottom based on wave
+        const center = o.initialCenter + waveY;
+        const half = gap / 2;
+        o.top = center - half;
+        o.bottom = center + half;
+      }
+
+      // Fire mode - destroy obstacles in range
+      if(playerPowerUps.fireActive){
+        const distToObstacle = Math.abs(o.x - player.x);
+        if(distToObstacle < 150){
+          obstacles.splice(i,1);
+          continue; // Skip to next obstacle
+        }
+      }
+
       if(o.x+o.w < 0) obstacles.splice(i,1);
     }
 
+    // move power-ups
+    for(let i=powerUps.length-1;i>=0;i--){
+      const p = powerUps[i];
+      p.x -= speed * 0.8; // Slightly slower than obstacles
+      if(p.x + p.size < 0) powerUps.splice(i,1);
+
+      // Check collision with player
+      if(!p.collected){
+        const playerX = getPlayerX();
+        const dist = Math.hypot(playerX - p.x, player.y - p.y);
+        if(dist < CFG.pill.r + p.size/2){
+          p.collected = true;
+          activatePowerUp(p);
+          powerUps.splice(i,1);
+        }
+      }
+    }
+
+    // Update power-up timers
+    const now = Date.now();
+    if(playerPowerUps.chronoActive && now > playerPowerUps.chronoEnd){
+      playerPowerUps.chronoActive = false;
+    }
+    if(playerPowerUps.starActive && now > playerPowerUps.starEnd){
+      playerPowerUps.starActive = false;
+    }
+    if(playerPowerUps.speedActive && now > playerPowerUps.speedEnd){
+      playerPowerUps.speedActive = false;
+    }
+    if(playerPowerUps.fireActive && now > playerPowerUps.fireEnd){
+      playerPowerUps.fireActive = false;
+    }
+    if(playerPowerUps.nitroActive && now > playerPowerUps.nitroEnd){
+      playerPowerUps.nitroActive = false;
+    }
+
     // scoring & pump
-    score += dtS * (2 + t*3); // score by time & difficulty
+    let scoreMultiplier = playerPowerUps.starActive ? 2 : 1;
+    if (playerPowerUps.nitroActive) scoreMultiplier *= 1.5; // Extra bonus with nitro
+    score += dtS * (2 + t*3) * scoreMultiplier; // score by time & difficulty
     pump = Math.min(100, (elapsed/CFG.runTarget)*100);
 
     // collisions with walls
-    if(player.y < 0 || player.y > canvas.height) return gameOver();
+    if(player.y < 0 || player.y > canvas.height){
+      if(!handleDeath()) return;
+    }
 
     // collisions with obstacles (tubes)
+    const playerX = getPlayerX();
     for(const o of obstacles){
-      if(player.x > o.x-20 && player.x < o.x + o.w + 20){
+      if(playerX > o.x-20 && playerX < o.x + o.w + 20){
         // inside obstacle column
         if(player.y < o.top || player.y > o.bottom){
-          return gameOver();
+          if(!handleDeath()) return;
         }
       }
     }
@@ -1120,6 +2360,11 @@
     scoreEl.textContent = Math.floor(score);
     pumpEl.textContent = Math.floor(pump);
     pumpBar.style.width = pump+'%';
+
+    // Update multiplayer position (throttled to every ~100ms)
+    if (isMultiplayer && Math.random() < 0.1) {
+      updatePlayerPosition();
+    }
 
     requestAnimationFrame(loop);
   }
@@ -1136,8 +2381,72 @@
     // obstacles
     obstacles.forEach(o=> drawObstacle(ctx,o));
 
-    // player (pill)
-    drawPill(ctx, player.x, player.y, CFG.pill.r);
+    // Draw power-ups
+    powerUps.forEach(p=> drawPowerUp(ctx, p));
+
+    // Draw other players in multiplayer (sorted by depth - back to front)
+    if (isMultiplayer) {
+      // Create array of other players with their data
+      const playersToRender = [];
+      for (const pid in otherPlayers) {
+        const otherPlayer = otherPlayers[pid];
+        if (otherPlayer.alive) {
+          playersToRender.push({ pid, data: otherPlayer });
+        }
+      }
+
+      // Sort by depth (smaller depth = farther back, drawn first)
+      playersToRender.sort((a, b) => {
+        const depthA = a.data.color.depth || 1;
+        const depthB = b.data.color.depth || 1;
+        return depthA - depthB;
+      });
+
+      // Draw each player with depth effect
+      for (const playerObj of playersToRender) {
+        const otherPlayer = playerObj.data;
+        const depth = otherPlayer.color.depth || 1;
+        const xOffset = otherPlayer.color.xOffset || 0;
+
+        // Calculate adjusted position and size
+        const adjustedX = player.x + xOffset;
+        const adjustedRadius = CFG.pill.r * depth;
+
+        // Draw with slight opacity for depth effect
+        const opacity = 0.7 + (depth * 0.3); // 0.7 to 1.0
+        ctx.globalAlpha = opacity;
+
+        drawPill(ctx, adjustedX, otherPlayer.y, adjustedRadius, otherPlayer.color, otherPlayer.vy || 0);
+
+        // Draw player name above pill
+        ctx.save();
+        ctx.fillStyle = otherPlayer.color.primary;
+        ctx.font = `bold ${Math.floor(12 * depth)}px system-ui`;
+        ctx.textAlign = 'center';
+        ctx.shadowColor = 'rgba(0,0,0,.8)';
+        ctx.shadowBlur = 4;
+        ctx.fillText(otherPlayer.name, adjustedX, otherPlayer.y - (35 * depth));
+        ctx.restore();
+
+        ctx.globalAlpha = 1.0; // Reset
+      }
+    }
+
+    // player (pill) - Draw local player last so it's on top
+    const playerX = getPlayerX();
+    drawPill(ctx, playerX, player.y, CFG.pill.r, playerColor, player.vy);
+
+    // Draw local player name in multiplayer
+    if (isMultiplayer && playerColor) {
+      ctx.save();
+      ctx.fillStyle = playerColor.primary;
+      ctx.font = 'bold 12px system-ui';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = 'rgba(0,0,0,.8)';
+      ctx.shadowBlur = 4;
+      ctx.fillText('You', playerX, player.y - 35);
+      ctx.restore();
+    }
 
     // vignette
     const g = ctx.createLinearGradient(0,0,0,h);
@@ -1156,6 +2465,155 @@
     ctx.fillText('Score '+Math.floor(score), 16, 26);
     ctx.fillText('Pump '+Math.floor(pump)+'%', w-150, 26);
 
+    // Draw active power-ups indicators
+    let powerUpY = 60;
+    if(playerPowerUps.hasExtraLife){
+      ctx.save();
+      ctx.font = '24px Arial';
+      ctx.fillText('🍄', 20, powerUpY);
+      ctx.font = 'bold 14px system-ui';
+      ctx.fillStyle = '#ff6b6b';
+      ctx.fillText('Extra Life', 50, powerUpY + 5);
+      ctx.restore();
+      powerUpY += 35;
+    }
+    if(playerPowerUps.hasShield){
+      ctx.save();
+      ctx.font = '24px Arial';
+      ctx.fillText('🛡️', 20, powerUpY);
+      ctx.font = 'bold 14px system-ui';
+      ctx.fillStyle = '#00d9ff';
+      ctx.fillText('Shield', 50, powerUpY + 5);
+      ctx.restore();
+      powerUpY += 35;
+    }
+    if(playerPowerUps.chronoActive){
+      const timeLeft = Math.ceil((playerPowerUps.chronoEnd - Date.now()) / 1000);
+      ctx.save();
+      ctx.font = '24px Arial';
+      ctx.fillText('⏰', 20, powerUpY);
+      ctx.font = 'bold 14px system-ui';
+      ctx.fillStyle = '#4dabf7';
+      ctx.fillText(`Slow ${timeLeft}s`, 50, powerUpY + 5);
+      ctx.restore();
+      powerUpY += 35;
+    }
+    if(playerPowerUps.starActive){
+      const timeLeft = Math.ceil((playerPowerUps.starEnd - Date.now()) / 1000);
+      ctx.save();
+      ctx.font = '24px Arial';
+      ctx.fillText('⭐', 20, powerUpY);
+      ctx.font = 'bold 14px system-ui';
+      ctx.fillStyle = '#ffd700';
+      ctx.fillText(`2x Score ${timeLeft}s`, 50, powerUpY + 5);
+      ctx.restore();
+      powerUpY += 35;
+    }
+    if(playerPowerUps.speedActive){
+      const timeLeft = Math.ceil((playerPowerUps.speedEnd - Date.now()) / 1000);
+      ctx.save();
+      ctx.font = '24px Arial';
+      ctx.fillText('⚡', 20, powerUpY);
+      ctx.font = 'bold 14px system-ui';
+      ctx.fillStyle = '#ffeb3b';
+      ctx.fillText(`Speed ${timeLeft}s`, 50, powerUpY + 5);
+      ctx.restore();
+      powerUpY += 35;
+    }
+    if(playerPowerUps.fireActive){
+      const timeLeft = Math.ceil((playerPowerUps.fireEnd - Date.now()) / 1000);
+      ctx.save();
+      ctx.font = '24px Arial';
+      ctx.fillText('🔥', 20, powerUpY);
+      ctx.font = 'bold 14px system-ui';
+      ctx.fillStyle = '#ff5722';
+      ctx.fillText(`Fire ${timeLeft}s`, 50, powerUpY + 5);
+      ctx.restore();
+      powerUpY += 35;
+    }
+    if(playerPowerUps.nitroActive){
+      const timeLeft = Math.ceil((playerPowerUps.nitroEnd - Date.now()) / 1000);
+      ctx.save();
+      ctx.font = '24px Arial';
+      ctx.fillText('🚀', 20, powerUpY);
+      ctx.font = 'bold 14px system-ui';
+      ctx.fillStyle = '#00ffff';
+      ctx.fillText(`Nitro ${timeLeft}s`, 50, powerUpY + 5);
+      ctx.restore();
+      powerUpY += 35;
+    }
+
+    // Multiplayer leaderboard
+    if (isMultiplayer) {
+      const allPlayers = [];
+      // Add local player
+      allPlayers.push({
+        id: playerId,
+        name: 'You',
+        score: score,
+        alive: state === 'play',
+        color: playerColor
+      });
+      // Add other players
+      for (const pid in otherPlayers) {
+        allPlayers.push({
+          id: pid,
+          ...otherPlayers[pid]
+        });
+      }
+      // Sort by score descending
+      allPlayers.sort((a, b) => b.score - a.score);
+
+      // Draw leaderboard box
+      const lbX = w - 220;
+      const lbY = 50;
+      const lbW = 200;
+      const lbH = 30 + allPlayers.length * 32;
+
+      ctx.fillStyle = 'rgba(0,0,0,.7)';
+      ctx.fillRect(lbX, lbY, lbW, lbH);
+      ctx.strokeStyle = 'rgba(0,209,122,.5)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(lbX, lbY, lbW, lbH);
+
+      ctx.fillStyle = '#00d17a';
+      ctx.font = 'bold 14px system-ui';
+      ctx.textAlign = 'left';
+      ctx.fillText('🏆 LIVE RANKS', lbX + 10, lbY + 20);
+
+      // Draw players
+      allPlayers.forEach((p, i) => {
+        const y = lbY + 40 + i * 32;
+        const rank = i + 1;
+        const emoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;
+
+        // Player status indicator
+        const statusColor = p.alive ? p.color.primary : '#666';
+        ctx.fillStyle = statusColor;
+        ctx.beginPath();
+        ctx.arc(lbX + 20, y, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Rank
+        ctx.fillStyle = 'rgba(255,255,255,.9)';
+        ctx.font = '12px system-ui';
+        ctx.fillText(emoji, lbX + 30, y + 4);
+
+        // Name
+        ctx.fillStyle = p.alive ? 'rgba(255,255,255,.9)' : 'rgba(255,255,255,.4)';
+        ctx.font = p.id === playerId ? 'bold 12px system-ui' : '12px system-ui';
+        const nameText = p.name.length > 10 ? p.name.substring(0, 10) + '...' : p.name;
+        ctx.fillText(nameText, lbX + 55, y + 4);
+
+        // Score
+        ctx.fillStyle = p.color.primary;
+        ctx.font = 'bold 12px system-ui';
+        ctx.textAlign = 'right';
+        ctx.fillText(Math.floor(p.score), lbX + lbW - 10, y + 4);
+        ctx.textAlign = 'left';
+      });
+    }
+
     if(state==='menu') drawCenterText('Press Play button to start');
     if(state==='pause') drawCenterText('⏸️ PAUSED');
     if(state==='over') drawCenterText('💀 REKT -99% 💀 CLICK TO RETRY');
@@ -1172,11 +2630,61 @@
     ctx.restore();
   }
 
+  function drawPowerUp(ctx, powerUp){
+    ctx.save();
+
+    // Floating animation
+    const t = performance.now() / 500;
+    const floatOffset = Math.sin(t + powerUp.x / 100) * 5;
+
+    // Glow effect
+    ctx.shadowColor = powerUp.color;
+    ctx.shadowBlur = 20;
+
+    // Draw circle background
+    ctx.beginPath();
+    ctx.arc(powerUp.x, powerUp.y + floatOffset, powerUp.size / 2, 0, Math.PI * 2);
+    ctx.fillStyle = powerUp.color + '40'; // Semi-transparent
+    ctx.fill();
+
+    // Draw power-up emoji
+    ctx.shadowBlur = 0;
+    ctx.font = `${powerUp.size}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(powerUp.emoji, powerUp.x, powerUp.y + floatOffset);
+
+    // Rotating particles
+    ctx.globalAlpha = 0.6;
+    for(let i = 0; i < 3; i++){
+      const angle = t + (i * Math.PI * 2 / 3);
+      const dist = powerUp.size * 0.8;
+      const px = powerUp.x + Math.cos(angle) * dist;
+      const py = powerUp.y + floatOffset + Math.sin(angle) * dist;
+
+      ctx.fillStyle = powerUp.color;
+      ctx.beginPath();
+      ctx.arc(px, py, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+
   function drawObstacle(ctx,o){
     ctx.save();
 
+    // Animation for multiplayer (pulsating effect)
+    let pulseScale = 1;
+    let glowIntensity = 15;
+    if(isMultiplayer){
+      const pulseTime = performance.now() / 1000;
+      pulseScale = 1 + Math.sin(pulseTime * 2 + o.x / 100) * 0.05; // Subtle pulse
+      glowIntensity = 15 + Math.sin(pulseTime * 3 + o.x / 50) * 5; // Pulsating glow
+    }
+
     // BOUGIES DE RUG - Style chandelier rouge baissier
-    const candleWidth = o.w;
+    const candleWidth = o.w * pulseScale;
     const wickWidth = 4;
 
     // Bougie du haut (baissière rouge)
@@ -1208,10 +2716,10 @@
       ctx.fillStyle='rgba(255,100,100,.3)';
       ctx.fillRect(o.x, bodyTop, 8, candleHeight);
 
-      // Texte RUG avec effet néon
+      // Texte RUG avec effet néon (pulsating in multiplayer)
       ctx.save();
       ctx.shadowColor='#ff0000';
-      ctx.shadowBlur=15;
+      ctx.shadowBlur=glowIntensity;
       ctx.fillStyle='#ffffff';
       ctx.font='bold 22px monospace';
       ctx.textAlign='center';
@@ -1248,10 +2756,10 @@
       ctx.fillStyle='rgba(255,100,100,.3)';
       ctx.fillRect(o.x, bodyTop, 8, candleHeight);
 
-      // Texte RUG avec effet néon
+      // Texte RUG avec effet néon (pulsating in multiplayer)
       ctx.save();
       ctx.shadowColor='#ff0000';
-      ctx.shadowBlur=15;
+      ctx.shadowBlur=glowIntensity;
       ctx.fillStyle='#ffffff';
       ctx.font='bold 22px monospace';
       ctx.textAlign='center';
@@ -1262,20 +2770,23 @@
     ctx.restore();
   }
 
-  function drawPill(ctx,x,y,r){
+  function drawPill(ctx, x, y, r, color = null, vy = 0){
     ctx.save();
     ctx.translate(x,y);
 
     // Angle de rotation basé sur la vélocité (effet Flappy)
-    const rotationAngle = Math.min(Math.max(player.vy * 0.05, -0.5), 0.5);
+    const rotationAngle = Math.min(Math.max(vy * 0.05, -0.5), 0.5);
     ctx.rotate(rotationAngle);
 
-    // PILULE CAPSULE STYLE 💊 - Couleurs Pump.fun (vert et blanc)
+    // PILULE CAPSULE STYLE 💊 - Couleurs dynamiques
     const pillWidth = r * 2.8;
     const pillHeight = r * 1.4;
 
-    // Glow vert Pump.fun
-    ctx.shadowColor='rgba(0,209,122,.7)';
+    // Use player color if provided, otherwise default to green
+    const pillColor = color || { primary: '#00d17a', secondary: '#00ff88' };
+
+    // Glow avec la couleur du joueur
+    ctx.shadowColor = pillColor.primary + 'b3'; // Add alpha
     ctx.shadowBlur=25;
 
     // Corps principal de la capsule (shape arrondie)
@@ -1288,13 +2799,13 @@
 
     ctx.shadowBlur=0;
 
-    // Moitié VERTE (gauche) - Couleur Pump.fun
+    // Moitié colorée (gauche) - Couleur du joueur
     ctx.beginPath();
     ctx.arc(-pillWidth/4, 0, pillHeight/2, Math.PI/2, -Math.PI/2);
     ctx.lineTo(0, -pillHeight/2);
     ctx.lineTo(0, pillHeight/2);
     ctx.closePath();
-    ctx.fillStyle='#00d17a'; // Vert Pump.fun
+    ctx.fillStyle = pillColor.primary;
     ctx.fill();
 
     // Moitié BLANCHE (droite)
@@ -1332,7 +2843,7 @@
     ctx.closePath();
     ctx.stroke();
 
-    // Mini sparkles verts autour (effet Pump)
+    // Mini sparkles avec couleur du joueur (effet Pump)
     const t = performance.now() / 300;
     ctx.globalAlpha=.7;
     for(let i=0; i<3; i++){
@@ -1340,7 +2851,7 @@
       const dist = pillHeight * 0.9;
       const sx = Math.cos(angle) * dist;
       const sy = Math.sin(angle) * dist;
-      ctx.fillStyle='#00d17a';
+      ctx.fillStyle = pillColor.primary;
       ctx.beginPath();
       ctx.arc(sx, sy, 3, 0, Math.PI*2);
       ctx.fill();
@@ -1436,9 +2947,56 @@
   function clamp(v,a,b){ return Math.max(a, Math.min(b,v)); }
 
   // ========= UI BUTTONS =========
-  document.getElementById('playBtn').onclick = ()=>{ if(state!=='play') openWalletModal(); };
-  document.getElementById('restartBtn').onclick = ()=>{ state='menu'; openWalletModal(); };
+  document.getElementById('playBtn').onclick = ()=>{
+    if(state!=='play') {
+      isMultiplayer = false;
+      openWalletModal();
+    }
+  };
+  document.getElementById('multiplayerBtn').onclick = ()=> openMultiplayerModal();
+  document.getElementById('restartBtn').onclick = ()=>{
+    state='menu';
+    isMultiplayer = false;
+    openWalletModal();
+  };
   document.getElementById('pauseBtn').onclick = ()=> togglePause();
+
+  // Multiplayer modal buttons
+  document.getElementById('showCreateRoomBtn').onclick = ()=> {
+    // Show max players selection and create room buttons
+    document.getElementById('maxPlayersSection').style.display = 'block';
+    document.getElementById('mainButtons').style.display = 'none';
+    document.getElementById('createRoomButtons').style.display = 'flex';
+    document.getElementById('availableRoomsSection').style.display = 'none';
+  };
+
+  document.getElementById('backBtn').onclick = ()=> {
+    // Go back to main buttons
+    document.getElementById('maxPlayersSection').style.display = 'none';
+    document.getElementById('mainButtons').style.display = 'flex';
+    document.getElementById('createRoomButtons').style.display = 'none';
+    document.getElementById('availableRoomsSection').style.display = 'block';
+  };
+
+  document.getElementById('confirmCreateRoomBtn').onclick = ()=> createRoom();
+
+  document.getElementById('joinRoomBtn').onclick = ()=> joinRoom();
+  document.getElementById('joinRoomConfirmBtn').onclick = ()=> joinRoomConfirm();
+  document.getElementById('startMultiplayerBtn').onclick = ()=> startMultiplayerGame();
+  document.getElementById('spawnBotsBtn').onclick = async ()=> {
+    if (!currentRoom) return;
+    const currentPlayers = Object.keys(otherPlayers).length + 1; // +1 for the host
+    const maxPlayers = selectedMaxPlayers || 4;
+    const botsToSpawn = Math.min(3, maxPlayers - currentPlayers);
+    if (botsToSpawn > 0) {
+      await spawnBotsInRoom(currentRoom, botsToSpawn);
+      alert(`🤖 ${botsToSpawn} bots added to room!`);
+    } else {
+      alert('Room is full!');
+    }
+  };
+  document.getElementById('leaveRoomBtn').onclick = ()=> leaveRoom();
+  document.getElementById('copyRoomIdBtn').onclick = ()=> copyRoomId();
   document.getElementById('saveWalletBtn').onclick = ()=> saveWalletAndPlay();
   document.getElementById('skipWalletBtn').onclick = ()=> skipWalletAndPlay();
   // Modal Rules
@@ -1483,8 +3041,14 @@
   document.getElementById('restartGameBtn').onclick = ()=> {
     closeGameOverModal();
     state='menu';
-    openWalletModal();
   };
+
+  document.getElementById('leaveRoomBtn').onclick = ()=> {
+    closeGameOverModal();
+    leaveRoom();
+    state='menu';
+  };
+
   document.getElementById('shareGameBtn').onclick = ()=>{
     const s = Math.floor(score);
     const text = encodeURIComponent(`Just scored ${s} points on Pump The Pill! 💊💀\n\nThink you can beat me degen?\n\n#Solana #Pumpfun #WAGMI`);
