@@ -728,7 +728,6 @@
       <button class="btn" id="restartBtn">🔄 Restart</button>
       <button class="btn" id="cinemaBtn" title="Cinema Mode">🎬 Cinema</button>
       <span class="badge" id="bestBadge">🏆 Best: 0</span>
-      <span class="badge" id="onlinePlayersBadge" style="background:rgba(0,209,122,.15);border-color:#00d17a">👥 Online: 0</span>
       <span class="badge" id="totalGamesBadge" style="background:rgba(255,215,0,.15);border-color:#ffd700">🎮 Games: 0</span>
     </div>
 
@@ -1073,11 +1072,7 @@
     // Remove on disconnect
     onlinePresenceRef.onDisconnect().remove();
 
-    // Listen to online count
-    rtdb.ref('presence').on('value', (snapshot) => {
-      const onlineCount = snapshot.numChildren();
-      document.getElementById('onlinePlayersBadge').textContent = `👥 Online: ${onlineCount}`;
-    });
+    // Listen to online count (removed from UI to avoid showing 0 players)
 
     // Listen to total games count
     totalGamesRef.on('value', (snapshot) => {
