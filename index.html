@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <title>Pump the Pill — Mini Runner</title>
   <style>
     :root {
@@ -465,6 +465,167 @@
       transform:translateY(-2px);
       box-shadow:0 6px 30px rgba(0,209,122,.6);
     }
+
+    /* ========= MOBILE RESPONSIVE ========= */
+    @media (max-width: 768px) {
+      .wrap{
+        margin:8px auto;
+        padding:8px;
+      }
+
+      header{
+        padding:12px;
+        margin-bottom:8px;
+      }
+
+      h1{
+        font-size:20px;
+      }
+
+      .x-logo{
+        top:12px;
+        right:12px;
+        width:28px;
+        height:28px;
+        font-size:16px;
+      }
+
+      .panel{
+        flex-wrap:wrap;
+        gap:6px;
+        padding:8px;
+        margin-bottom:8px;
+      }
+
+      .btn{
+        padding:8px 12px;
+        font-size:11px;
+      }
+
+      .badge{
+        padding:6px 8px;
+        font-size:10px;
+      }
+
+      canvas#game{
+        width:100% !important;
+        height:auto !important;
+        touch-action:none;
+      }
+
+      .hud{
+        flex-wrap:wrap;
+        gap:6px;
+        padding:8px;
+        margin-top:8px;
+      }
+
+      .hud .left, .hud .right{
+        gap:6px;
+      }
+
+      footer{
+        margin-top:12px;
+        padding:12px;
+        font-size:11px;
+      }
+
+      /* Modal optimizations for mobile */
+      .modal-content{
+        max-width:95% !important;
+        padding:20px;
+        margin:10px;
+      }
+
+      .modal-header h2{
+        font-size:20px;
+      }
+
+      .modal-body{
+        font-size:13px;
+      }
+
+      #gameOverModal .modal-header h2{
+        font-size:36px;
+      }
+
+      #gameOverModal .stat-value{
+        font-size:22px;
+      }
+
+      .loading-title{
+        font-size:32px;
+      }
+
+      .loading-bar-container{
+        width:90vw;
+      }
+
+      /* Touch controls helper */
+      #touchHelper{
+        display:block;
+        position:fixed;
+        bottom:20px;
+        left:50%;
+        transform:translateX(-50%);
+        background:rgba(0,209,122,.2);
+        border:2px solid rgba(0,209,122,.5);
+        border-radius:12px;
+        padding:12px 24px;
+        color:#00d17a;
+        font-size:14px;
+        font-weight:600;
+        text-align:center;
+        z-index:1000;
+        pointer-events:none;
+        animation:pulse 2s infinite;
+      }
+
+      @keyframes pulse{
+        0%, 100%{opacity:0.8}
+        50%{opacity:1}
+      }
+    }
+
+    @media (max-width: 480px) {
+      h1{
+        font-size:18px;
+      }
+
+      .panel{
+        gap:4px;
+        padding:6px;
+      }
+
+      .btn{
+        padding:6px 10px;
+        font-size:10px;
+      }
+
+      .badge{
+        padding:4px 6px;
+        font-size:9px;
+      }
+
+      .modal-content{
+        padding:16px;
+      }
+
+      .modal-header h2{
+        font-size:18px;
+      }
+
+      .modal-body{
+        font-size:12px;
+      }
+    }
+
+    /* Hide touch helper on desktop */
+    @media (min-width: 769px) {
+      #touchHelper{
+        display:none !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -506,6 +667,11 @@
     </div>
 
     <canvas id="game" width="960" height="540" aria-label="Pump the Pill"></canvas>
+
+    <!-- Touch helper for mobile -->
+    <div id="touchHelper" style="display:none">
+      📱 TAP ANYWHERE TO PLAY
+    </div>
 
     <div class="hud">
       <div class="left">
@@ -1867,7 +2033,41 @@
       flap();
     }
   });
-  canvas.addEventListener('pointerdown',()=> flap());
+  // Touch and click controls
+  canvas.addEventListener('pointerdown',(e)=> {
+    e.preventDefault();
+    flap();
+  });
+
+  // Better mobile touch support
+  canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    flap();
+  }, { passive: false });
+
+  // Show/hide touch helper on mobile
+  function updateTouchHelper() {
+    const helper = document.getElementById('touchHelper');
+    if (window.innerWidth <= 768) {
+      if (state === 'menu' || state === 'countdown') {
+        helper.style.display = 'block';
+      } else {
+        helper.style.display = 'none';
+      }
+    } else {
+      helper.style.display = 'none';
+    }
+  }
+
+  // Update touch helper on state change
+  const originalStart = start;
+  function start() {
+    originalStart();
+    updateTouchHelper();
+  }
+
+  setInterval(updateTouchHelper, 500);
+
   window.addEventListener('blur',()=>{ if(state==='play') togglePause(true); });
 
   // ========= COUNTDOWN =========
@@ -2432,20 +2632,22 @@
       }
     }
 
-    // player (pill) - Draw local player last so it's on top
-    const playerX = getPlayerX();
-    drawPill(ctx, playerX, player.y, CFG.pill.r, playerColor, player.vy);
+    // player (pill) - Draw local player last so it's on top (only if alive)
+    if (state !== 'over') {
+      const playerX = getPlayerX();
+      drawPill(ctx, playerX, player.y, CFG.pill.r, playerColor, player.vy);
 
-    // Draw local player name in multiplayer
-    if (isMultiplayer && playerColor) {
-      ctx.save();
-      ctx.fillStyle = playerColor.primary;
-      ctx.font = 'bold 12px system-ui';
-      ctx.textAlign = 'center';
-      ctx.shadowColor = 'rgba(0,0,0,.8)';
-      ctx.shadowBlur = 4;
-      ctx.fillText('You', playerX, player.y - 35);
-      ctx.restore();
+      // Draw local player name in multiplayer
+      if (isMultiplayer && playerColor) {
+        ctx.save();
+        ctx.fillStyle = playerColor.primary;
+        ctx.font = 'bold 12px system-ui';
+        ctx.textAlign = 'center';
+        ctx.shadowColor = 'rgba(0,0,0,.8)';
+        ctx.shadowBlur = 4;
+        ctx.fillText('You', playerX, player.y - 35);
+        ctx.restore();
+      }
     }
 
     // vignette
