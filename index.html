@@ -626,6 +626,42 @@
         display:none !important;
       }
     }
+
+    /* Cinema Mode */
+    body.cinema-mode header,
+    body.cinema-mode .panel {
+      display: none !important;
+    }
+    body.cinema-mode .wrap {
+      margin: 0;
+      padding: 0;
+      max-width: 100%;
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+    }
+    body.cinema-mode canvas#game {
+      max-width: 100%;
+      max-height: 100vh;
+      width: auto !important;
+      height: auto !important;
+    }
+    body.cinema-mode #cinemaBtn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10000;
+      display: block !important;
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    body.cinema-mode #cinemaBtn:hover {
+      background: rgba(0, 0, 0, 0.9);
+      border-color: rgba(255, 255, 255, 0.6);
+    }
   </style>
 </head>
 <body>
@@ -661,6 +697,7 @@
       <button class="btn primary" id="multiplayerBtn" style="background:rgba(255,215,0,.8);border-color:#ffd700;color:#000">🎮 Multiplayer</button>
       <button class="btn" id="pauseBtn">⏸️ Pause</button>
       <button class="btn" id="restartBtn">🔄 Restart</button>
+      <button class="btn" id="cinemaBtn" title="Cinema Mode">🎬 Cinema</button>
       <span class="badge" id="bestBadge">🏆 Best: 0</span>
       <span class="badge" id="onlinePlayersBadge" style="background:rgba(0,209,122,.15);border-color:#00d17a">👥 Online: 0</span>
       <span class="badge" id="totalGamesBadge" style="background:rgba(255,215,0,.15);border-color:#ffd700">🎮 Games: 0</span>
@@ -3162,6 +3199,22 @@
     openWalletModal();
   };
   document.getElementById('pauseBtn').onclick = ()=> togglePause();
+
+  // Cinema Mode button
+  document.getElementById('cinemaBtn').onclick = ()=> {
+    const body = document.body;
+    const btn = document.getElementById('cinemaBtn');
+
+    if (body.classList.contains('cinema-mode')) {
+      // Exit cinema mode
+      body.classList.remove('cinema-mode');
+      btn.textContent = '🎬 Cinema';
+    } else {
+      // Enter cinema mode
+      body.classList.add('cinema-mode');
+      btn.textContent = '✕ Exit Cinema';
+    }
+  };
 
   // Multiplayer modal buttons
   document.getElementById('showCreateRoomBtn').onclick = ()=> {
