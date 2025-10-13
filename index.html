@@ -740,6 +740,7 @@
       <button class="btn" id="pauseBtn">⏸️ Pause</button>
       <button class="btn" id="restartBtn">🔄 Restart</button>
       <button class="btn" id="cinemaBtn" title="Cinema Mode">🎬 Cinema</button>
+      <button class="btn" id="soundBtn" title="Toggle Sound">🔊 Sound</button>
       <span class="badge" id="bestBadge">🏆 Best: 0</span>
       <span class="badge" id="totalGamesBadge" style="background:rgba(255,215,0,.15);border-color:#ffd700">🎮 Games: 0</span>
     </div>
@@ -1185,6 +1186,94 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
   const rtdb = firebase.database();
+
+  // ========= SOUND SYSTEM =========
+  let soundEnabled = true;
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+  // Sound toggle button
+  const soundBtn = document.getElementById('soundBtn');
+  soundBtn.onclick = () => {
+    soundEnabled = !soundEnabled;
+    soundBtn.textContent = soundEnabled ? '🔊 Sound' : '🔇 Muted';
+    soundBtn.style.opacity = soundEnabled ? '1' : '0.5';
+  };
+
+  // Flap/Jump sound
+  function playFlapSound() {
+    if (!soundEnabled) return;
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.1);
+
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.1);
+  }
+
+  // Power-up sound
+  function playPowerUpSound() {
+    if (!soundEnabled) return;
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.15);
+
+    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.15);
+  }
+
+  // Game Over sound
+  function playGameOverSound() {
+    if (!soundEnabled) return;
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.3);
+
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.3);
+  }
+
+  // Score sound
+  function playScoreSound() {
+    if (!soundEnabled) return;
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+    oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.05);
+
+    gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.1);
+  }
 
   // ========= ONLINE STATS TRACKING =========
   let onlinePresenceRef = null;
@@ -2218,6 +2307,7 @@
   function flap(){
     if(state==='play'){
       player.vy = -CFG.thrust; // impulse vers le haut
+      playFlapSound(); // Play sound on flap
     }
   }
 
@@ -2364,6 +2454,7 @@
 
   function activatePowerUp(powerUp){
     console.log('🎁 Power-up collected:', powerUp.name);
+    playPowerUpSound(); // Play power-up sound
 
     switch(powerUp.id){
       case 'mushroom':
@@ -2511,6 +2602,7 @@
 
   async function gameOver(){
     state='over';
+    playGameOverSound(); // Play game over sound
     localStorage.setItem('pill_best', Math.floor(Math.max(best,score)));
     best = Math.max(best,score);
     bestBadge.textContent = '🏆 Best: ' + Math.floor(best);
@@ -2728,7 +2820,13 @@
     // scoring & pump
     let scoreMultiplier = playerPowerUps.starActive ? 2 : 1;
     if (playerPowerUps.nitroActive) scoreMultiplier *= 1.5; // Extra bonus with nitro
+    const oldScore = Math.floor(score);
     score += dtS * (2 + t*3) * scoreMultiplier; // score by time & difficulty
+    const newScore = Math.floor(score);
+    // Play sound every 10 points
+    if (Math.floor(newScore / 10) > Math.floor(oldScore / 10)) {
+      playScoreSound();
+    }
     pump = Math.min(100, (elapsed/CFG.runTarget)*100);
 
     // collisions with walls
