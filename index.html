@@ -407,6 +407,19 @@
     .shake{
       animation:shake 0.5s;
     }
+
+    /* Leaderboard Pulse Animation */
+    @keyframes leaderboardPulse{
+      0%, 100%{
+        box-shadow:0 0 20px rgba(255,23,68,.4);
+      }
+      50%{
+        box-shadow:0 0 30px rgba(255,23,68,.7);
+      }
+    }
+    #leaderboard{
+      animation:leaderboardPulse 3s ease-in-out infinite;
+    }
     #gameOverModal .modal-content{
       background:linear-gradient(135deg, #1a0000 0%, #0a0a0a 100%);
       border:3px solid #ff1744;
@@ -752,15 +765,18 @@
       </div>
     </div>
 
-    <footer>
+    <!-- Leaderboard Section -->
+    <section>
       <h3 style="margin-top:24px;margin-bottom:12px;display:flex;align-items:center;gap:8px">🏆 LEADERBOARD DEGEN</h3>
-      <div id="leaderboard" style="background:rgba(0,0,0,.3);border-radius:12px;padding:16px;border:1px solid rgba(255,255,255,.1)">
+      <div id="leaderboard" style="background:rgba(0,0,0,.3);border-radius:12px;padding:16px;border:2px solid #ff1744">
         <div id="leaderboardList" style="display:flex;flex-direction:column;gap:8px"></div>
       </div>
+    </section>
 
-      <!-- Tokenomics & Rewards Section -->
+    <!-- Tokenomics & Rewards Section -->
+    <section>
       <h3 style="margin-top:32px;margin-bottom:12px;display:flex;align-items:center;gap:8px">💎 TOKENOMICS & REWARDS</h3>
-      <div style="background:rgba(0,0,0,.3);border-radius:12px;padding:20px;border:1px solid rgba(255,255,255,.1)">
+      <div style="background:rgba(0,0,0,.3);border-radius:12px;padding:20px;border:2px solid rgba(0,209,122,.5)">
 
         <!-- Supply Info -->
         <div style="background:rgba(255,215,0,.15);padding:16px;border-radius:8px;border:1px solid rgba(255,215,0,.4);margin-bottom:16px">
@@ -770,16 +786,16 @@
           </div>
           <div style="font-size:24px;font-weight:700;color:#ffd700;margin-bottom:8px">1,000,000,000 $PILL</div>
           <div style="font-size:12px;opacity:.8;line-height:1.6">
-            Fair launch on Solana • No presale • Community-driven
+            Fair launch on Pump.fun • No presale • Community-driven
           </div>
         </div>
 
         <!-- Tokenomics Grid -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:16px">
           <div style="background:rgba(255,215,0,.1);padding:14px;border-radius:8px;border:1px solid rgba(255,215,0,.3)">
-            <div style="font-size:22px;margin-bottom:6px">🔥</div>
-            <div style="font-weight:600;margin-bottom:4px;color:#ffd700;font-size:14px">Token Burn</div>
-            <div style="font-size:12px;opacity:.8;line-height:1.5">Regular burns to reduce supply and increase value</div>
+            <div style="font-size:22px;margin-bottom:6px">🔒</div>
+            <div style="font-weight:600;margin-bottom:4px;color:#ffd700;font-size:14px">Token Lock</div>
+            <div style="font-size:12px;opacity:.8;line-height:1.5">Tokens locked to reduce circulating supply and increase value</div>
           </div>
           <div style="background:rgba(255,215,0,.1);padding:14px;border-radius:8px;border:1px solid rgba(255,215,0,.3)">
             <div style="font-size:22px;margin-bottom:6px">💰</div>
@@ -798,7 +814,7 @@
           <div style="background:rgba(0,209,122,.1);padding:14px;border-radius:8px;border:1px solid rgba(0,209,122,.3)">
             <div style="font-size:22px;margin-bottom:6px">🎁</div>
             <div style="font-weight:600;margin-bottom:4px;color:#00d17a;font-size:14px">Play to Earn</div>
-            <div style="font-size:12px;opacity:.8;line-height:1.5">Earn $PILL tokens for high scores</div>
+            <div style="font-size:12px;opacity:.8;line-height:1.5">Earn $PILL & $SOL tokens for high scores</div>
           </div>
           <div style="background:rgba(0,209,122,.1);padding:14px;border-radius:8px;border:1px solid rgba(0,209,122,.3)">
             <div style="font-size:22px;margin-bottom:6px">🏆</div>
@@ -812,7 +828,68 @@
           </div>
         </div>
       </div>
+    </section>
 
+    <!-- Roadmap Section -->
+    <section>
+      <h3 style="margin-top:32px;margin-bottom:12px;display:flex;align-items:center;gap:8px">🗺️ ROADMAP</h3>
+      <div style="background:rgba(0,0,0,.3);border-radius:12px;padding:20px;border:2px solid rgba(255,215,0,.5)">
+
+        <!-- Roadmap Timeline -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:20px">
+
+          <!-- Phase 1 -->
+          <div style="background:rgba(0,209,122,.1);padding:16px;border-radius:8px;border:1px solid rgba(0,209,122,.4);position:relative">
+            <div style="position:absolute;top:-10px;left:12px;background:#00d17a;color:#000;font-weight:700;font-size:11px;padding:4px 12px;border-radius:12px">PHASE 1</div>
+            <div style="margin-top:12px;font-weight:600;margin-bottom:12px;color:#00d17a;font-size:15px">🚀 Launch</div>
+            <ul style="margin:0;padding-left:20px;font-size:12px;opacity:.9;line-height:1.8">
+              <li>Game v1 launch on web</li>
+              <li>Token launch on Pump.fun</li>
+              <li>Live stream to play the game</li>
+              <li>Play-to-earn system live</li>
+              <li>Leaderboard rewards</li>
+            </ul>
+          </div>
+
+          <!-- Phase 2 -->
+          <div style="background:rgba(255,215,0,.1);padding:16px;border-radius:8px;border:1px solid rgba(255,215,0,.4);position:relative">
+            <div style="position:absolute;top:-10px;left:12px;background:#ffd700;color:#000;font-weight:700;font-size:11px;padding:4px 12px;border-radius:12px">PHASE 2</div>
+            <div style="margin-top:12px;font-weight:600;margin-bottom:12px;color:#ffd700;font-size:15px">💎 Growth</div>
+            <ul style="margin:0;padding-left:20px;font-size:12px;opacity:.9;line-height:1.8">
+              <li>Dev wallet lock</li>
+              <li>Community strengthening</li>
+              <li>Marketing campaign and CGK & CMC listing</li>
+              <li>Buyback program launch</li>
+            </ul>
+          </div>
+
+          <!-- Phase 3 -->
+          <div style="background:rgba(138,43,226,.1);padding:16px;border-radius:8px;border:1px solid rgba(138,43,226,.4);position:relative">
+            <div style="position:absolute;top:-10px;left:12px;background:#8a2be2;color:#fff;font-weight:700;font-size:11px;padding:4px 12px;border-radius:12px">PHASE 3</div>
+            <div style="margin-top:12px;font-weight:600;margin-bottom:12px;color:#a855f7;font-size:15px">🎮 Expansion</div>
+            <ul style="margin:0;padding-left:20px;font-size:12px;opacity:.9;line-height:1.8">
+              <li>New game modes</li>
+              <li>Daily challenges</li>
+              <li>Tournament system</li>
+              <li>Second live stream for tournament</li>
+              <li>Partnerships</li>
+            </ul>
+          </div>
+
+        </div>
+
+        <!-- Coming Soon Phase -->
+        <div style="background:rgba(255,255,255,.03);padding:16px;border-radius:8px;border:1px dashed rgba(255,255,255,.2);text-align:center">
+          <div style="display:inline-block;background:rgba(255,255,255,.1);color:#fff;font-weight:700;font-size:11px;padding:6px 16px;border-radius:12px;margin-bottom:8px">PHASE 4 - COMING SOON</div>
+          <div style="font-size:13px;opacity:.7;line-height:1.6">
+            🌟 More exciting features • Partnerships • DAO governance • Cross-chain expansion
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
       <div style="text-align:center;margin-top:32px;padding-top:24px;border-top:1px solid rgba(255,255,255,.1);opacity:.7;font-size:12px;line-height:1.8">
         <p style="margin:0 0 8px 0">© 2025 Pump The Pill - All Rights Reserved</p>
         <p style="margin:0;font-weight:600">Built by <a href="https://www.trencheslabs.io/" target="_blank" style="color:#00d17a;text-decoration:none;transition:.2s" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Trenches Labs</a></p>
