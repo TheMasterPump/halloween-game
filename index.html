@@ -1150,7 +1150,7 @@
             🤖 ADD BOTS (TEST)
           </button>
 
-          <button class="btn" id="leaveRoomBtn" style="width:100%;padding:12px;margin-top:10px;background:rgba(255,23,68,.1);border-color:#ff1744">
+          <button class="btn" id="leaveLobbyBtn" style="width:100%;padding:12px;margin-top:10px;background:rgba(255,23,68,.1);border-color:#ff1744">
             🚪 LEAVE ROOM
           </button>
         </div>
@@ -3507,6 +3507,7 @@
       alert('Room is full!');
     }
   };
+  document.getElementById('leaveLobbyBtn').onclick = ()=> leaveRoom();
   document.getElementById('leaveRoomBtn').onclick = ()=> leaveRoom();
   document.getElementById('copyRoomIdBtn').onclick = ()=> copyRoomId();
   document.getElementById('saveWalletBtn').onclick = ()=> saveWalletAndPlay();
