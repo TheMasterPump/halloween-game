@@ -721,6 +721,9 @@
 
   <div class="wrap">
     <header>
+      <a href="#" class="x-logo" title="Follow us on X (Coming Soon)" style="pointer-events:none;opacity:0.5">
+        𝕏
+      </a>
       <div style="display:flex;align-items:center;justify-content:center;gap:12px">
         <h1>Pump the Pill</h1>
         <canvas id="headerPill" width="40" height="24" style="display:block"></canvas>
@@ -749,18 +752,17 @@
       📱 TAP ANYWHERE TO PLAY
     </div>
 
-    <div class="hud">
-      <div class="left">
+    <div class="hud" style="display:flex;flex-direction:column;align-items:flex-start;gap:8px">
+      <div style="display:flex;justify-content:flex-start;align-items:center;gap:12px;flex-wrap:wrap;width:100%">
         <span class="badge">Score: <b id="score">0</b></span>
         <span class="badge">Pump: <b id="pump">0</b>%</span>
-        <div class="meter" style="width:220px"><i id="pumpBar"></i></div>
-      </div>
-      <div class="right row">
         <button class="btn" id="shareX">Share on X</button>
         <button class="btn" id="copyMsg">📋 Copy Brag</button>
+        <button class="btn" id="rewardsBtn" style="background:rgba(255,215,0,.2);border-color:#ffd700;color:#ffd700">💰 Rewards</button>
         <button class="btn" id="commandsBtn">🎮 Commands</button>
         <button class="btn" id="howBtn">❓ Rules</button>
       </div>
+      <div class="meter" style="width:220px"><i id="pumpBar"></i></div>
     </div>
 
     <!-- Leaderboard Section -->
@@ -768,6 +770,63 @@
       <h3 style="margin-top:24px;margin-bottom:12px;display:flex;align-items:center;gap:8px">🏆 LEADERBOARD DEGEN</h3>
       <div id="leaderboard" style="background:rgba(0,0,0,.3);border-radius:12px;padding:16px;border:2px solid #ff1744">
         <div id="leaderboardList" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+    </section>
+
+    <!-- Rewards History Section -->
+    <section id="rewardsSection">
+      <h3 style="margin-top:32px;margin-bottom:12px;display:flex;align-items:center;gap:8px">💰 REWARDS HISTORY</h3>
+      <div style="background:rgba(0,0,0,.3);border-radius:12px;padding:24px;border:2px solid rgba(255,215,0,.5)">
+
+        <!-- Coming Soon Message -->
+        <div id="rewardsComingSoon" style="text-align:center;padding:40px 20px">
+          <div style="font-size:64px;margin-bottom:16px">🚀</div>
+          <h4 style="color:#ffd700;font-size:20px;margin:0 0 12px 0;font-weight:700">Token Launch Coming Soon!</h4>
+          <p style="font-size:14px;opacity:.8;line-height:1.6;max-width:500px;margin:0 auto 20px auto">
+            Rewards will be distributed after the $???? token launches on Pump.fun. Keep playing and climbing the leaderboard to maximize your rewards when we launch! 💎
+          </p>
+          <div style="background:rgba(255,215,0,.15);border:1px solid rgba(255,215,0,.4);border-radius:8px;padding:16px;margin-top:24px;max-width:600px;margin-left:auto;margin-right:auto">
+            <div style="font-weight:600;color:#ffd700;margin-bottom:8px;font-size:14px">📊 Total Rewards Distributed</div>
+            <div style="font-size:32px;font-weight:700;color:#ffd700" id="totalRewardsDistributed">0 SOL</div>
+            <div style="font-size:11px;opacity:.7;margin-top:8px">Payouts will appear here once token launches</div>
+          </div>
+        </div>
+
+        <!-- Rewards List (Hidden initially, will show when there are rewards) -->
+        <div id="rewardsList" style="display:none">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:20px">
+            <div style="background:rgba(255,215,0,.15);border:1px solid rgba(255,215,0,.4);border-radius:8px;padding:16px;text-align:center">
+              <div style="font-size:11px;opacity:.7;margin-bottom:4px">Total Distributed</div>
+              <div style="font-size:24px;font-weight:700;color:#ffd700" id="totalDistributed">0 SOL</div>
+            </div>
+            <div style="background:rgba(0,209,122,.15);border:1px solid rgba(0,209,122,.4);border-radius:8px;padding:16px;text-align:center">
+              <div style="font-size:11px;opacity:.7;margin-bottom:4px">Total Winners</div>
+              <div style="font-size:24px;font-weight:700;color:#00d17a" id="totalWinners">0</div>
+            </div>
+            <div style="background:rgba(255,23,68,.15);border:1px solid rgba(255,23,68,.4);border-radius:8px;padding:16px;text-align:center">
+              <div style="font-size:11px;opacity:.7;margin-bottom:4px">Latest Payout</div>
+              <div style="font-size:24px;font-weight:700;color:#ff1744" id="latestPayout">-</div>
+            </div>
+          </div>
+
+          <!-- Rewards Table -->
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:12px">
+              <thead>
+                <tr style="background:rgba(255,215,0,.1);border-bottom:2px solid rgba(255,215,0,.3)">
+                  <th style="padding:12px;text-align:left;font-weight:600;color:#ffd700">Date</th>
+                  <th style="padding:12px;text-align:left;font-weight:600;color:#ffd700">Wallet</th>
+                  <th style="padding:12px;text-align:right;font-weight:600;color:#ffd700">Amount</th>
+                  <th style="padding:12px;text-align:right;font-weight:600;color:#ffd700">Score</th>
+                  <th style="padding:12px;text-align:center;font-weight:600;color:#ffd700">Type</th>
+                </tr>
+              </thead>
+              <tbody id="rewardsTableBody">
+                <!-- Rewards will be inserted here by JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -782,7 +841,7 @@
             <span style="font-size:20px">📊</span>
             <span style="font-weight:600;color:#ffd700;font-size:16px">Total Supply</span>
           </div>
-          <div style="font-size:24px;font-weight:700;color:#ffd700;margin-bottom:8px">1,000,000,000 $PILL</div>
+          <div style="font-size:24px;font-weight:700;color:#ffd700;margin-bottom:8px">1,000,000,000 $????</div>
           <div style="font-size:12px;opacity:.8;line-height:1.6">
             Fair launch on Pump.fun • No presale • Community-driven
           </div>
@@ -812,7 +871,7 @@
           <div style="background:rgba(0,209,122,.1);padding:14px;border-radius:8px;border:1px solid rgba(0,209,122,.3)">
             <div style="font-size:22px;margin-bottom:6px">🎁</div>
             <div style="font-weight:600;margin-bottom:4px;color:#00d17a;font-size:14px">Play to Earn</div>
-            <div style="font-size:12px;opacity:.8;line-height:1.5">Earn $PILL & $SOL tokens for high scores</div>
+            <div style="font-size:12px;opacity:.8;line-height:1.5">Earn $???? & $SOL tokens for high scores</div>
           </div>
           <div style="background:rgba(0,209,122,.1);padding:14px;border-radius:8px;border:1px solid rgba(0,209,122,.3)">
             <div style="font-size:22px;margin-bottom:6px">🏆</div>
@@ -3548,6 +3607,11 @@
     const s = Math.floor(best);
     const msg = `💊 Dodged ${s} RUG candles on Pump The Pill! Not bad for a degen 🔥 #Pumpfun`;
     try{ await navigator.clipboard.writeText(msg); alert('📋 Copied! Flex on your friends 💎'); }catch(e){ alert(msg); }
+  };
+
+  document.getElementById('rewardsBtn').onclick = ()=> {
+    const rewardsSection = document.getElementById('rewardsSection');
+    rewardsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   // Game Over Modal buttons
