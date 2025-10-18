@@ -1,0 +1,4591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Pump the Pill — Mini Runner</title>
+  <style>
+    :root {
+      --bg:#0a0a0a;           /* fond très sombre */
+      --text:#e6ecff;         /* texte clair */
+      --accent:#00d17a;       /* vert pump.fun */
+      --accent-2:#ff1744;     /* rouge rug */
+      --danger:#ff3b3b;       /* obstacles = FUD */
+      --success:#00d17a;      /* points / pump */
+    }
+    *{box-sizing:border-box}
+    html,body{
+      height:100%;
+      margin:0;
+      background:#0a0a0a;
+      color:var(--text);
+      font-family:'Courier New',monospace;
+      position:relative;
+      overflow-x:hidden;
+    }
+    /* Effet Matrix/Terminal en arrière-plan */
+    html::before{
+      content:'';
+      position:fixed;
+      top:0;left:0;right:0;bottom:0;
+      background:
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,209,122,.03) 2px, rgba(0,209,122,.03) 4px),
+        repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,23,68,.03) 2px, rgba(255,23,68,.03) 4px);
+      pointer-events:none;
+      z-index:0;
+    }
+    .wrap{max-width:980px;margin:24px auto;padding:16px;position:relative;z-index:1}
+    header{
+      text-align:center;
+      margin-bottom:16px;
+      padding:20px;
+      background:rgba(0,0,0,.6);
+      border-radius:12px;
+      border:1px solid rgba(0,209,122,.3);
+      box-shadow:0 0 30px rgba(0,209,122,.2);
+      position:relative;
+    }
+    .x-logo{
+      position:absolute;
+      top:20px;
+      right:20px;
+      width:32px;
+      height:32px;
+      background:rgba(255,255,255,.1);
+      border:1px solid rgba(255,255,255,.2);
+      border-radius:8px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      transition:.2s;
+      text-decoration:none;
+      font-size:18px;
+      color:#ffffff;
+    }
+    .x-logo:hover{
+      background:rgba(255,255,255,.2);
+      border-color:rgba(255,255,255,.4);
+      transform:translateY(-2px);
+      box-shadow:0 4px 12px rgba(255,255,255,.2);
+    }
+    h1{
+      font-size:28px;
+      margin:0;
+      letter-spacing:1px;
+      color:#00d17a;
+      text-shadow:0 0 20px rgba(0,209,122,.8);
+      text-transform:uppercase;
+    }
+    .panel{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      margin-bottom:12px;
+      padding:12px;
+      background:rgba(0,0,0,.5);
+      border-radius:12px;
+      border:1px solid rgba(255,23,68,.2);
+    }
+    .btn{
+      appearance:none;
+      border:1px solid rgba(0,209,122,.3);
+      background:rgba(0,209,122,.1);
+      color:var(--text);
+      padding:10px 16px;
+      border-radius:8px;
+      cursor:pointer;
+      transition:.2s;
+      font-family:'Courier New',monospace;
+      font-weight:600;
+      text-transform:uppercase;
+      font-size:12px;
+      letter-spacing:.5px;
+    }
+    .btn:hover{
+      transform:translateY(-2px);
+      background:rgba(0,209,122,.2);
+      box-shadow:0 4px 12px rgba(0,209,122,.3);
+    }
+    .btn.primary{
+      border-color:#00d17a;
+      background:#00d17a;
+      color:#000;
+      box-shadow:0 4px 20px rgba(0,209,122,.4);
+    }
+    .btn.primary:hover{
+      box-shadow:0 6px 25px rgba(0,209,122,.6);
+    }
+    .badge{
+      padding:6px 12px;
+      border-radius:6px;
+      border:1px solid rgba(0,209,122,.3);
+      background:rgba(0,209,122,.1);
+      font-size:12px;
+      font-weight:600;
+      text-transform:uppercase;
+      letter-spacing:.5px;
+    }
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+    /* Canvas avec bordures degen */
+    canvas#game{
+      width:100%;
+      height:auto;
+      border-radius:8px;
+      background:linear-gradient(180deg,#0b1226 0%,#061026 100%);
+      box-shadow:
+        0 0 0 3px rgba(0,209,122,.3),
+        0 0 0 6px rgba(255,23,68,.2),
+        0 20px 60px rgba(0,0,0,.8),
+        inset 0 0 100px rgba(0,0,0,.5);
+      position:relative;
+    }
+
+    /* Petit canvas pour le header et modal */
+    canvas#headerPill, canvas#modalPill{
+      display:block;
+    }
+
+    .hud{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-top:10px;
+      gap:10px;
+      padding:12px;
+      background:rgba(0,0,0,.5);
+      border-radius:12px;
+      border:1px solid rgba(0,209,122,.2);
+    }
+    .hud .left, .hud .right{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .meter{
+      height:14px;
+      background:rgba(0,0,0,.5);
+      border-radius:999px;
+      position:relative;
+      overflow:hidden;
+      border:1px solid rgba(0,209,122,.3);
+    }
+    .meter>i{
+      display:block;
+      height:100%;
+      background:linear-gradient(90deg,#00d17a,#00ff88);
+      width:0%;
+      box-shadow:0 0 10px rgba(0,209,122,.6);
+    }
+
+    footer{
+      opacity:.9;
+      margin-top:20px;
+      font-size:13px;
+      padding:20px;
+      background:rgba(0,0,0,.5);
+      border-radius:12px;
+      border:1px solid rgba(0,209,122,.3);
+    }
+    footer h3{
+      color:#ff1744;
+      text-shadow:0 0 10px rgba(255,23,68,.5);
+      margin:0 0 16px 0;
+    }
+
+    /* Loading Screen */
+    #loadingScreen{
+      position:fixed;
+      top:0;left:0;right:0;bottom:0;
+      background:linear-gradient(135deg, #0a0a0a 0%, #1a0f0f 100%);
+      z-index:99999;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      transition:opacity 0.5s ease;
+    }
+    #loadingScreen.hidden{
+      opacity:0;
+      pointer-events:none;
+    }
+    .loading-pill-container{
+      margin-bottom:60px;
+      animation:float 2s ease-in-out infinite;
+    }
+    @keyframes float{
+      0%,100%{transform:translateY(0px)}
+      50%{transform:translateY(-20px)}
+    }
+    .loading-title{
+      font-size:48px;
+      font-weight:700;
+      color:#00d17a;
+      text-shadow:0 0 30px rgba(0,209,122,.8);
+      margin-bottom:40px;
+      letter-spacing:2px;
+      text-transform:uppercase;
+    }
+    .loading-bar-container{
+      width:400px;
+      max-width:80vw;
+      height:30px;
+      background:rgba(0,0,0,.5);
+      border-radius:999px;
+      border:2px solid rgba(0,209,122,.3);
+      overflow:hidden;
+      position:relative;
+      box-shadow:0 0 20px rgba(0,209,122,.2);
+    }
+    .loading-bar{
+      height:100%;
+      background:linear-gradient(90deg, #00d17a 0%, #00ff88 100%);
+      width:0%;
+      transition:width 0.3s ease;
+      box-shadow:0 0 20px rgba(0,209,122,.6);
+      position:relative;
+    }
+    .loading-bar::after{
+      content:'';
+      position:absolute;
+      top:0;left:0;right:0;bottom:0;
+      background:linear-gradient(90deg, transparent, rgba(255,255,255,.3), transparent);
+      animation:shimmer 1.5s infinite;
+    }
+    @keyframes shimmer{
+      0%{transform:translateX(-100%)}
+      100%{transform:translateX(100%)}
+    }
+    .loading-percentage{
+      margin-top:20px;
+      font-size:24px;
+      font-weight:600;
+      color:#00d17a;
+      text-shadow:0 0 10px rgba(0,209,122,.5);
+    }
+    .loading-text{
+      margin-top:10px;
+      font-size:14px;
+      color:rgba(255,255,255,.6);
+      letter-spacing:1px;
+    }
+    code.k{
+      padding:3px 8px;
+      border-radius:6px;
+      background:rgba(0,209,122,.15);
+      border:1px solid rgba(0,209,122,.3);
+      color:#00d17a;
+      font-weight:600;
+    }
+
+    /* Modal Rules */
+    .modal{
+      display:none;
+      position:fixed;
+      top:0;left:0;right:0;bottom:0;
+      background:rgba(0,0,0,.9);
+      z-index:9999;
+      align-items:center;
+      justify-content:center;
+      backdrop-filter:blur(10px);
+    }
+    .modal.show{display:flex}
+    .modal-content{
+      background:linear-gradient(135deg, #0a0a0a 0%, #1a0f0f 100%);
+      border:2px solid #00d17a;
+      border-radius:16px;
+      padding:32px;
+      max-width:500px;
+      width:90%;
+      box-shadow:0 0 60px rgba(0,209,122,.4), inset 0 0 60px rgba(0,0,0,.5);
+      position:relative;
+      animation:slideIn .3s ease;
+    }
+    @keyframes slideIn{
+      from{transform:translateY(-50px);opacity:0}
+      to{transform:translateY(0);opacity:1}
+    }
+    .modal-header{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-bottom:24px;
+      padding-bottom:16px;
+      border-bottom:1px solid rgba(0,209,122,.3);
+    }
+    .modal-header h2{
+      margin:0;
+      font-size:24px;
+      color:#00d17a;
+      text-shadow:0 0 20px rgba(0,209,122,.8);
+      flex:1;
+    }
+    .modal-close{
+      background:rgba(255,23,68,.2);
+      border:1px solid #ff1744;
+      color:#ff1744;
+      width:32px;
+      height:32px;
+      border-radius:50%;
+      cursor:pointer;
+      font-size:20px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      transition:.2s;
+    }
+    .modal-close:hover{
+      background:#ff1744;
+      color:#000;
+      transform:rotate(90deg);
+    }
+    .modal-body{
+      line-height:1.8;
+    }
+    .modal-body .rule{
+      display:flex;
+      align-items:flex-start;
+      gap:12px;
+      margin-bottom:16px;
+      padding:12px;
+      background:rgba(0,209,122,.05);
+      border-radius:8px;
+      border-left:3px solid #00d17a;
+    }
+    .modal-body .rule.danger{
+      background:rgba(255,23,68,.05);
+      border-left-color:#ff1744;
+    }
+    .modal-body .rule .icon{
+      font-size:28px;
+      min-width:40px;
+      animation:iconPulse 2s infinite;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    @keyframes iconPulse{
+      0%,100%{transform:scale(1)}
+      50%{transform:scale(1.1)}
+    }
+    .modal-body .rule:hover .icon{
+      animation:iconBounce .5s ease;
+    }
+    @keyframes iconBounce{
+      0%,100%{transform:translateY(0)}
+      50%{transform:translateY(-5px)}
+    }
+    @keyframes powerUpPop{
+      0%{transform:translate(-50%, -50%) scale(0);opacity:0}
+      50%{transform:translate(-50%, -50%) scale(1.1)}
+      100%{transform:translate(-50%, -50%) scale(1);opacity:1}
+    }
+    .modal-body .rule .text{
+      flex:1;
+    }
+    .modal-body .rule .text strong{
+      color:#00d17a;
+      display:block;
+      margin-bottom:4px;
+    }
+    .modal-body .rule.danger .text strong{
+      color:#ff1744;
+    }
+    .modal-footer{
+      margin-top:24px;
+      padding-top:16px;
+      border-top:1px solid rgba(0,209,122,.3);
+      text-align:center;
+      font-size:14px;
+      opacity:.8;
+    }
+
+    /* Game Over Modal & Shake Animation */
+    @keyframes shake{
+      0%, 100%{transform:translate(0,0)}
+      10%, 30%, 50%, 70%, 90%{transform:translate(-10px,0)}
+      20%, 40%, 60%, 80%{transform:translate(10px,0)}
+    }
+    .shake{
+      animation:shake 0.5s;
+    }
+
+    /* Leaderboard Pulse Animation */
+    @keyframes leaderboardPulse{
+      0%, 100%{
+        box-shadow:0 0 20px rgba(255,23,68,.4);
+      }
+      50%{
+        box-shadow:0 0 30px rgba(255,23,68,.7);
+      }
+    }
+    #leaderboard{
+      animation:leaderboardPulse 3s ease-in-out infinite;
+    }
+    #gameOverModal .modal-content{
+      background:linear-gradient(135deg, #1a0000 0%, #0a0a0a 100%);
+      border:3px solid #ff1744;
+      box-shadow:0 0 80px rgba(255,23,68,.6), inset 0 0 80px rgba(255,0,0,.3);
+    }
+    #gameOverModal .modal-header h2{
+      color:#ff1744;
+      text-shadow:0 0 30px rgba(255,23,68,1);
+      font-size:48px;
+      margin:20px 0;
+    }
+    #gameOverModal .stats{
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+      margin:24px 0;
+    }
+    #gameOverModal .stat-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:16px;
+      background:rgba(255,23,68,.1);
+      border-radius:8px;
+      border:1px solid rgba(255,23,68,.3);
+    }
+    #gameOverModal .stat-label{
+      font-size:14px;
+      opacity:.8;
+      text-transform:uppercase;
+      letter-spacing:1px;
+    }
+    #gameOverModal .stat-value{
+      font-size:28px;
+      font-weight:700;
+      color:#ff1744;
+      text-shadow:0 0 10px rgba(255,23,68,.5);
+    }
+    #gameOverModal .btn-restart{
+      width:100%;
+      font-size:18px;
+      padding:18px;
+      margin-top:10px;
+      border:2px solid #00d17a;
+      background:#00d17a;
+      color:#000;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:1px;
+      cursor:pointer;
+      border-radius:8px;
+      transition:.2s;
+      box-shadow:0 4px 20px rgba(0,209,122,.4);
+    }
+    #gameOverModal .btn-restart:hover{
+      transform:translateY(-2px);
+      box-shadow:0 6px 30px rgba(0,209,122,.6);
+    }
+
+    /* ========= MOBILE RESPONSIVE ========= */
+    @media (max-width: 768px) {
+      .wrap{
+        margin:8px auto;
+        padding:8px;
+      }
+
+      header{
+        padding:12px;
+        margin-bottom:8px;
+      }
+
+      h1{
+        font-size:20px;
+      }
+
+      .x-logo{
+        top:12px;
+        right:12px;
+        width:28px;
+        height:28px;
+        font-size:16px;
+      }
+
+      .panel{
+        flex-wrap:wrap;
+        gap:6px;
+        padding:8px;
+        margin-bottom:8px;
+      }
+
+      .btn{
+        padding:8px 12px;
+        font-size:11px;
+      }
+
+      .badge{
+        padding:6px 8px;
+        font-size:10px;
+      }
+
+      canvas#game{
+        width:100% !important;
+        height:auto !important;
+        touch-action:none;
+      }
+
+      .hud{
+        flex-wrap:wrap;
+        gap:6px;
+        padding:8px;
+        margin-top:8px;
+      }
+
+      .hud .left, .hud .right{
+        gap:6px;
+      }
+
+      footer{
+        margin-top:12px;
+        padding:12px;
+        font-size:11px;
+      }
+
+      /* Modal optimizations for mobile */
+      .modal-content{
+        max-width:95% !important;
+        padding:20px;
+        margin:10px;
+      }
+
+      .modal-header h2{
+        font-size:20px;
+      }
+
+      .modal-body{
+        font-size:13px;
+      }
+
+      #gameOverModal .modal-header h2{
+        font-size:36px;
+      }
+
+      #gameOverModal .stat-value{
+        font-size:22px;
+      }
+
+      .loading-title{
+        font-size:32px;
+      }
+
+      .loading-bar-container{
+        width:90vw;
+      }
+
+      /* Touch controls helper */
+      #touchHelper{
+        display:block;
+        position:fixed;
+        bottom:20px;
+        left:50%;
+        transform:translateX(-50%);
+        background:rgba(0,209,122,.2);
+        border:2px solid rgba(0,209,122,.5);
+        border-radius:12px;
+        padding:12px 24px;
+        color:#00d17a;
+        font-size:14px;
+        font-weight:600;
+        text-align:center;
+        z-index:1000;
+        pointer-events:none;
+        animation:pulse 2s infinite;
+      }
+
+      @keyframes pulse{
+        0%, 100%{opacity:0.8}
+        50%{opacity:1}
+      }
+    }
+
+    @media (max-width: 480px) {
+      h1{
+        font-size:18px;
+      }
+
+      .panel{
+        gap:4px;
+        padding:6px;
+      }
+
+      .btn{
+        padding:6px 10px;
+        font-size:10px;
+      }
+
+      .badge{
+        padding:4px 6px;
+        font-size:9px;
+      }
+
+      .modal-content{
+        padding:16px;
+      }
+
+      .modal-header h2{
+        font-size:18px;
+      }
+
+      .modal-body{
+        font-size:12px;
+      }
+    }
+
+    /* Hide touch helper on desktop */
+    @media (min-width: 769px) {
+      #touchHelper{
+        display:none !important;
+      }
+    }
+
+    /* Cinema Mode */
+    body.cinema-mode header,
+    body.cinema-mode .panel,
+    body.cinema-mode footer {
+      display: none !important;
+    }
+    body.cinema-mode {
+      overflow: hidden;
+    }
+    body.cinema-mode .wrap {
+      margin: 0;
+      padding: 0;
+      max-width: 100%;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+    canvas#game:fullscreen {
+      width: 100vw !important;
+      height: 100vh !important;
+      object-fit: contain;
+      background: #000;
+    }
+    canvas#game:-webkit-full-screen {
+      width: 100vw !important;
+      height: 100vh !important;
+      object-fit: contain;
+      background: #000;
+    }
+    canvas#game:-moz-full-screen {
+      width: 100vw !important;
+      height: 100vh !important;
+      object-fit: contain;
+      background: #000;
+    }
+    canvas#game:-ms-fullscreen {
+      width: 100vw !important;
+      height: 100vh !important;
+      object-fit: contain;
+      background: #000;
+    }
+    body.cinema-mode .hud {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(10px);
+      padding: 12px 20px;
+      z-index: 9999;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    body.cinema-mode #cinemaBtn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10000;
+      display: block !important;
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(10px);
+    }
+    body.cinema-mode #cinemaBtn:hover {
+      background: rgba(0, 0, 0, 0.9);
+      border-color: rgba(255, 255, 255, 0.6);
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div id="loadingScreen">
+    <div class="loading-pill-container">
+      <canvas id="loadingPill" width="120" height="70"></canvas>
+    </div>
+    <div class="loading-title">PUMP THE PILL</div>
+    <div class="loading-bar-container">
+      <div class="loading-bar" id="loadingBar"></div>
+    </div>
+    <div class="loading-percentage" id="loadingPercentage">0%</div>
+  </div>
+
+  <div class="wrap">
+    <header>
+      <a href="https://x.com/i/communities/1979643673458377040" class="x-logo" title="Join our X Community" target="_blank" style="opacity:1">
+        𝕏
+      </a>
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px">
+        <h1>Pump the Pill</h1>
+        <canvas id="headerPill" width="40" height="24" style="display:block"></canvas>
+      </div>
+    </header>
+
+    <div class="panel" style="justify-content:center;background:rgba(0,209,122,.05);border-color:rgba(0,209,122,.3)">
+      <span style="font-size:14px;font-weight:600;letter-spacing:.5px;color:#00d17a">📜 Contract: Coming soon...</span>
+    </div>
+
+
+    <canvas id="game" width="960" height="540" aria-label="Pump the Pill"></canvas>
+
+    <!-- Touch helper for mobile -->
+    <div id="touchHelper" style="display:none">
+      📱 TAP ANYWHERE TO PLAY
+    </div>
+
+    <div class="hud" style="display:none">
+      <span class="badge">Score: <b id="score">0</b></span>
+      <span class="badge">Pump: <b id="pump">0</b>%</span>
+      <div class="meter" style="width:220px"><i id="pumpBar"></i></div>
+    </div>
+
+    <!-- Leaderboard Section -->
+    <section>
+      <h3 style="margin-top:24px;margin-bottom:12px;display:flex;align-items:center;gap:8px">🏆 LEADERBOARD DEGEN</h3>
+      <div id="leaderboard" style="background:rgba(0,0,0,.3);border-radius:12px;padding:16px;border:2px solid #ff1744">
+        <div id="leaderboardList" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+    </section>
+
+    <!-- Rewards History Section -->
+    <section id="rewardsSection">
+      <h3 style="margin-top:32px;margin-bottom:12px;display:flex;align-items:center;gap:8px">💰 REWARDS HISTORY</h3>
+      <div style="background:rgba(0,0,0,.3);border-radius:12px;padding:24px;border:2px solid rgba(255,215,0,.5)">
+
+        <!-- Coming Soon Message -->
+        <div id="rewardsComingSoon" style="text-align:center;padding:40px 20px">
+          <div style="font-size:64px;margin-bottom:16px">🚀</div>
+          <h4 style="color:#ffd700;font-size:20px;margin:0 0 12px 0;font-weight:700">Token Launch Coming Soon!</h4>
+          <p style="font-size:14px;opacity:.8;line-height:1.6;max-width:500px;margin:0 auto 20px auto">
+            Rewards will be distributed after the $???? token launches on Pump.fun. Keep playing and climbing the leaderboard to maximize your rewards when we launch! 💎
+          </p>
+          <div style="background:rgba(255,215,0,.15);border:1px solid rgba(255,215,0,.4);border-radius:8px;padding:16px;margin-top:24px;max-width:600px;margin-left:auto;margin-right:auto">
+            <div style="font-weight:600;color:#ffd700;margin-bottom:8px;font-size:14px">📊 Total Rewards Distributed</div>
+            <div style="font-size:32px;font-weight:700;color:#ffd700" id="totalRewardsDistributed">0 SOL</div>
+            <div style="font-size:11px;opacity:.7;margin-top:8px">Payouts will appear here once token launches</div>
+          </div>
+        </div>
+
+        <!-- Rewards List (Hidden initially, will show when there are rewards) -->
+        <div id="rewardsList" style="display:none">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:20px">
+            <div style="background:rgba(255,215,0,.15);border:1px solid rgba(255,215,0,.4);border-radius:8px;padding:16px;text-align:center">
+              <div style="font-size:11px;opacity:.7;margin-bottom:4px">Total Distributed</div>
+              <div style="font-size:24px;font-weight:700;color:#ffd700" id="totalDistributed">0 SOL</div>
+            </div>
+            <div style="background:rgba(0,209,122,.15);border:1px solid rgba(0,209,122,.4);border-radius:8px;padding:16px;text-align:center">
+              <div style="font-size:11px;opacity:.7;margin-bottom:4px">Total Winners</div>
+              <div style="font-size:24px;font-weight:700;color:#00d17a" id="totalWinners">0</div>
+            </div>
+            <div style="background:rgba(255,23,68,.15);border:1px solid rgba(255,23,68,.4);border-radius:8px;padding:16px;text-align:center">
+              <div style="font-size:11px;opacity:.7;margin-bottom:4px">Latest Payout</div>
+              <div style="font-size:24px;font-weight:700;color:#ff1744" id="latestPayout">-</div>
+            </div>
+          </div>
+
+          <!-- Rewards Table -->
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:12px">
+              <thead>
+                <tr style="background:rgba(255,215,0,.1);border-bottom:2px solid rgba(255,215,0,.3)">
+                  <th style="padding:12px;text-align:left;font-weight:600;color:#ffd700">Date</th>
+                  <th style="padding:12px;text-align:left;font-weight:600;color:#ffd700">Wallet</th>
+                  <th style="padding:12px;text-align:right;font-weight:600;color:#ffd700">Amount</th>
+                  <th style="padding:12px;text-align:right;font-weight:600;color:#ffd700">Score</th>
+                  <th style="padding:12px;text-align:center;font-weight:600;color:#ffd700">Type</th>
+                </tr>
+              </thead>
+              <tbody id="rewardsTableBody">
+                <!-- Rewards will be inserted here by JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tokenomics & Rewards Section -->
+    <section>
+      <h3 style="margin-top:32px;margin-bottom:12px;display:flex;align-items:center;gap:8px">💎 TOKENOMICS & REWARDS</h3>
+      <div style="background:rgba(0,0,0,.3);border-radius:12px;padding:20px;border:2px solid rgba(0,209,122,.5)">
+
+        <!-- Supply Info -->
+        <div style="background:rgba(255,215,0,.15);padding:16px;border-radius:8px;border:1px solid rgba(255,215,0,.4);margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <span style="font-size:20px">📊</span>
+            <span style="font-weight:600;color:#ffd700;font-size:16px">Total Supply</span>
+          </div>
+          <div style="font-size:24px;font-weight:700;color:#ffd700;margin-bottom:8px">1,000,000,000 $????</div>
+          <div style="font-size:12px;opacity:.8;line-height:1.6">
+            Fair launch on Pump.fun • No presale • Community-driven
+          </div>
+        </div>
+
+        <!-- Tokenomics Grid -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:16px">
+          <div style="background:rgba(255,215,0,.1);padding:14px;border-radius:8px;border:1px solid rgba(255,215,0,.3)">
+            <div style="font-size:22px;margin-bottom:6px">🔒</div>
+            <div style="font-weight:600;margin-bottom:4px;color:#ffd700;font-size:14px">Token Lock</div>
+            <div style="font-size:12px;opacity:.8;line-height:1.5">Tokens locked to reduce circulating supply and increase value</div>
+          </div>
+          <div style="background:rgba(255,215,0,.1);padding:14px;border-radius:8px;border:1px solid rgba(255,215,0,.3)">
+            <div style="font-size:22px;margin-bottom:6px">💰</div>
+            <div style="font-weight:600;margin-bottom:4px;color:#ffd700;font-size:14px">Buyback Program</div>
+            <div style="font-size:12px;opacity:.8;line-height:1.5">Fees used to buy back tokens from the market</div>
+          </div>
+          <div style="background:rgba(255,215,0,.1);padding:14px;border-radius:8px;border:1px solid rgba(255,215,0,.3)">
+            <div style="font-size:22px;margin-bottom:6px">⚡</div>
+            <div style="font-weight:600;margin-bottom:4px;color:#ffd700;font-size:14px">Creator Fees</div>
+            <div style="font-size:12px;opacity:.8;line-height:1.5">Support development & grow the ecosystem</div>
+          </div>
+        </div>
+
+        <!-- Rewards Grid -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+          <div style="background:rgba(0,209,122,.1);padding:14px;border-radius:8px;border:1px solid rgba(0,209,122,.3)">
+            <div style="font-size:22px;margin-bottom:6px">🎁</div>
+            <div style="font-weight:600;margin-bottom:4px;color:#00d17a;font-size:14px">Play to Earn</div>
+            <div style="font-size:12px;opacity:.8;line-height:1.5">Earn $???? & $SOL tokens for high scores</div>
+          </div>
+          <div style="background:rgba(0,209,122,.1);padding:14px;border-radius:8px;border:1px solid rgba(0,209,122,.3)">
+            <div style="font-size:22px;margin-bottom:6px">🏆</div>
+            <div style="font-weight:600;margin-bottom:4px;color:#00d17a;font-size:14px">Leaderboard Prizes</div>
+            <div style="font-size:12px;opacity:.8;line-height:1.5">Top players receive bonus rewards</div>
+          </div>
+          <div style="background:rgba(0,209,122,.1);padding:14px;border-radius:8px;border:1px solid rgba(0,209,122,.3)">
+            <div style="font-size:22px;margin-bottom:6px">🎮</div>
+            <div style="font-weight:600;margin-bottom:4px;color:#00d17a;font-size:14px">Daily Challenges</div>
+            <div style="font-size:12px;opacity:.8;line-height:1.5">Complete challenges for extra tokens</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Roadmap Section -->
+    <section>
+      <h3 style="margin-top:32px;margin-bottom:12px;display:flex;align-items:center;gap:8px">🗺️ ROADMAP</h3>
+      <div style="background:rgba(0,0,0,.3);border-radius:12px;padding:20px;border:2px solid rgba(255,215,0,.5)">
+
+        <!-- Roadmap Timeline -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:20px">
+
+          <!-- Phase 1 -->
+          <div style="background:rgba(0,209,122,.1);padding:16px;border-radius:8px;border:1px solid rgba(0,209,122,.4);position:relative">
+            <div style="position:absolute;top:-10px;left:12px;background:#00d17a;color:#000;font-weight:700;font-size:11px;padding:4px 12px;border-radius:12px">PHASE 1</div>
+            <div style="margin-top:12px;font-weight:600;margin-bottom:12px;color:#00d17a;font-size:15px">🚀 Launch</div>
+            <ul style="margin:0;padding-left:20px;font-size:12px;opacity:.9;line-height:1.8">
+              <li>Game v1 launch on web</li>
+              <li>Token launch on Pump.fun</li>
+              <li>Live stream to play the game</li>
+              <li>Play-to-earn system live</li>
+              <li>Leaderboard rewards</li>
+            </ul>
+          </div>
+
+          <!-- Phase 2 -->
+          <div style="background:rgba(255,215,0,.1);padding:16px;border-radius:8px;border:1px solid rgba(255,215,0,.4);position:relative">
+            <div style="position:absolute;top:-10px;left:12px;background:#ffd700;color:#000;font-weight:700;font-size:11px;padding:4px 12px;border-radius:12px">PHASE 2</div>
+            <div style="margin-top:12px;font-weight:600;margin-bottom:12px;color:#ffd700;font-size:15px">💎 Growth</div>
+            <ul style="margin:0;padding-left:20px;font-size:12px;opacity:.9;line-height:1.8">
+              <li>Dev wallet lock</li>
+              <li>Community strengthening</li>
+              <li>Marketing campaign and CGK & CMC listing</li>
+              <li>Buyback program launch</li>
+            </ul>
+          </div>
+
+          <!-- Phase 3 -->
+          <div style="background:rgba(138,43,226,.1);padding:16px;border-radius:8px;border:1px solid rgba(138,43,226,.4);position:relative">
+            <div style="position:absolute;top:-10px;left:12px;background:#8a2be2;color:#fff;font-weight:700;font-size:11px;padding:4px 12px;border-radius:12px">PHASE 3</div>
+            <div style="margin-top:12px;font-weight:600;margin-bottom:12px;color:#a855f7;font-size:15px">🎮 Expansion</div>
+            <ul style="margin:0;padding-left:20px;font-size:12px;opacity:.9;line-height:1.8">
+              <li>New game modes</li>
+              <li>Daily challenges</li>
+              <li>Tournament system</li>
+              <li>Second live stream for tournament</li>
+              <li>Partnerships</li>
+            </ul>
+          </div>
+
+        </div>
+
+        <!-- Coming Soon Phase -->
+        <div style="background:rgba(255,255,255,.03);padding:16px;border-radius:8px;border:1px dashed rgba(255,255,255,.2);text-align:center">
+          <div style="display:inline-block;background:rgba(255,255,255,.1);color:#fff;font-weight:700;font-size:11px;padding:6px 16px;border-radius:12px;margin-bottom:8px">PHASE 4 - COMING SOON</div>
+          <div style="font-size:13px;opacity:.7;line-height:1.6">
+            🌟 More exciting features • Partnerships • DAO governance • Cross-chain expansion
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <div style="text-align:center;margin-top:32px;padding-top:24px;border-top:1px solid rgba(255,255,255,.1);opacity:.7;font-size:12px;line-height:1.8">
+        <p style="margin:0 0 8px 0">© 2025 Pump The Pill - All Rights Reserved</p>
+        <p style="margin:0;font-weight:600">Built by <a href="https://www.trencheslabs.io/" target="_blank" style="color:#00d17a;text-decoration:none;transition:.2s" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Trenches Labs</a></p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Modal Rules -->
+  <div id="rulesModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <canvas id="modalPill" width="30" height="18" style="display:block"></canvas>
+        <h2>GAME RULES</h2>
+        <button class="modal-close" onclick="closeRulesModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="rule">
+          <div class="icon" style="filter:drop-shadow(0 0 8px #ff6b00)">🔥</div>
+          <div class="text">
+            <strong>How to Play</strong>
+            Click / Space / Tap to PUMP the pill up
+          </div>
+        </div>
+        <div class="rule danger">
+          <div class="icon" style="filter:drop-shadow(0 0 8px #ff1744)">📉</div>
+          <div class="text">
+            <strong>Avoid the RUG!</strong>
+            Red candles = RUG PULL (-99%) = REKT 💀
+          </div>
+        </div>
+        <div class="rule">
+          <div class="icon" style="filter:drop-shadow(0 0 8px #00d17a)">📈</div>
+          <div class="text">
+            <strong>Score & Survival</strong>
+            The longer you survive, the higher you score. Brag rights guaranteed!
+          </div>
+        </div>
+        <div class="rule" style="background:rgba(255,215,0,.1);border-left-color:#ffd700">
+          <div class="icon" style="filter:drop-shadow(0 0 12px #ffd700);font-size:32px">💰</div>
+          <div class="text">
+            <strong style="color:#ffd700">FREE CREATOR FEES!</strong>
+            Every 20min to the top winner
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        No paper hands allowed here! 💎🙌<br>
+        <strong>Wagmi or ngmi? Let's play degen 🎰</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Pause Menu -->
+  <div id="pauseModal" class="modal">
+    <div class="modal-content" style="max-width:500px">
+      <div class="modal-header">
+        <div class="icon" style="filter:drop-shadow(0 0 12px #ffd700);font-size:32px">⏸️</div>
+        <h2>GAME MENU</h2>
+        <button class="modal-close" onclick="closePauseModal()">✕</button>
+      </div>
+      <div class="modal-body">
+
+        <!-- Stats Display -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+          <div style="background:rgba(255,23,68,.15);border:1px solid rgba(255,23,68,.3);border-radius:8px;padding:14px;text-align:center">
+            <div style="font-size:11px;opacity:.7;margin-bottom:4px">Best Score</div>
+            <div style="font-size:24px;font-weight:700;color:#ff1744" id="pauseBestScore">0</div>
+          </div>
+          <div style="background:rgba(255,215,0,.15);border:1px solid rgba(255,215,0,.3);border-radius:8px;padding:14px;text-align:center">
+            <div style="font-size:11px;opacity:.7;margin-bottom:4px">Total Games</div>
+            <div style="font-size:24px;font-weight:700;color:#ffd700" id="pauseTotalGames">0</div>
+          </div>
+        </div>
+
+        <!-- Game Mode -->
+        <div style="margin-bottom:16px">
+          <h3 style="font-size:14px;color:#00d17a;margin:0 0 12px 0;text-transform:uppercase;letter-spacing:.5px">Game Mode</h3>
+          <button class="btn primary" id="pausePlaySolo" style="width:100%;margin-bottom:8px;padding:14px">
+            ▶️ Play Solo
+          </button>
+          <button class="btn primary" id="pauseMultiplayer" style="width:100%;background:rgba(255,215,0,.8);border-color:#ffd700;color:#000;padding:14px">
+            🎮 Multiplayer
+          </button>
+        </div>
+
+        <!-- Game Controls -->
+        <div style="margin-bottom:16px">
+          <h3 style="font-size:14px;color:#00d17a;margin:0 0 12px 0;text-transform:uppercase;letter-spacing:.5px">Controls</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <button class="btn" id="pauseRestart" style="padding:12px">
+              🔄 Restart
+            </button>
+            <button class="btn" id="pauseResume" style="padding:12px;background:rgba(0,209,122,.2);border-color:#00d17a">
+              ▶️ Resume
+            </button>
+          </div>
+        </div>
+
+        <!-- Settings -->
+        <div style="margin-bottom:16px">
+          <h3 style="font-size:14px;color:#00d17a;margin:0 0 12px 0;text-transform:uppercase;letter-spacing:.5px">Settings</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <button class="btn" id="pauseCinema" style="padding:12px">
+              🎬 Cinema
+            </button>
+            <button class="btn" id="pauseSound" style="padding:12px">
+              🔊 Sound
+            </button>
+          </div>
+        </div>
+
+        <!-- Info -->
+        <div>
+          <h3 style="font-size:14px;color:#00d17a;margin:0 0 12px 0;text-transform:uppercase;letter-spacing:.5px">Information</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <button class="btn" id="pauseCommands" style="padding:12px">
+              🎮 Commands
+            </button>
+            <button class="btn" id="pauseRules" style="padding:12px">
+              ❓ Rules
+            </button>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        Press <strong>ESC</strong> or <strong>P</strong> to pause/resume
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Commands -->
+  <div id="commandsModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="icon" style="filter:drop-shadow(0 0 8px #00d17a);font-size:32px">🎮</div>
+        <h2>GAME CONTROLS</h2>
+        <button class="modal-close" onclick="closeCommandsModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="rule">
+          <div class="icon" style="filter:drop-shadow(0 0 8px #00d17a);font-size:36px">🖥️</div>
+          <div class="text">
+            <strong style="color:#00d17a">PC / Desktop</strong>
+            Press <code class="k">SPACE</code> or <strong>Click</strong> to pump the pill up
+          </div>
+        </div>
+        <div class="rule">
+          <div class="icon" style="filter:drop-shadow(0 0 8px #00d17a);font-size:36px">📱</div>
+          <div class="text">
+            <strong style="color:#00d17a">Mobile / Tablet</strong>
+            <strong>Tap</strong> anywhere on the screen to pump the pill up
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        Master the controls to avoid the RUG! 💎🙌
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Wallet -->
+  <div id="walletModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="icon" style="filter:drop-shadow(0 0 12px #ffd700);font-size:32px">💰</div>
+        <h2>DEPOSIT YOUR SOLANA WALLET</h2>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom:16px">
+          <label style="font-size:12px;color:#00d17a;font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">
+            Solana Address for Rewards
+          </label>
+          <input type="text" id="walletInput" placeholder="Ex: 7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU"
+            style="width:100%;padding:12px;background:rgba(0,0,0,.5);border:1px solid rgba(0,209,122,.3);border-radius:8px;color:var(--text);font-family:'Courier New',monospace;font-size:12px;box-sizing:border-box" />
+          <div id="walletStatus" style="font-size:11px;opacity:.7;margin-top:8px"></div>
+        </div>
+        <button class="btn primary" id="saveWalletBtn" style="width:100%;font-size:14px;padding:14px">
+          💾 SAVE AND PLAY
+        </button>
+        <button class="btn" id="skipWalletBtn" style="width:100%;font-size:12px;padding:10px;margin-top:8px;opacity:.7">
+          Skip (no reward)
+        </button>
+      </div>
+      <div class="modal-footer">
+        Deposit your wallet to be eligible for rewards! 🚀💎
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Game Over -->
+  <div id="gameOverModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header" style="flex-direction:column;border:none">
+        <div style="font-size:80px;margin:20px 0">💀</div>
+        <h2>GAME OVER</h2>
+        <p style="color:#ff1744;font-size:18px;font-weight:600;margin:0">RUG PULL -99%</p>
+      </div>
+      <div class="modal-body">
+        <div class="stats">
+          <div class="stat-row">
+            <span class="stat-label">Your Score</span>
+            <span class="stat-value" id="finalScore">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Best Score</span>
+            <span class="stat-value" id="finalBest">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Rank</span>
+            <span class="stat-value" id="finalRank">#1</span>
+          </div>
+        </div>
+        <button class="btn-restart" id="restartGameBtn">
+          🔄 PLAY AGAIN
+        </button>
+        <button class="btn" id="leaveRoomBtn" style="width:100%;font-size:16px;padding:14px;margin-top:10px;display:none;background:rgba(255,23,68,.2);border-color:#ff1744;color:#ff1744">
+          🚪 LEAVE ROOM
+        </button>
+        <button class="btn" id="shareGameBtn" style="width:100%;font-size:16px;padding:14px;margin-top:10px">
+          📤 SHARE ON X
+        </button>
+      </div>
+      <div class="modal-footer" style="border-color:rgba(255,23,68,.3)">
+        Better luck next time degen! 🎰
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Multiplayer Lobby -->
+  <div id="multiplayerModal" class="modal">
+    <div class="modal-content" style="max-width:600px">
+      <div class="modal-header">
+        <div class="icon" style="filter:drop-shadow(0 0 12px #00d17a);font-size:32px">🎮</div>
+        <h2>MULTIPLAYER LOBBY</h2>
+        <button class="modal-close" onclick="closeMultiplayerModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom:20px">
+          <label style="font-size:12px;color:#00d17a;font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">
+            Your Name
+          </label>
+          <input type="text" id="playerNameInput" placeholder="Enter your degen name..."
+            style="width:100%;padding:12px;background:rgba(0,0,0,.5);border:1px solid rgba(0,209,122,.3);border-radius:8px;color:var(--text);font-family:'Courier New',monospace;font-size:12px;box-sizing:border-box" />
+        </div>
+
+        <div style="margin-bottom:20px">
+          <label style="font-size:12px;color:#ffd700;font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">
+            💰 Solana Wallet (Required for Rewards)
+          </label>
+          <input type="text" id="multiplayerWalletInput" placeholder="Ex: 7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU"
+            style="width:100%;padding:12px;background:rgba(0,0,0,.5);border:1px solid rgba(255,215,0,.3);border-radius:8px;color:var(--text);font-family:'Courier New',monospace;font-size:11px;box-sizing:border-box" />
+          <div id="multiplayerWalletStatus" style="font-size:11px;margin-top:6px;opacity:.8"></div>
+        </div>
+
+        <div id="maxPlayersSection" style="margin-bottom:20px;display:none">
+          <label style="font-size:12px;color:#00d17a;font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">
+            👥 Max Players
+          </label>
+          <div style="display:flex;gap:8px">
+            <button class="btn max-players-btn" data-max="2" style="flex:1;padding:12px;background:rgba(0,209,122,.1);border-color:rgba(0,209,122,.3)" onclick="selectMaxPlayers(2)">
+              2 Players
+            </button>
+            <button class="btn max-players-btn" data-max="3" style="flex:1;padding:12px;background:rgba(0,209,122,.1);border-color:rgba(0,209,122,.3)" onclick="selectMaxPlayers(3)">
+              3 Players
+            </button>
+            <button class="btn max-players-btn selected" data-max="4" style="flex:1;padding:12px;background:#00d17a;border-color:#00d17a;color:#000" onclick="selectMaxPlayers(4)">
+              4 Players
+            </button>
+          </div>
+        </div>
+
+        <div id="mainButtons" style="display:flex;gap:10px;margin-bottom:20px">
+          <button class="btn primary" id="showCreateRoomBtn" style="flex:1;padding:14px">
+            🎲 CREATE ROOM
+          </button>
+          <button class="btn" id="joinRoomBtn" style="flex:1;padding:14px">
+            🚪 JOIN BY ID
+          </button>
+        </div>
+
+        <div id="createRoomButtons" style="display:none;gap:10px;margin-bottom:20px">
+          <button class="btn" id="backBtn" style="flex:1;padding:14px">
+            ← BACK
+          </button>
+          <button class="btn primary" id="confirmCreateRoomBtn" style="flex:2;padding:14px">
+            ✅ CONFIRM & CREATE
+          </button>
+        </div>
+
+        <!-- Available Rooms List -->
+        <div id="availableRoomsSection" style="margin-bottom:20px">
+          <h3 style="font-size:14px;color:#00d17a;margin:0 0 12px 0;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;justify-content:space-between">
+            <span>🎮 Available Rooms</span>
+            <span id="roomsCount" style="font-size:12px;opacity:.7">0</span>
+          </h3>
+          <div id="availableRoomsList" style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto">
+            <div style="text-align:center;padding:20px;opacity:.5;font-size:13px">
+              Loading rooms...
+            </div>
+          </div>
+        </div>
+
+        <div id="roomIdSection" style="display:none;margin-bottom:20px">
+          <label style="font-size:12px;color:#00d17a;font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">
+            Room ID
+          </label>
+          <input type="text" id="roomIdInput" placeholder="Enter room ID..."
+            style="width:100%;padding:12px;background:rgba(0,0,0,.5);border:1px solid rgba(0,209,122,.3);border-radius:8px;color:var(--text);font-family:'Courier New',monospace;font-size:12px;box-sizing:border-box" />
+          <button class="btn primary" id="joinRoomConfirmBtn" style="width:100%;margin-top:10px;padding:12px">
+            ✅ JOIN
+          </button>
+        </div>
+
+        <div id="roomInfo" style="display:none">
+          <div style="background:rgba(0,209,122,.1);border:1px solid rgba(0,209,122,.3);border-radius:8px;padding:16px;margin-bottom:20px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <span style="font-size:14px;font-weight:600;color:#00d17a">Room ID:</span>
+              <span id="currentRoomId" style="font-size:18px;font-weight:700;color:#00d17a">----</span>
+            </div>
+            <button class="btn" id="copyRoomIdBtn" style="width:100%;padding:10px">
+              📋 COPY ROOM ID
+            </button>
+          </div>
+
+          <div style="margin-bottom:16px">
+            <h3 style="font-size:14px;color:#00d17a;margin:0 0 12px 0;text-transform:uppercase;letter-spacing:.5px">
+              Players (<span id="playerCount">0</span>/<span id="maxPlayerCount">4</span>)
+            </h3>
+            <div id="playersList" style="display:flex;flex-direction:column;gap:8px"></div>
+          </div>
+
+          <button class="btn primary" id="startMultiplayerBtn" style="width:100%;font-size:16px;padding:16px;display:none">
+            🚀 START GAME
+          </button>
+
+          <!-- TEST ONLY: Bot spawn button -->
+          <button class="btn" id="spawnBotsBtn" style="width:100%;padding:12px;margin-top:10px;background:rgba(255,165,0,.2);border-color:#ffa500;display:none">
+            🤖 ADD BOTS (TEST)
+          </button>
+
+          <button class="btn" id="leaveLobbyBtn" style="width:100%;padding:12px;margin-top:10px;background:rgba(255,23,68,.1);border-color:#ff1744">
+            🚪 LEAVE ROOM
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <strong>💰 Wallet Required!</strong> All players must deposit their Solana wallet to be eligible for rewards.<br>
+        Race against other degens in real-time! 🏁💎
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+  <script>
+  // ========= FIREBASE CONFIG =========
+  const firebaseConfig = {
+    apiKey: "AIzaSyDX9Cx7E5IAAUN8_OBT1a2-CJ0UMWbB7VY",
+    authDomain: "pump-the-pill.firebaseapp.com",
+    projectId: "pump-the-pill",
+    databaseURL: "https://pump-the-pill-default-rtdb.europe-west1.firebasedatabase.app", // URL Realtime Database
+    storageBucket: "pump-the-pill.firebasestorage.app",
+    messagingSenderId: "401092828647",
+    appId: "1:401092828647:web:abc123" // Placeholder, remplace si tu as le vrai
+  };
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const rtdb = firebase.database();
+
+  // ========= SOUND SYSTEM =========
+  let soundEnabled = true;
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+  // Sound toggle is now in the pause menu
+
+  // Flap/Jump sound
+  function playFlapSound() {
+    if (!soundEnabled) return;
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.1);
+
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.1);
+  }
+
+  // Power-up sound
+  function playPowerUpSound() {
+    if (!soundEnabled) return;
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.15);
+
+    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.15);
+  }
+
+  // Game Over sound
+  function playGameOverSound() {
+    if (!soundEnabled) return;
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.3);
+
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.3);
+  }
+
+  // Score sound
+  function playScoreSound() {
+    if (!soundEnabled) return;
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+    oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.05);
+
+    gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.1);
+  }
+
+  // ========= ONLINE STATS TRACKING =========
+  let onlinePresenceRef = null;
+  let onlineCountRef = rtdb.ref('stats/onlinePlayers');
+  let totalGamesRef = rtdb.ref('stats/totalGames');
+
+  // Track online players
+  function initializeOnlinePresence() {
+    const sessionId = Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    onlinePresenceRef = rtdb.ref('presence/' + sessionId);
+
+    // Set user as online
+    onlinePresenceRef.set({
+      online: true,
+      lastSeen: firebase.database.ServerValue.TIMESTAMP
+    });
+
+    // Remove on disconnect
+    onlinePresenceRef.onDisconnect().remove();
+
+    // Listen to online count (removed from UI to avoid showing 0 players)
+
+    // Listen to total games count
+    totalGamesRef.on('value', (snapshot) => {
+      totalGames = snapshot.val() || 0;
+      // Total games badge is now in the pause menu, updated when opened
+    });
+  }
+
+  // Increment total games counter
+  async function incrementTotalGames() {
+    try {
+      await totalGamesRef.transaction((current) => {
+        return (current || 0) + 1;
+      });
+    } catch (error) {
+      console.error('Error incrementing total games:', error);
+    }
+  }
+
+  // Initialize on page load
+  initializeOnlinePresence();
+
+  // ========= BOT SYSTEM FOR TESTING (REMOVE BEFORE PRODUCTION) =========
+  const ENABLE_BOTS = false; // Set to false to disable bots
+  let testBots = [];
+
+  function createTestBot(name, colorIndex) {
+    const botId = 'bot_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    return {
+      id: botId,
+      name: name,
+      colorIndex: colorIndex,
+      y: 270,
+      vy: 0,
+      score: 0,
+      alive: true,
+      wallet: 'BOT' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+      // Bot AI parameters
+      targetY: 270,
+      reactionTime: 0,
+      skill: 0.5 + Math.random() * 0.5 // 0.5 to 1.0 (difficulty)
+    };
+  }
+
+  async function spawnBotsInRoom(roomId, numBots) {
+    if (!ENABLE_BOTS) return;
+
+    const botNames = ['DegBot', 'Trencher', 'MoonBoi', 'DiamondAI'];
+    const roomRef = rtdb.ref('rooms/' + roomId);
+
+    for (let i = 0; i < numBots; i++) {
+      const bot = createTestBot(botNames[i] || `Bot${i+1}`, i + 1);
+      testBots.push(bot);
+
+      // Add bot to room
+      await roomRef.child('players/' + bot.id).set({
+        name: bot.name,
+        color: PLAYER_COLORS[bot.colorIndex],
+        wallet: bot.wallet,
+        ready: true,
+        alive: true,
+        score: 0,
+        y: bot.y,
+        vy: bot.vy
+      });
+
+      console.log('🤖 Bot spawned:', bot.name);
+    }
+  }
+
+  function updateBotAI(bot, obstacles, deltaTime, currentRoom) {
+    if (!bot.alive || !currentRoom) return;
+
+    // Find nearest obstacle
+    let nearestObstacle = null;
+    let minDist = Infinity;
+
+    for (let obs of obstacles) {
+      if (obs.x > 200 && obs.x < 600) {
+        const dist = obs.x - 200;
+        if (dist < minDist) {
+          minDist = dist;
+          nearestObstacle = obs;
+        }
+      }
+    }
+
+    // Calculate target Y position (center of gap)
+    if (nearestObstacle) {
+      const gapCenter = (nearestObstacle.top + nearestObstacle.bottom) / 2;
+      bot.targetY = gapCenter + (Math.random() - 0.5) * 30 * (1 - bot.skill);
+    } else {
+      bot.targetY = 270; // Center of screen
+    }
+
+    // Simple AI: thrust if below target
+    const threshold = 20 + (1 - bot.skill) * 40;
+    if (bot.y > bot.targetY + threshold) {
+      // Thrust up
+      bot.vy = -8.5;
+    }
+
+    // Apply physics (same as player)
+    bot.vy += 0.5; // gravity
+    bot.vy = Math.max(-10, Math.min(10, bot.vy)); // clamp
+    bot.y += bot.vy;
+
+    // Check collision
+    if (bot.y < 20 || bot.y > 520) {
+      bot.alive = false;
+      return;
+    }
+
+    // Check obstacle collision
+    for (let obs of obstacles) {
+      if (obs.x > 180 && obs.x < 220) { // Near bot position
+        if (bot.y < obs.top + 20 || bot.y > obs.bottom - 20) {
+          bot.alive = false;
+          return;
+        }
+      }
+    }
+
+    // Update score
+    bot.score += deltaTime * (2 + bot.score * 0.01) * 0.001;
+
+    // Update Firebase
+    rtdb.ref('rooms/' + currentRoom + '/players/' + bot.id).update({
+      y: bot.y,
+      vy: bot.vy,
+      score: bot.score,
+      alive: bot.alive
+    });
+  }
+
+  function clearTestBots() {
+    testBots = [];
+    console.log('🧹 Bots cleared');
+  }
+
+  // ========= CONFIG =========
+  const CFG = {
+    gravity: 0.5,          // gravité verticale (Flappy style)
+    thrust: 8.5,           // puissance de propulsion (impulse instantanée)
+    maxVy: 10.0,           // vitesse verticale max (clamp)
+    speed: 3.2,            // vitesse horizontale des obstacles
+    speedGain: 0.02,       // accélération progressive
+    tubeGap: 160,          // taille de l'ouverture (gap entre tuyaux)
+    gapMin: 110,           // ouverture minimale
+    spawnEvery: 1800,      // ms entre obstacles (≈ 1.8s, Flappy style)
+    runTarget: 120,        // durée cible d'un run réussi (s) - 2 minutes
+    pill: { r: 20, green:'#00d17a', white:'#ffffff' }, // Capsule 💊 Pump.fun (vert/blanc)
+    seed: Math.floor(Math.random()*1e9),
+    powerUpSpawnInterval: 8000, // Power-up toutes les 8 secondes
+  };
+
+  // ========= POWER-UPS CONFIG =========
+  const POWER_UPS = {
+    MUSHROOM: {
+      id: 'mushroom',
+      emoji: '🍄',
+      name: 'Extra Life',
+      color: '#ff6b6b',
+      duration: 0 // Instant effect
+    },
+    CHRONO: {
+      id: 'chrono',
+      emoji: '⏰',
+      name: 'Time Slow',
+      color: '#4dabf7',
+      duration: 5000 // 5 seconds
+    },
+    STAR: {
+      id: 'star',
+      emoji: '⭐',
+      name: '2x Score',
+      color: '#ffd700',
+      duration: 8000 // 8 seconds
+    },
+    SHIELD: {
+      id: 'shield',
+      emoji: '🛡️',
+      name: 'Shield',
+      color: '#00d9ff',
+      duration: 0 // Instant - protects from 1 hit
+    },
+    SPEED: {
+      id: 'speed',
+      emoji: '⚡',
+      name: 'Speed Boost',
+      color: '#ffeb3b',
+      duration: 6000 // 6 seconds
+    },
+    FIRE: {
+      id: 'fire',
+      emoji: '🔥',
+      name: 'Fire Mode',
+      color: '#ff5722',
+      duration: 5000 // 5 seconds
+    },
+    TORNADO: {
+      id: 'tornado',
+      emoji: '🌀',
+      name: 'Tornado',
+      color: '#9c27b0',
+      duration: 0 // Instant effect
+    },
+    BOMB: {
+      id: 'bomb',
+      emoji: '💣',
+      name: 'Clear Screen',
+      color: '#000000',
+      duration: 0 // Instant effect
+    },
+    NITRO: {
+      id: 'nitro',
+      emoji: '🚀',
+      name: 'Nitro Boost',
+      color: '#00ffff',
+      duration: 3000 // 3 seconds
+    }
+  };
+
+  // ========= MULTIPLAYER SYSTEM =========
+  const PLAYER_COLORS = [
+    { name: 'Green', primary: '#00d17a', secondary: '#00ff88', depth: 1.0, xOffset: 0 }, // Front (normal size)
+    { name: 'Blue', primary: '#00b4ff', secondary: '#00e0ff', depth: 0.85, xOffset: -30 }, // Middle-back left
+    { name: 'Red', primary: '#ff1744', secondary: '#ff5252', depth: 0.85, xOffset: 30 }, // Middle-back right
+    { name: 'Yellow', primary: '#ffd700', secondary: '#ffed4e', depth: 0.7, xOffset: 0 }, // Far back (smaller)
+  ];
+
+  let isMultiplayer = false;
+  let currentRoom = null;
+  let playerId = null;
+  let playerColor = null;
+  let playerColorIndex = 0; // Store local player's color index
+  let roomRef = null;
+  let playerRef = null;
+  let otherPlayers = {};
+  let roomListener = null;
+  let availableRoomsListener = null;
+  let selectedMaxPlayers = 4; // Default: 4 players
+
+  function generateRoomId() {
+    return Math.random().toString(36).substring(2, 8).toUpperCase();
+  }
+
+  function generatePlayerId() {
+    return 'player_' + Math.random().toString(36).substring(2, 15);
+  }
+
+  function selectMaxPlayers(max) {
+    selectedMaxPlayers = max;
+
+    // Update button styles
+    document.querySelectorAll('.max-players-btn').forEach(btn => {
+      const btnMax = parseInt(btn.getAttribute('data-max'));
+      if (btnMax === max) {
+        btn.style.background = '#00d17a';
+        btn.style.borderColor = '#00d17a';
+        btn.style.color = '#000';
+        btn.classList.add('selected');
+      } else {
+        btn.style.background = 'rgba(0,209,122,.1)';
+        btn.style.borderColor = 'rgba(0,209,122,.3)';
+        btn.style.color = 'var(--text)';
+        btn.classList.remove('selected');
+      }
+    });
+  }
+
+  function openMultiplayerModal() {
+    document.getElementById('multiplayerModal').classList.add('show');
+    document.getElementById('playerNameInput').value = localStorage.getItem('pill_player_name') || '';
+    document.getElementById('multiplayerWalletInput').value = playerWallet || '';
+
+    if (playerWallet) {
+      document.getElementById('multiplayerWalletStatus').textContent = '✅ Wallet saved';
+      document.getElementById('multiplayerWalletStatus').style.color = '#00d17a';
+    } else {
+      document.getElementById('multiplayerWalletStatus').textContent = '';
+    }
+
+    // Start listening to available rooms
+    listenToAvailableRooms();
+  }
+
+  function listenToAvailableRooms() {
+    if (availableRoomsListener) return; // Already listening
+
+    const roomsRef = rtdb.ref('rooms');
+
+    availableRoomsListener = roomsRef.on('value', (snapshot) => {
+      const rooms = snapshot.val();
+      updateAvailableRoomsList(rooms);
+    });
+  }
+
+  function updateAvailableRoomsList(rooms) {
+    const listEl = document.getElementById('availableRoomsList');
+    const countEl = document.getElementById('roomsCount');
+
+    if (!rooms) {
+      listEl.innerHTML = '<div style="text-align:center;padding:20px;opacity:.5;font-size:13px">No rooms available. Create one! 🎮</div>';
+      countEl.textContent = '0';
+      return;
+    }
+
+    // Filter only waiting rooms
+    const availableRooms = Object.entries(rooms).filter(([id, room]) => {
+      const playerCount = Object.keys(room.players || {}).length;
+      const maxPlayers = room.maxPlayers || 4;
+      return room.status === 'waiting' && playerCount < maxPlayers;
+    });
+
+    countEl.textContent = availableRooms.length;
+
+    if (availableRooms.length === 0) {
+      listEl.innerHTML = '<div style="text-align:center;padding:20px;opacity:.5;font-size:13px">No rooms available. Create one! 🎮</div>';
+      return;
+    }
+
+    listEl.innerHTML = availableRooms.map(([roomId, room]) => {
+      const playerCount = Object.keys(room.players || {}).length;
+      const maxPlayers = room.maxPlayers || 4;
+      const playersArray = Object.values(room.players || {});
+      const hostName = playersArray[0]?.name || 'Unknown';
+      const timeAgo = getTimeAgo(room.createdAt);
+
+      // Get player colors dots
+      const colorDots = playersArray.map(p =>
+        `<div style="width:12px;height:12px;border-radius:50%;background:${p.color.primary};box-shadow:0 0 6px ${p.color.primary}"></div>`
+      ).join('');
+
+      return `
+        <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(0,209,122,.05);border-radius:8px;border:1px solid rgba(0,209,122,.2);cursor:pointer;transition:.2s"
+             onmouseover="this.style.background='rgba(0,209,122,.1)'; this.style.borderColor='rgba(0,209,122,.4)'"
+             onmouseout="this.style.background='rgba(0,209,122,.05)'; this.style.borderColor='rgba(0,209,122,.2)'"
+             onclick="quickJoinRoom('${roomId}')">
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <span style="font-weight:700;font-size:16px;color:#00d17a">${roomId}</span>
+              <span style="font-size:11px;opacity:.6">${timeAgo}</span>
+            </div>
+            <div style="font-size:12px;opacity:.8">Host: ${hostName}</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
+              ${colorDots}
+              <span style="font-size:11px;opacity:.7">${playerCount}/${maxPlayers} players</span>
+            </div>
+          </div>
+          <button class="btn" style="padding:8px 16px;font-size:12px" onclick="event.stopPropagation(); quickJoinRoom('${roomId}')">
+            JOIN →
+          </button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function quickJoinRoom(roomId) {
+    const playerName = document.getElementById('playerNameInput').value.trim() || 'Anonymous Degen';
+    const walletAddress = document.getElementById('multiplayerWalletInput').value.trim();
+    const statusEl = document.getElementById('multiplayerWalletStatus');
+
+    // Validate wallet address
+    if (!walletAddress) {
+      statusEl.textContent = '❌ Wallet required to join';
+      statusEl.style.color = '#ff1744';
+      return;
+    }
+
+    if (!validateSolanaAddress(walletAddress)) {
+      statusEl.textContent = '❌ Invalid Solana address';
+      statusEl.style.color = '#ff1744';
+      return;
+    }
+
+    // Save wallet and player name
+    playerWallet = walletAddress;
+    localStorage.setItem('pill_wallet', walletAddress);
+    localStorage.setItem('pill_player_name', playerName);
+
+    try {
+      roomRef = rtdb.ref('rooms/' + roomId);
+      const snapshot = await roomRef.once('value');
+
+      if (!snapshot.exists()) {
+        alert('Room not found or closed!');
+        return;
+      }
+
+      const roomData = snapshot.val();
+      const playerCount = Object.keys(roomData.players || {}).length;
+      const maxPlayers = roomData.maxPlayers || 4;
+
+      if (playerCount >= maxPlayers) {
+        alert('Room is full!');
+        return;
+      }
+
+      if (roomData.status !== 'waiting') {
+        alert('Game already started!');
+        return;
+      }
+
+      currentRoom = roomId;
+      playerId = generatePlayerId();
+      playerColor = PLAYER_COLORS[playerCount];
+      playerColorIndex = playerCount; // Store locally
+
+      await roomRef.child('players/' + playerId).set({
+        name: playerName,
+        color: playerColor,
+        colorIndex: playerCount, // Store color index for consistent offset
+        wallet: playerWallet,
+        ready: true,
+        alive: true,
+        score: 0,
+        y: canvas.height / 2,
+        vy: 0
+      });
+
+      // Hide available rooms, show room info
+      document.getElementById('availableRoomsSection').style.display = 'none';
+      document.getElementById('currentRoomId').textContent = currentRoom;
+      document.getElementById('roomInfo').style.display = 'block';
+
+      document.getElementById('startMultiplayerBtn').style.display =
+        (roomData.host === playerId) ? 'block' : 'none';
+
+      listenToRoom();
+      console.log('✅ Joined room successfully!');
+    } catch (error) {
+      console.error('Error joining room:', error);
+      alert('Failed to join room: ' + error.message);
+    }
+  }
+
+  function closeMultiplayerModal() {
+    document.getElementById('multiplayerModal').classList.remove('show');
+  }
+
+  async function createRoom() {
+    const playerName = document.getElementById('playerNameInput').value.trim() || 'Anonymous Degen';
+    const walletAddress = document.getElementById('multiplayerWalletInput').value.trim();
+    const statusEl = document.getElementById('multiplayerWalletStatus');
+
+    // Validate wallet address
+    if (!walletAddress) {
+      statusEl.textContent = '❌ Wallet required for multiplayer rewards';
+      statusEl.style.color = '#ff1744';
+      return;
+    }
+
+    if (!validateSolanaAddress(walletAddress)) {
+      statusEl.textContent = '❌ Invalid Solana address (32-44 base58 characters)';
+      statusEl.style.color = '#ff1744';
+      return;
+    }
+
+    // Save wallet and player name
+    playerWallet = walletAddress;
+    localStorage.setItem('pill_wallet', walletAddress);
+    localStorage.setItem('pill_player_name', playerName);
+
+    currentRoom = generateRoomId();
+    playerId = generatePlayerId();
+    playerColor = PLAYER_COLORS[0]; // Host gets green
+    playerColorIndex = 0; // Store locally
+
+    const roomData = {
+      id: currentRoom,
+      host: playerId,
+      maxPlayers: selectedMaxPlayers,
+      seed: Math.floor(Math.random() * 1e9),
+      status: 'waiting', // waiting, countdown, playing, finished
+      createdAt: Date.now(),
+      players: {
+        [playerId]: {
+          name: playerName,
+          color: playerColor,
+          colorIndex: 0, // Host gets index 0
+          wallet: playerWallet,
+          ready: true,
+          alive: true,
+          score: 0,
+          y: canvas.height / 2,
+          vy: 0
+        }
+      }
+    };
+
+    try {
+      console.log('🔥 Creating room:', currentRoom);
+      console.log('🔥 Room data:', roomData);
+
+      roomRef = rtdb.ref('rooms/' + currentRoom);
+      await roomRef.set(roomData);
+
+      console.log('✅ Room created successfully!');
+
+      document.getElementById('currentRoomId').textContent = currentRoom;
+      document.getElementById('roomIdSection').style.display = 'none';
+      document.getElementById('availableRoomsSection').style.display = 'none';
+      document.getElementById('roomInfo').style.display = 'block';
+      document.getElementById('startMultiplayerBtn').style.display = 'block';
+
+      // Show bot spawn button for host (TEST ONLY)
+      document.getElementById('spawnBotsBtn').style.display = ENABLE_BOTS ? 'block' : 'none';
+
+      listenToRoom();
+    } catch (error) {
+      console.error('❌ Error creating room:', error);
+      statusEl.textContent = '❌ Error: ' + error.message;
+      statusEl.style.color = '#ff1744';
+      alert('Failed to create room: ' + error.message + '\n\nMake sure Firebase Realtime Database is enabled in your Firebase Console.');
+    }
+  }
+
+  async function joinRoom() {
+    document.getElementById('roomIdSection').style.display = 'block';
+  }
+
+  async function joinRoomConfirm() {
+    const roomId = document.getElementById('roomIdInput').value.trim().toUpperCase();
+    const playerName = document.getElementById('playerNameInput').value.trim() || 'Anonymous Degen';
+    const walletAddress = document.getElementById('multiplayerWalletInput').value.trim();
+    const statusEl = document.getElementById('multiplayerWalletStatus');
+
+    if (!roomId) {
+      alert('Please enter a room ID');
+      return;
+    }
+
+    // Validate wallet address
+    if (!walletAddress) {
+      statusEl.textContent = '❌ Wallet required for multiplayer rewards';
+      statusEl.style.color = '#ff1744';
+      return;
+    }
+
+    if (!validateSolanaAddress(walletAddress)) {
+      statusEl.textContent = '❌ Invalid Solana address (32-44 base58 characters)';
+      statusEl.style.color = '#ff1744';
+      return;
+    }
+
+    // Save wallet and player name
+    playerWallet = walletAddress;
+    localStorage.setItem('pill_wallet', walletAddress);
+    localStorage.setItem('pill_player_name', playerName);
+
+    try {
+      roomRef = rtdb.ref('rooms/' + roomId);
+      const snapshot = await roomRef.once('value');
+
+      if (!snapshot.exists()) {
+        alert('Room not found!');
+        return;
+      }
+
+      const roomData = snapshot.val();
+      const playerCount = Object.keys(roomData.players || {}).length;
+      const maxPlayers = roomData.maxPlayers || 4;
+
+      if (playerCount >= maxPlayers) {
+        alert(`Room is full! (Max ${maxPlayers} players)`);
+        return;
+      }
+
+      if (roomData.status !== 'waiting') {
+        alert('Game already started!');
+        return;
+      }
+
+      currentRoom = roomId;
+      playerId = generatePlayerId();
+      playerColor = PLAYER_COLORS[playerCount]; // Assign next available color
+      playerColorIndex = playerCount; // Store locally
+
+      await roomRef.child('players/' + playerId).set({
+        name: playerName,
+        color: playerColor,
+        colorIndex: playerCount, // Store color index for consistent offset
+        wallet: playerWallet,
+        ready: true,
+        alive: true,
+        score: 0,
+        y: canvas.height / 2,
+        vy: 0
+      });
+
+      document.getElementById('currentRoomId').textContent = currentRoom;
+      document.getElementById('roomIdSection').style.display = 'none';
+      document.getElementById('roomInfo').style.display = 'block';
+
+      // Only host can start the game
+      document.getElementById('startMultiplayerBtn').style.display =
+        (roomData.host === playerId) ? 'block' : 'none';
+
+      // Show bot spawn button for host (TEST ONLY)
+      document.getElementById('spawnBotsBtn').style.display =
+        (ENABLE_BOTS && roomData.host === playerId) ? 'block' : 'none';
+
+      listenToRoom();
+    } catch (error) {
+      console.error('Error joining room:', error);
+      alert('Failed to join room. Please try again.');
+    }
+  }
+
+  function listenToRoom() {
+    if (!roomRef) return;
+
+    roomListener = roomRef.on('value', (snapshot) => {
+      if (!snapshot.exists()) {
+        alert('Room closed!');
+        leaveRoom();
+        return;
+      }
+
+      const roomData = snapshot.val();
+      const players = roomData.players || {};
+      const maxPlayers = roomData.maxPlayers || 4;
+
+      // Update max player count display
+      document.getElementById('maxPlayerCount').textContent = maxPlayers;
+
+      // Update players list UI
+      updatePlayersListUI(players);
+
+      // Update other players data
+      otherPlayers = {};
+      for (const pid in players) {
+        if (pid !== playerId) {
+          otherPlayers[pid] = players[pid];
+        }
+      }
+
+      // Check if game should start
+      if (roomData.status === 'countdown' && state !== 'countdown' && state !== 'play') {
+        CFG.seed = roomData.seed;
+        isMultiplayer = true;
+        closeMultiplayerModal();
+        startCountdown();
+      }
+
+      // Update player positions in multiplayer
+      if (isMultiplayer && state === 'play') {
+        // Sync will happen in the render loop
+      }
+    });
+
+    // Setup disconnect handler
+    playerRef = roomRef.child('players/' + playerId);
+    playerRef.onDisconnect().remove();
+  }
+
+  function updatePlayersListUI(players) {
+    const listEl = document.getElementById('playersList');
+    const countEl = document.getElementById('playerCount');
+
+    const playerArray = Object.entries(players || {});
+    countEl.textContent = playerArray.length;
+
+    listEl.innerHTML = playerArray.map(([pid, player]) => {
+      const isYou = pid === playerId;
+      const colorDot = `<div style="width:20px;height:20px;border-radius:50%;background:${player.color.primary};box-shadow:0 0 10px ${player.color.primary}"></div>`;
+
+      // Format wallet address
+      let walletBadge = '';
+      if (player.wallet) {
+        const walletShort = player.wallet.substring(0, 4) + '...' + player.wallet.substring(player.wallet.length - 4);
+        walletBadge = `<div style="font-size:10px;color:#ffd700;opacity:.8">💰 ${walletShort}</div>`;
+      } else {
+        walletBadge = `<div style="font-size:10px;color:#ff1744;opacity:.8">⚠️ No wallet</div>`;
+      }
+
+      return `
+        <div style="display:flex;align-items:center;gap:12px;padding:10px;background:rgba(255,255,255,.05);border-radius:8px;border:1px solid rgba(255,255,255,.08)">
+          ${colorDot}
+          <div style="flex:1">
+            <div style="font-weight:600">${player.name}${isYou ? ' (You)' : ''}</div>
+            ${walletBadge}
+          </div>
+          <span style="opacity:.7;font-size:12px;color:${player.color.primary}">${player.color.name}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function startMultiplayerGame() {
+    if (!roomRef) return;
+
+    try {
+      await roomRef.update({ status: 'countdown' });
+    } catch (error) {
+      console.error('Error starting game:', error);
+    }
+  }
+
+  async function leaveRoom() {
+    if (playerRef) {
+      await playerRef.remove();
+    }
+    if (roomListener && roomRef) {
+      roomRef.off('value', roomListener);
+    }
+
+    currentRoom = null;
+    playerId = null;
+    playerColor = null;
+    roomRef = null;
+    playerRef = null;
+    otherPlayers = {};
+    isMultiplayer = false;
+
+    // Clear test bots
+    clearTestBots();
+
+    document.getElementById('roomInfo').style.display = 'none';
+    document.getElementById('roomIdSection').style.display = 'none';
+    document.getElementById('availableRoomsSection').style.display = 'block';
+
+    // Refresh available rooms list
+    listenToAvailableRooms();
+  }
+
+  async function updatePlayerPosition() {
+    if (!isMultiplayer || !playerRef || state !== 'play') return;
+
+    try {
+      await playerRef.update({
+        y: player.y,
+        vy: player.vy,
+        score: score,
+        alive: state === 'play'
+      });
+    } catch (error) {
+      console.error('Error updating position:', error);
+    }
+  }
+
+  // Copy room ID to clipboard
+  async function copyRoomId() {
+    const roomId = document.getElementById('currentRoomId').textContent;
+    try {
+      await navigator.clipboard.writeText(roomId);
+      alert('📋 Room ID copied! Share it with your friends!');
+    } catch (e) {
+      alert('Room ID: ' + roomId);
+    }
+  }
+
+  // ========= STATE =========
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const scoreEl = document.getElementById('score');
+  const pumpEl = document.getElementById('pump');
+  const pumpBar = document.getElementById('pumpBar');
+  let state = 'menu'; // 'menu' | 'play' | 'pause' | 'over' | 'countdown'
+  let last = 0, accSpawn = 0, elapsed = 0;
+  let obstacles = [];
+  let score = 0, best = Number(localStorage.getItem('pill_best')||0);
+  let totalGames = 0; // Total games played (loaded from Firebase)
+  let pump = 0; // 0..100
+  let pressing = false;
+  let rng = mulberry32(CFG.seed);
+  let cinemaMode = false; // Cinema mode (hides UI elements)
+
+  // Main menu system
+  let mainMenuSelectedIndex = 0;
+  const mainMenuOptions = [
+    { label: '▶️  PLAY SOLO', action: 'solo' },
+    { label: '👥  MULTIPLAYER', action: 'multi' },
+    { label: '🏆  LEADERBOARD', action: 'leaderboard' },
+    { label: '💰  REWARDS', action: 'rewards' },
+    { label: '🎮  COMMANDS', action: 'commands' },
+    { label: '❓  RULES', action: 'rules' }
+  ];
+
+  // Pause menu system (when in game)
+  let pauseMenuSelectedIndex = 0;
+  const pauseMenuOptions = [
+    { label: '▶️  Resume', action: 'resume' },
+    { label: '🔄  Restart', action: 'restart' },
+    { label: '🏠  Main Menu', action: 'mainmenu' },
+    { label: '🎬  Cinema Mode', action: 'cinema' },
+    { label: '🔊  Sound: ON', action: 'sound' }
+  ];
+
+  const player = { x: 200, y: canvas.height/2, vy: 0 };
+  let countdownValue = 3;
+
+  // Trail graph (graphique qui suit la pilule)
+  let pillTrail = []; // Array de points {x, y, color}
+  const maxTrailLength = 150; // Nombre max de points dans le trail
+
+  // Helper function to get player X with nitro boost
+  function getPlayerX() {
+    const nitroOffset = playerPowerUps.nitroActive ? 80 : 0; // Move 80px forward with nitro
+    return player.x + nitroOffset;
+  }
+
+  // ========= POWER-UPS STATE =========
+  let powerUps = []; // Active power-ups on screen
+  let accPowerUp = 0; // Accumulator for power-up spawning
+  let lastPowerUpId = null; // Track last spawned power-up to avoid repetition
+  let playerPowerUps = {
+    hasExtraLife: false,
+    chronoActive: false,
+    chronoEnd: 0,
+    starActive: false,
+    starEnd: 0,
+    slowedByOthers: false, // If other players used chrono
+    hasShield: false,
+    speedActive: false,
+    speedEnd: 0,
+    fireActive: false,
+    fireEnd: 0,
+    nitroActive: false,
+    nitroEnd: 0
+  };
+
+  // ========= WALLET SYSTEM =========
+  let playerWallet = localStorage.getItem('pill_wallet') || '';
+
+  function validateSolanaAddress(address) {
+    // Adresses Solana : 32-44 caractères alphanumériques (base58)
+    if (!address || address.length < 32 || address.length > 44) return false;
+    // Vérifie que c'est bien en base58 (pas de 0, O, I, l)
+    const base58Regex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+    return base58Regex.test(address);
+  }
+
+  function saveWallet() {
+    const input = document.getElementById('walletInput');
+    const status = document.getElementById('walletStatus');
+    const address = input.value.trim();
+
+    if (!address) {
+      playerWallet = '';
+      localStorage.removeItem('pill_wallet');
+      status.textContent = '❌ Adresse supprimée';
+      status.style.color = '#ff1744';
+      return;
+    }
+
+    if (validateSolanaAddress(address)) {
+      playerWallet = address;
+      localStorage.setItem('pill_wallet', address);
+      status.textContent = '✅ Adresse sauvegardée ! Prêt pour les récompenses 💰';
+      status.style.color = '#00d17a';
+    } else {
+      status.textContent = '❌ Adresse Solana invalide (32-44 caractères base58)';
+      status.style.color = '#ff1744';
+    }
+  }
+
+  // ========= WALLET MODAL =========
+  function openWalletModal() {
+    const modal = document.getElementById('walletModal');
+    const input = document.getElementById('walletInput');
+    const status = document.getElementById('walletStatus');
+
+    // Load saved address if it exists
+    if (playerWallet) {
+      input.value = playerWallet;
+      status.textContent = '✅ Address already saved';
+      status.style.color = '#00d17a';
+    } else {
+      input.value = '';
+      status.textContent = '';
+    }
+
+    modal.classList.add('show');
+  }
+
+  function closeWalletModal() {
+    document.getElementById('walletModal').classList.remove('show');
+  }
+
+  function saveWalletAndPlay() {
+    const input = document.getElementById('walletInput');
+    const status = document.getElementById('walletStatus');
+    const address = input.value.trim();
+
+    if (address && validateSolanaAddress(address)) {
+      playerWallet = address;
+      localStorage.setItem('pill_wallet', address);
+      closeWalletModal();
+      startCountdown();
+    } else if (address) {
+      status.textContent = '❌ Invalid Solana address (32-44 base58 characters)';
+      status.style.color = '#ff1744';
+    } else {
+      status.textContent = '❌ Please enter an address';
+      status.style.color = '#ff1744';
+    }
+  }
+
+  function skipWalletAndPlay() {
+    playerWallet = '';
+    localStorage.removeItem('pill_wallet');
+    closeWalletModal();
+    startCountdown();
+  }
+
+  // ========= LEADERBOARD (FIREBASE) =========
+  function getLeaderboard(){
+    // Cette fonction est maintenant asynchrone et se fait via Firebase
+    // On utilise updateLeaderboardUI() qui écoute en temps réel
+    return [];
+  }
+
+  async function saveToLeaderboard(score){
+    try {
+      const timestamp = Date.now();
+      const scoreData = {
+        score: Math.floor(score),
+        date: timestamp,
+        wallet: playerWallet || null
+      };
+
+      console.log('🔥 Trying to save to Firebase:', scoreData);
+      console.log('📱 Player wallet:', playerWallet);
+
+      await db.collection('leaderboard').add(scoreData);
+      console.log('✅ Score saved to Firebase successfully!');
+    } catch (error) {
+      console.error('❌ Error saving score to Firebase:', error);
+      // Fallback vers localStorage si Firebase échoue
+      let lb = JSON.parse(localStorage.getItem('pill_leaderboard') || '[]');
+      lb.push({ score: Math.floor(score), date: timestamp, wallet: playerWallet || null });
+      lb.sort((a,b) => b.score - a.score);
+      lb = lb.slice(0, 10);
+      localStorage.setItem('pill_leaderboard', JSON.stringify(lb));
+      updateLeaderboardUI();
+    }
+  }
+
+  function updateLeaderboardUI(){
+    const listEl = document.getElementById('leaderboardList');
+
+    // Écouter Firebase en temps réel et récupérer le top 10
+    db.collection('leaderboard')
+      .orderBy('score', 'desc')
+      .limit(10)
+      .onSnapshot((snapshot) => {
+        const lb = [];
+        snapshot.forEach((doc) => {
+          lb.push(doc.data());
+        });
+
+        if(lb.length === 0){
+          listEl.innerHTML = '<p style="opacity:.5;text-align:center">No scores yet... Be the first degen! 🚀</p>';
+          return;
+        }
+
+        listEl.innerHTML = lb.map((entry, i) => {
+          const emoji = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`;
+          const timeAgo = getTimeAgo(entry.date);
+          const badge = entry.score >= 40 ? '👑 Legend' : entry.score >= 20 ? '💎 Diamond Hands' : '📄 Paper Hands';
+
+          // Formater l'adresse du portefeuille (afficher début...fin)
+          let walletDisplay = '';
+          if (entry.wallet) {
+            const start = entry.wallet.substring(0, 4);
+            const end = entry.wallet.substring(entry.wallet.length - 4);
+            walletDisplay = `<span style="opacity:.7;font-size:11px;color:#00d17a">💰 ${start}...${end}</span>`;
+          }
+
+          return `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(255,255,255,.05);border-radius:8px;border:1px solid rgba(255,255,255,.08)">
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                <span style="font-size:18px;width:32px">${emoji}</span>
+                <span style="font-weight:600;color:#00d17a">${entry.score} pts</span>
+                <span style="opacity:.6;font-size:12px">${badge}</span>
+                ${walletDisplay}
+              </div>
+              <span style="opacity:.5;font-size:11px">${timeAgo}</span>
+            </div>
+          `;
+        }).join('');
+      }, (error) => {
+        console.error('Error loading leaderboard:', error);
+        // Fallback vers localStorage
+        const lb = JSON.parse(localStorage.getItem('pill_leaderboard') || '[]');
+        if(lb.length === 0){
+          listEl.innerHTML = '<p style="opacity:.5;text-align:center">No scores yet... Be the first degen! 🚀</p>';
+          return;
+        }
+        listEl.innerHTML = lb.map((entry, i) => {
+          const emoji = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`;
+          const timeAgo = getTimeAgo(entry.date);
+          const badge = entry.score >= 40 ? '👑 Legend' : entry.score >= 20 ? '💎 Diamond Hands' : '📄 Paper Hands';
+          let walletDisplay = '';
+          if (entry.wallet) {
+            const start = entry.wallet.substring(0, 4);
+            const end = entry.wallet.substring(entry.wallet.length - 4);
+            walletDisplay = `<span style="opacity:.7;font-size:11px;color:#00d17a">💰 ${start}...${end}</span>`;
+          }
+          return `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(255,255,255,.05);border-radius:8px;border:1px solid rgba(255,255,255,.08)">
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                <span style="font-size:18px;width:32px">${emoji}</span>
+                <span style="font-weight:600;color:#00d17a">${entry.score} pts</span>
+                <span style="opacity:.6;font-size:12px">${badge}</span>
+                ${walletDisplay}
+              </div>
+              <span style="opacity:.5;font-size:11px">${timeAgo}</span>
+            </div>
+          `;
+        }).join('');
+      });
+  }
+
+  function getTimeAgo(timestamp){
+    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+    if(seconds < 60) return 'just now';
+    const minutes = Math.floor(seconds / 60);
+    if(minutes < 60) return `${minutes}min ago`;
+    const hours = Math.floor(minutes / 60);
+    if(hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+  }
+
+  // Init leaderboard
+  updateLeaderboardUI();
+
+  function mulberry32(a){return function(){let t=a+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296}};
+
+  // ========= INPUT (Flappy Bird style - tap to flap) =========
+  function flap(){
+    if(state==='play'){
+      player.vy = -CFG.thrust; // impulse vers le haut
+      playFlapSound(); // Play sound on flap
+    }
+  }
+
+  window.addEventListener('keydown',e=>{
+    // Main menu navigation
+    if(state==='menu'){
+      if(e.code==='ArrowUp'){
+        e.preventDefault();
+        mainMenuSelectedIndex = (mainMenuSelectedIndex - 1 + mainMenuOptions.length) % mainMenuOptions.length;
+        return;
+      }
+      if(e.code==='ArrowDown'){
+        e.preventDefault();
+        mainMenuSelectedIndex = (mainMenuSelectedIndex + 1) % mainMenuOptions.length;
+        return;
+      }
+      if(e.code==='Enter' || e.code==='NumpadEnter'){
+        e.preventDefault();
+        handleMainMenuSelection();
+        return;
+      }
+    }
+
+    // ESC or P to open/close pause menu (only in game)
+    if(e.code==='Escape' || e.code==='KeyP'){
+      e.preventDefault();
+      if(state==='pause') {
+        state='play';
+        last=performance.now();
+        requestAnimationFrame(loop);
+      } else if(state==='play') {
+        state='pause';
+        requestAnimationFrame(loop);
+      }
+      return;
+    }
+
+    // Pause menu navigation
+    if(state==='pause'){
+      if(e.code==='ArrowUp'){
+        e.preventDefault();
+        pauseMenuSelectedIndex = (pauseMenuSelectedIndex - 1 + pauseMenuOptions.length) % pauseMenuOptions.length;
+        return;
+      }
+      if(e.code==='ArrowDown'){
+        e.preventDefault();
+        pauseMenuSelectedIndex = (pauseMenuSelectedIndex + 1) % pauseMenuOptions.length;
+        return;
+      }
+      if(e.code==='Enter'){
+        e.preventDefault();
+        handlePauseMenuSelection();
+        return;
+      }
+    }
+
+    if(e.code==='Space'){
+      e.preventDefault();
+      flap();
+    }
+  });
+  // Touch and click controls
+  canvas.addEventListener('pointerdown',(e)=> {
+    e.preventDefault();
+    flap();
+  });
+
+  // Better mobile touch support
+  canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    flap();
+  }, { passive: false });
+
+  // Show/hide touch helper on mobile
+  function updateTouchHelper() {
+    const helper = document.getElementById('touchHelper');
+    if (window.innerWidth <= 768) {
+      if (state === 'menu' || state === 'countdown') {
+        helper.style.display = 'block';
+      } else {
+        helper.style.display = 'none';
+      }
+    } else {
+      helper.style.display = 'none';
+    }
+  }
+
+  // Update touch helper on state change
+  const originalStart = start;
+  function start() {
+    originalStart();
+    updateTouchHelper();
+  }
+
+  setInterval(updateTouchHelper, 500);
+
+  window.addEventListener('blur',()=>{ if(state==='play') togglePause(true); });
+
+  // Click handler for menu buttons (cinema and sound)
+  canvas.addEventListener('click', (e) => {
+    if (state !== 'menu') return;
+
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
+
+    const btnSize = 40;
+    const btnY = canvas.height - 60;
+    const cinemaX = canvas.width - 110;
+    const soundX = canvas.width - 50;
+
+    // Check cinema button
+    if (x >= cinemaX - btnSize/2 && x <= cinemaX + btnSize/2 &&
+        y >= btnY - btnSize/2 && y <= btnY + btnSize/2) {
+      toggleCinemaMode();
+    }
+
+    // Check sound button
+    if (x >= soundX - btnSize/2 && x <= soundX + btnSize/2 &&
+        y >= btnY - btnSize/2 && y <= btnY + btnSize/2) {
+      soundEnabled = !soundEnabled;
+    }
+  });
+
+  // Écouter les changements de fullscreen pour synchroniser cinemaMode
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement && cinemaMode) {
+      cinemaMode = false;
+      document.body.classList.remove('cinema-mode');
+    }
+  });
+
+  document.addEventListener('webkitfullscreenchange', () => {
+    if (!document.webkitFullscreenElement && cinemaMode) {
+      cinemaMode = false;
+      document.body.classList.remove('cinema-mode');
+    }
+  });
+
+  // ========= COUNTDOWN =========
+  function startCountdown() {
+    state = 'countdown';
+    countdownValue = 3;
+    obstacles.length = 0;
+    player.y = canvas.height/2;
+    player.vy = 0;
+
+    const countdownInterval = setInterval(() => {
+      countdownValue--;
+      renderCountdown();
+
+      if (countdownValue === 0) {
+        clearInterval(countdownInterval);
+        setTimeout(() => {
+          start();
+        }, 300); // Petit délai après "PUMP!"
+      }
+    }, 1000);
+
+    renderCountdown();
+  }
+
+  function renderCountdown() {
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    // Fond
+    drawTubeBackground(ctx, w, h, CFG.speed);
+
+    // Texte du compte à rebours
+    ctx.save();
+    ctx.fillStyle = 'rgba(0,0,0,.7)';
+    ctx.fillRect(0, 0, w, h);
+
+    const text = countdownValue > 0 ? countdownValue.toString() : 'PUMP THE PILL';
+    const color = '#00d17a';
+
+    // Effet de glow
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 50;
+
+    ctx.fillStyle = color;
+    const fontSize = countdownValue > 0 ? 120 : 80;
+    ctx.font = `bold ${fontSize}px system-ui,Segoe UI`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, w/2, h/2);
+
+    // Texte secondaire
+    if (countdownValue > 0) {
+      ctx.shadowBlur = 20;
+      ctx.font = 'bold 24px system-ui,Segoe UI';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText('Get Ready', w/2, h/2 + 80);
+    }
+
+    ctx.restore();
+  }
+
+  // ========= GAME LOOP =========
+  function start(){
+    state='play';
+    last=performance.now();
+    accSpawn=0; accPowerUp=0; elapsed=0; score=0; pump=0;
+    obstacles.length=0; powerUps.length=0; rng = mulberry32(CFG.seed);
+    lastPowerUpId = null; // Reset last power-up
+    pillTrail.length = 0; // Reset trail graphique
+    player.y=canvas.height/2; player.vy=0;
+
+    // Reset power-ups
+    playerPowerUps = {
+      hasExtraLife: false,
+      chronoActive: false,
+      chronoEnd: 0,
+      starActive: false,
+      starEnd: 0,
+      slowedByOthers: false,
+      hasShield: false,
+      speedActive: false,
+      speedEnd: 0,
+      fireActive: false,
+      fireEnd: 0,
+      nitroActive: false,
+      nitroEnd: 0
+    };
+
+    // Increment total games counter
+    incrementTotalGames();
+
+    requestAnimationFrame(loop);
+  }
+
+  function togglePause(force){
+    if(force===true){ state='pause'; return; }
+    state = (state==='play') ? 'pause' : (state==='pause' ? 'play':'play');
+    if(state==='play'){ last=performance.now(); requestAnimationFrame(loop);}
+  }
+
+  function activatePowerUp(powerUp){
+    console.log('🎁 Power-up collected:', powerUp.name);
+    playPowerUpSound(); // Play power-up sound
+
+    switch(powerUp.id){
+      case 'mushroom':
+        // Extra life
+        playerPowerUps.hasExtraLife = true;
+        showPowerUpNotification('🍄 Extra Life! One free respawn');
+        break;
+
+      case 'chrono':
+        // Slow down other players
+        playerPowerUps.chronoActive = true;
+        playerPowerUps.chronoEnd = Date.now() + powerUp.duration;
+        showPowerUpNotification('⏰ Time Slow! Others slowed for 5s');
+
+        // Notify other players via Firebase
+        if(isMultiplayer && playerRef){
+          playerRef.update({
+            chronoActive: true,
+            chronoEnd: playerPowerUps.chronoEnd
+          });
+        }
+        break;
+
+      case 'star':
+        // 2x score boost
+        playerPowerUps.starActive = true;
+        playerPowerUps.starEnd = Date.now() + powerUp.duration;
+        showPowerUpNotification('⭐ 2x Score Boost for 8s!');
+        break;
+
+      case 'shield':
+        // Shield - protects from 1 hit
+        playerPowerUps.hasShield = true;
+        showPowerUpNotification('🛡️ Shield Active! Blocks 1 hit');
+        break;
+
+      case 'speed':
+        // Speed boost - faster flight
+        playerPowerUps.speedActive = true;
+        playerPowerUps.speedEnd = Date.now() + powerUp.duration;
+        showPowerUpNotification('⚡ Speed Boost for 6s!');
+        break;
+
+      case 'fire':
+        // Fire mode - destroys obstacles in range
+        playerPowerUps.fireActive = true;
+        playerPowerUps.fireEnd = Date.now() + powerUp.duration;
+        showPowerUpNotification('🔥 Fire Mode! Destroy obstacles!');
+        break;
+
+      case 'tornado':
+        // Tornado - shuffles all players positions
+        if(isMultiplayer){
+          showPowerUpNotification('🌀 Tornado! Positions shuffled!');
+          // Notify all players via Firebase
+          if(playerRef){
+            playerRef.update({
+              tornadoTriggered: Date.now()
+            });
+          }
+        } else {
+          showPowerUpNotification('🌀 Tornado! (Multiplayer only)');
+        }
+        break;
+
+      case 'bomb':
+        // Bomb - clears all obstacles in front of the player
+        const beforeCount = obstacles.length;
+        obstacles = obstacles.filter(o => o.x <= player.x || o.x > player.x + 600);
+        const clearedCount = beforeCount - obstacles.length;
+        showPowerUpNotification(`💣 Boom! Cleared ${clearedCount} obstacles ahead!`);
+        break;
+
+      case 'nitro':
+        // Nitro - temporarily moves player forward faster
+        playerPowerUps.nitroActive = true;
+        playerPowerUps.nitroEnd = Date.now() + POWER_UPS.NITRO.duration;
+        showPowerUpNotification('🚀 Nitro Boost! Moving forward faster!');
+        break;
+    }
+  }
+
+  function showPowerUpNotification(message){
+    // Create floating notification
+    const notification = document.createElement('div');
+    notification.textContent = message;
+    notification.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,209,122,.95);
+      color: #000;
+      padding: 16px 24px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 18px;
+      z-index: 10000;
+      box-shadow: 0 0 30px rgba(0,209,122,.6);
+      animation: powerUpPop 0.5s ease;
+    `;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+      notification.style.opacity = '0';
+      notification.style.transition = 'opacity 0.3s';
+      setTimeout(() => notification.remove(), 300);
+    }, 2000);
+  }
+
+  function handleDeath(){
+    // Check shield first
+    if(playerPowerUps.hasShield){
+      playerPowerUps.hasShield = false;
+      showPowerUpNotification('🛡️ Shield Blocked the hit!');
+
+      // Flash effect
+      canvas.classList.add('shake');
+      setTimeout(() => canvas.classList.remove('shake'), 300);
+
+      return true; // Continue playing!
+    }
+
+    // Check extra life
+    if(playerPowerUps.hasExtraLife){
+      playerPowerUps.hasExtraLife = false;
+      player.y = canvas.height / 2;
+      player.vy = 0;
+      showPowerUpNotification('🍄 Extra Life Used! Keep going!');
+
+      // Flash effect
+      canvas.classList.add('shake');
+      setTimeout(() => canvas.classList.remove('shake'), 500);
+
+      // Remove obstacles near player to give breathing room
+      obstacles = obstacles.filter(o => o.x < player.x - 100 || o.x > player.x + 300);
+
+      return true; // Continue playing!
+    }
+
+    // No extra life, game over
+    gameOver();
+    return false; // Stop game loop
+  }
+
+  async function gameOver(){
+    state='over';
+    playGameOverSound(); // Play game over sound
+    localStorage.setItem('pill_best', Math.floor(Math.max(best,score)));
+    best = Math.max(best,score);
+    saveToLeaderboard(score); // Ajouter au leaderboard
+
+    // Save multiplayer match result
+    if (isMultiplayer && playerRef) {
+      try {
+        await playerRef.update({
+          alive: false,
+          finalScore: Math.floor(score),
+          gameOverTime: Date.now()
+        });
+
+        // If this was a multiplayer game, save match result
+        if (currentRoom && playerWallet) {
+          await db.collection('multiplayerMatches').add({
+            roomId: currentRoom,
+            playerId: playerId,
+            playerWallet: playerWallet,
+            score: Math.floor(score),
+            timestamp: Date.now(),
+            seed: CFG.seed
+          });
+          console.log('✅ Multiplayer match result saved for rewards!');
+        }
+      } catch (error) {
+        console.error('Error saving multiplayer result:', error);
+      }
+    }
+
+    // Effet de tremblement sur le canvas
+    canvas.classList.add('shake');
+    setTimeout(() => canvas.classList.remove('shake'), 500);
+
+    // Afficher le modal Game Over après le shake
+    setTimeout(() => {
+      showGameOverModal();
+    }, 600);
+  }
+
+  function toggleCinemaMode() {
+    cinemaMode = !cinemaMode;
+
+    if (cinemaMode) {
+      // Ajouter la classe cinema-mode au body
+      document.body.classList.add('cinema-mode');
+
+      // Entrer en plein écran
+      if (canvas.requestFullscreen) {
+        canvas.requestFullscreen();
+      } else if (canvas.webkitRequestFullscreen) {
+        canvas.webkitRequestFullscreen();
+      } else if (canvas.msRequestFullscreen) {
+        canvas.msRequestFullscreen();
+      }
+    } else {
+      // Retirer la classe cinema-mode du body
+      document.body.classList.remove('cinema-mode');
+
+      // Sortir du plein écran
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      } else if (document.msExitFullscreen) {
+        document.msExitFullscreen();
+      }
+    }
+  }
+
+  function showGameOverModal(){
+    const modal = document.getElementById('gameOverModal');
+    const finalScoreEl = document.getElementById('finalScore');
+    const finalBestEl = document.getElementById('finalBest');
+    const finalRankEl = document.getElementById('finalRank');
+    const leaveRoomBtn = document.getElementById('leaveRoomBtn');
+    const restartBtn = document.getElementById('restartGameBtn');
+
+    // Remplir les stats
+    finalScoreEl.textContent = Math.floor(score);
+    finalBestEl.textContent = Math.floor(best);
+
+    // Calculer le rang (estimation basée sur le score)
+    let rank = '📄 Paper Hands';
+    if(score >= 40) rank = '👑 Degen Legend';
+    else if(score >= 20) rank = '💎 Diamond Hands';
+    finalRankEl.textContent = rank;
+
+    // Show/hide buttons based on multiplayer mode
+    if (isMultiplayer) {
+      leaveRoomBtn.style.display = 'block';
+      restartBtn.style.display = 'none'; // Hide restart in multiplayer
+    } else {
+      leaveRoomBtn.style.display = 'none';
+      restartBtn.style.display = 'block';
+      restartBtn.textContent = '🔄 PLAY AGAIN';
+      restartBtn.style.background = '#00d17a';
+    }
+
+    modal.classList.add('show');
+  }
+
+  function closeGameOverModal(){
+    document.getElementById('gameOverModal').classList.remove('show');
+  }
+
+  // Main menu rendering loop
+  function renderMainMenu(){
+    if(state!=='menu') return;
+    render({ speed: 0, gap: 0 });
+    requestAnimationFrame(renderMainMenu);
+  }
+
+  function loop(ts){
+    // Continue rendering in menu mode
+    if(state==='menu'){
+      render({ speed: 0, gap: 0 });
+      requestAnimationFrame(loop);
+      return;
+    }
+    // Continue rendering in pause mode to show menu
+    if(state==='pause'){
+      render({ speed: 0, gap: 0 });
+      requestAnimationFrame(loop);
+      return;
+    }
+    if(state!=='play') return;
+    const dt = Math.min(33, ts-last); last=ts; // clamp dt
+    const dtS = dt/1000; // seconds
+    elapsed += dtS; accSpawn += dt;
+
+    // Update bots AI (TEST ONLY)
+    if (ENABLE_BOTS && isMultiplayer && testBots.length > 0) {
+      for (let bot of testBots) {
+        updateBotAI(bot, obstacles, dt, currentRoom);
+      }
+    }
+
+    // ramp up difficulty to hit 10–15s runs
+    const t = Math.min(1, elapsed/CFG.runTarget);
+    const speed = CFG.speed + CFG.speedGain * elapsed * 6;
+    const gap = Math.max(CFG.gapMin, CFG.tubeGap - 90 * t);
+
+    // physics (Flappy Bird style - gravity always pulls down)
+    const gravityMod = playerPowerUps.speedActive ? 0.7 : 1; // Less gravity with speed
+    player.vy += CFG.gravity * gravityMod;
+    player.vy = clamp(player.vy, -CFG.maxVy, CFG.maxVy);
+
+    const speedMod = playerPowerUps.speedActive ? 1.3 : 1; // Faster movement
+    const oldY = player.y;
+    player.y += player.vy * speedMod;
+
+    // Ajouter la position au trail (graphique qui scroll)
+    if (!isMultiplayer) { // Seulement en solo
+      const color = player.y < oldY ? '#00d17a' : '#ff1744'; // Vert si monte, rouge si descend
+      pillTrail.push({ y: player.y, color: color });
+
+      // Limiter la longueur du trail
+      if (pillTrail.length > maxTrailLength) {
+        pillTrail.shift();
+      }
+    }
+
+    // spawn obstacles
+    if(accSpawn >= CFG.spawnEvery){
+      accSpawn=0;
+      const mid = 0.30 + rng()*0.40; // between 30% and 70% of canvas
+      const center = mid * canvas.height;
+      const half = gap/2;
+      obstacles.push({
+        x: canvas.width+40,
+        top: center - half,
+        bottom: center + half,
+        w: 70,
+        initialCenter: center, // Store initial position for animation
+        waveOffset: rng() * Math.PI * 2 // Random wave offset for variety
+      });
+    }
+
+    // spawn power-ups (only in multiplayer)
+    if(isMultiplayer){
+      accPowerUp += dt;
+      if(accPowerUp >= CFG.powerUpSpawnInterval){
+        accPowerUp = 0;
+        const powerUpTypes = Object.values(POWER_UPS);
+
+        // Filter out the last power-up to avoid repetition
+        let availablePowerUps = powerUpTypes;
+        if(lastPowerUpId && powerUpTypes.length > 1){
+          availablePowerUps = powerUpTypes.filter(p => p.id !== lastPowerUpId);
+        }
+
+        // Select random power-up from available ones
+        const randomPowerUp = availablePowerUps[Math.floor(rng() * availablePowerUps.length)];
+        lastPowerUpId = randomPowerUp.id; // Remember this power-up
+
+        const yPos = 100 + rng() * (canvas.height - 200);
+
+        powerUps.push({
+          ...randomPowerUp,
+          x: canvas.width + 50,
+          y: yPos,
+          size: 30,
+          collected: false
+        });
+      }
+    }
+
+    // move + collide
+    for(let i=obstacles.length-1;i>=0;i--){
+      const o = obstacles[i];
+      o.x -= speed;
+
+      // Animate obstacles in multiplayer (wave motion)
+      if(isMultiplayer){
+        const waveTime = elapsed * 0.8 + o.waveOffset; // Slower wave
+        const amplitude = 15; // Vertical movement amplitude
+        const waveY = Math.sin(waveTime) * amplitude;
+
+        // Update top and bottom based on wave
+        const center = o.initialCenter + waveY;
+        const half = gap / 2;
+        o.top = center - half;
+        o.bottom = center + half;
+      }
+
+      // Fire mode - destroy obstacles in range
+      if(playerPowerUps.fireActive){
+        const distToObstacle = Math.abs(o.x - player.x);
+        if(distToObstacle < 150){
+          obstacles.splice(i,1);
+          continue; // Skip to next obstacle
+        }
+      }
+
+      if(o.x+o.w < 0) obstacles.splice(i,1);
+    }
+
+    // move power-ups
+    for(let i=powerUps.length-1;i>=0;i--){
+      const p = powerUps[i];
+      p.x -= speed * 0.8; // Slightly slower than obstacles
+      if(p.x + p.size < 0) powerUps.splice(i,1);
+
+      // Check collision with player
+      if(!p.collected){
+        const playerX = getPlayerX();
+        const dist = Math.hypot(playerX - p.x, player.y - p.y);
+        if(dist < CFG.pill.r + p.size/2){
+          p.collected = true;
+          activatePowerUp(p);
+          powerUps.splice(i,1);
+        }
+      }
+    }
+
+    // Update power-up timers
+    const now = Date.now();
+    if(playerPowerUps.chronoActive && now > playerPowerUps.chronoEnd){
+      playerPowerUps.chronoActive = false;
+    }
+    if(playerPowerUps.starActive && now > playerPowerUps.starEnd){
+      playerPowerUps.starActive = false;
+    }
+    if(playerPowerUps.speedActive && now > playerPowerUps.speedEnd){
+      playerPowerUps.speedActive = false;
+    }
+    if(playerPowerUps.fireActive && now > playerPowerUps.fireEnd){
+      playerPowerUps.fireActive = false;
+    }
+    if(playerPowerUps.nitroActive && now > playerPowerUps.nitroEnd){
+      playerPowerUps.nitroActive = false;
+    }
+
+    // scoring & pump
+    let scoreMultiplier = playerPowerUps.starActive ? 2 : 1;
+    if (playerPowerUps.nitroActive) scoreMultiplier *= 1.5; // Extra bonus with nitro
+    const oldScore = Math.floor(score);
+    score += dtS * (2 + t*3) * scoreMultiplier; // score by time & difficulty
+    const newScore = Math.floor(score);
+    // Play sound every 10 points
+    if (Math.floor(newScore / 10) > Math.floor(oldScore / 10)) {
+      playScoreSound();
+    }
+    pump = Math.min(100, (elapsed/CFG.runTarget)*100);
+
+    // collisions with walls
+    if(player.y < 0 || player.y > canvas.height){
+      if(!handleDeath()) return;
+    }
+
+    // collisions with obstacles (tubes)
+    const playerX = getPlayerX();
+    for(const o of obstacles){
+      if(playerX > o.x-20 && playerX < o.x + o.w + 20){
+        // inside obstacle column
+        if(player.y < o.top || player.y > o.bottom){
+          if(!handleDeath()) return;
+        }
+      }
+    }
+
+    // draw
+    render({ speed, gap });
+
+    // UI updates
+    scoreEl.textContent = Math.floor(score);
+    pumpEl.textContent = Math.floor(pump);
+    pumpBar.style.width = pump+'%';
+
+    // Update multiplayer position (throttled to every ~100ms)
+    if (isMultiplayer && Math.random() < 0.1) {
+      updatePlayerPosition();
+    }
+
+    requestAnimationFrame(loop);
+  }
+
+  // ========= RENDER =========
+  function render(vars){
+    const { speed, gap } = vars;
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0,0,w,h);
+
+    // parallax tube walls
+    drawTubeBackground(ctx, w, h, speed);
+
+    // Draw trading chart (graphique) - seulement en solo
+    if (!isMultiplayer && pillTrail.length > 1) {
+      ctx.save();
+
+      // Grille de fond (style chart de trading)
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.lineWidth = 1;
+
+      // Lignes horizontales
+      for (let i = 0; i <= 8; i++) {
+        const y = (h / 8) * i;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+
+      // Lignes verticales
+      for (let i = 0; i <= 12; i++) {
+        const x = (w / 12) * i;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+      }
+
+      // Dessiner le graphique
+      const spacing = 4; // Espacement entre les points
+      const startX = player.x - (pillTrail.length * spacing); // Commence derrière la pilule
+
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      // Dessiner les segments avec couleurs
+      for (let i = 1; i < pillTrail.length; i++) {
+        const prev = pillTrail[i - 1];
+        const curr = pillTrail[i];
+
+        const x1 = startX + (i - 1) * spacing;
+        const x2 = startX + i * spacing;
+
+        // Gradient pour chaque segment
+        const gradient = ctx.createLinearGradient(x1, prev.y, x2, curr.y);
+        gradient.addColorStop(0, prev.color + 'dd');
+        gradient.addColorStop(1, curr.color + 'dd');
+
+        ctx.strokeStyle = gradient;
+        ctx.shadowColor = curr.color;
+        ctx.shadowBlur = 8;
+
+        ctx.beginPath();
+        ctx.moveTo(x1, prev.y);
+        ctx.lineTo(x2, curr.y);
+        ctx.stroke();
+      }
+
+      // Point actuel (position de la pilule)
+      const lastPoint = pillTrail[pillTrail.length - 1];
+      const lastX = startX + (pillTrail.length - 1) * spacing;
+
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = lastPoint.color;
+      ctx.fillStyle = lastPoint.color;
+      ctx.beginPath();
+      ctx.arc(lastX, lastPoint.y, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    // obstacles
+    obstacles.forEach(o=> drawObstacle(ctx,o));
+
+    // Draw power-ups
+    powerUps.forEach(p=> drawPowerUp(ctx, p));
+
+    // Draw other players in multiplayer (sorted by depth - back to front)
+    if (isMultiplayer) {
+      // Create array of other players with their data
+      const playersToRender = [];
+      for (const pid in otherPlayers) {
+        const otherPlayer = otherPlayers[pid];
+        if (otherPlayer.alive) {
+          playersToRender.push({ pid, data: otherPlayer });
+        }
+      }
+
+      // Sort by depth (smaller depth = farther back, drawn first)
+      playersToRender.sort((a, b) => {
+        const depthA = a.data.color.depth || 1;
+        const depthB = b.data.color.depth || 1;
+        return depthA - depthB;
+      });
+
+      // Draw each player with depth effect
+      for (const playerObj of playersToRender) {
+        const otherPlayer = playerObj.data;
+        const depth = otherPlayer.color.depth || 1;
+        const xOffset = otherPlayer.color.xOffset || 0;
+
+        // Calculate adjusted position and size
+        const adjustedX = player.x + xOffset;
+        const adjustedRadius = CFG.pill.r * depth;
+
+        // Draw with slight opacity for depth effect
+        const opacity = 0.7 + (depth * 0.3); // 0.7 to 1.0
+        ctx.globalAlpha = opacity;
+
+        drawPill(ctx, adjustedX, otherPlayer.y, adjustedRadius, otherPlayer.color, otherPlayer.vy || 0);
+
+        // Draw player name above pill
+        ctx.save();
+        ctx.fillStyle = otherPlayer.color.primary;
+        ctx.font = `bold ${Math.floor(12 * depth)}px system-ui`;
+        ctx.textAlign = 'center';
+        ctx.shadowColor = 'rgba(0,0,0,.8)';
+        ctx.shadowBlur = 4;
+        ctx.fillText(otherPlayer.name, adjustedX, otherPlayer.y - (35 * depth));
+        ctx.restore();
+
+        ctx.globalAlpha = 1.0; // Reset
+      }
+    }
+
+    // player (pill) - Draw local player last so it's on top (only if alive)
+    if (state !== 'over') {
+      const playerX = getPlayerX();
+      drawPill(ctx, playerX, player.y, CFG.pill.r, playerColor, player.vy);
+
+      // Draw local player name in multiplayer
+      if (isMultiplayer && playerColor) {
+        ctx.save();
+        ctx.fillStyle = playerColor.primary;
+        ctx.font = 'bold 12px system-ui';
+        ctx.textAlign = 'center';
+        ctx.shadowColor = 'rgba(0,0,0,.8)';
+        ctx.shadowBlur = 4;
+        ctx.fillText('You', playerX, player.y - 35);
+        ctx.restore();
+      }
+    }
+
+    // vignette
+    const g = ctx.createLinearGradient(0,0,0,h);
+    g.addColorStop(0,'rgba(124,58,237,.08)');
+    g.addColorStop(1,'rgba(34,211,238,.06)');
+    ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+
+    // top HUD shadow
+    ctx.fillStyle='rgba(0,0,0,.25)';
+    ctx.fillRect(0,0,w,40);
+    ctx.fillRect(0,h-40,w,40);
+
+    // labels
+    ctx.fillStyle='rgba(255,255,255,.75)';
+    ctx.font='600 18px system-ui,Segoe UI';
+    ctx.fillText('Score '+Math.floor(score), 16, 26);
+    ctx.fillText('Pump '+Math.floor(pump)+'%', w-150, 26);
+
+    // Draw active power-ups indicators
+    let powerUpY = 60;
+    if(playerPowerUps.hasExtraLife){
+      ctx.save();
+      ctx.font = '24px Arial';
+      ctx.fillText('🍄', 20, powerUpY);
+      ctx.font = 'bold 14px system-ui';
+      ctx.fillStyle = '#ff6b6b';
+      ctx.fillText('Extra Life', 50, powerUpY + 5);
+      ctx.restore();
+      powerUpY += 35;
+    }
+    if(playerPowerUps.hasShield){
+      ctx.save();
+      ctx.font = '24px Arial';
+      ctx.fillText('🛡️', 20, powerUpY);
+      ctx.font = 'bold 14px system-ui';
+      ctx.fillStyle = '#00d9ff';
+      ctx.fillText('Shield', 50, powerUpY + 5);
+      ctx.restore();
+      powerUpY += 35;
+    }
+    if(playerPowerUps.chronoActive){
+      const timeLeft = Math.ceil((playerPowerUps.chronoEnd - Date.now()) / 1000);
+      ctx.save();
+      ctx.font = '24px Arial';
+      ctx.fillText('⏰', 20, powerUpY);
+      ctx.font = 'bold 14px system-ui';
+      ctx.fillStyle = '#4dabf7';
+      ctx.fillText(`Slow ${timeLeft}s`, 50, powerUpY + 5);
+      ctx.restore();
+      powerUpY += 35;
+    }
+    if(playerPowerUps.starActive){
+      const timeLeft = Math.ceil((playerPowerUps.starEnd - Date.now()) / 1000);
+      ctx.save();
+      ctx.font = '24px Arial';
+      ctx.fillText('⭐', 20, powerUpY);
+      ctx.font = 'bold 14px system-ui';
+      ctx.fillStyle = '#ffd700';
+      ctx.fillText(`2x Score ${timeLeft}s`, 50, powerUpY + 5);
+      ctx.restore();
+      powerUpY += 35;
+    }
+    if(playerPowerUps.speedActive){
+      const timeLeft = Math.ceil((playerPowerUps.speedEnd - Date.now()) / 1000);
+      ctx.save();
+      ctx.font = '24px Arial';
+      ctx.fillText('⚡', 20, powerUpY);
+      ctx.font = 'bold 14px system-ui';
+      ctx.fillStyle = '#ffeb3b';
+      ctx.fillText(`Speed ${timeLeft}s`, 50, powerUpY + 5);
+      ctx.restore();
+      powerUpY += 35;
+    }
+    if(playerPowerUps.fireActive){
+      const timeLeft = Math.ceil((playerPowerUps.fireEnd - Date.now()) / 1000);
+      ctx.save();
+      ctx.font = '24px Arial';
+      ctx.fillText('🔥', 20, powerUpY);
+      ctx.font = 'bold 14px system-ui';
+      ctx.fillStyle = '#ff5722';
+      ctx.fillText(`Fire ${timeLeft}s`, 50, powerUpY + 5);
+      ctx.restore();
+      powerUpY += 35;
+    }
+    if(playerPowerUps.nitroActive){
+      const timeLeft = Math.ceil((playerPowerUps.nitroEnd - Date.now()) / 1000);
+      ctx.save();
+      ctx.font = '24px Arial';
+      ctx.fillText('🚀', 20, powerUpY);
+      ctx.font = 'bold 14px system-ui';
+      ctx.fillStyle = '#00ffff';
+      ctx.fillText(`Nitro ${timeLeft}s`, 50, powerUpY + 5);
+      ctx.restore();
+      powerUpY += 35;
+    }
+
+    // Multiplayer leaderboard
+    if (isMultiplayer) {
+      const allPlayers = [];
+      // Add local player
+      allPlayers.push({
+        id: playerId,
+        name: 'You',
+        score: score,
+        alive: state === 'play',
+        color: playerColor
+      });
+      // Add other players
+      for (const pid in otherPlayers) {
+        allPlayers.push({
+          id: pid,
+          ...otherPlayers[pid]
+        });
+      }
+      // Sort by score descending
+      allPlayers.sort((a, b) => b.score - a.score);
+
+      // Draw leaderboard box
+      const lbX = w - 220;
+      const lbY = 50;
+      const lbW = 200;
+      const lbH = 30 + allPlayers.length * 32;
+
+      ctx.fillStyle = 'rgba(0,0,0,.7)';
+      ctx.fillRect(lbX, lbY, lbW, lbH);
+      ctx.strokeStyle = 'rgba(0,209,122,.5)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(lbX, lbY, lbW, lbH);
+
+      ctx.fillStyle = '#00d17a';
+      ctx.font = 'bold 14px system-ui';
+      ctx.textAlign = 'left';
+      ctx.fillText('🏆 LIVE RANKS', lbX + 10, lbY + 20);
+
+      // Draw players
+      allPlayers.forEach((p, i) => {
+        const y = lbY + 40 + i * 32;
+        const rank = i + 1;
+        const emoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;
+
+        // Player status indicator
+        const statusColor = p.alive ? p.color.primary : '#666';
+        ctx.fillStyle = statusColor;
+        ctx.beginPath();
+        ctx.arc(lbX + 20, y, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Rank
+        ctx.fillStyle = 'rgba(255,255,255,.9)';
+        ctx.font = '12px system-ui';
+        ctx.fillText(emoji, lbX + 30, y + 4);
+
+        // Name
+        ctx.fillStyle = p.alive ? 'rgba(255,255,255,.9)' : 'rgba(255,255,255,.4)';
+        ctx.font = p.id === playerId ? 'bold 12px system-ui' : '12px system-ui';
+        const nameText = p.name.length > 10 ? p.name.substring(0, 10) + '...' : p.name;
+        ctx.fillText(nameText, lbX + 55, y + 4);
+
+        // Score
+        ctx.fillStyle = p.color.primary;
+        ctx.font = 'bold 12px system-ui';
+        ctx.textAlign = 'right';
+        ctx.fillText(Math.floor(p.score), lbX + lbW - 10, y + 4);
+        ctx.textAlign = 'left';
+      });
+    }
+
+    if(state==='menu') drawMainMenu();
+    if(state==='pause') drawInGameMenu();
+    if(state==='over') drawCenterText('💀 REKT -99% 💀 CLICK TO RETRY');
+  }
+
+  function drawCenterText(t){
+    ctx.save();
+    ctx.fillStyle='rgba(0,0,0,.45)';
+    ctx.fillRect(0,canvas.height/2-40,canvas.width,80);
+    ctx.fillStyle='#fff';
+    ctx.font='700 28px system-ui,Segoe UI';
+    ctx.textAlign='center';
+    ctx.fillText(t, canvas.width/2, canvas.height/2+10);
+    ctx.restore();
+  }
+
+  function drawMainMenu(){
+    const w = canvas.width;
+    const h = canvas.height;
+
+    // Dark background with gradient
+    const bgGradient = ctx.createLinearGradient(0, 0, 0, h);
+    bgGradient.addColorStop(0, 'rgba(10, 10, 20, 0.95)');
+    bgGradient.addColorStop(1, 'rgba(20, 10, 30, 0.95)');
+    ctx.fillStyle = bgGradient;
+    ctx.fillRect(0, 0, w, h);
+
+    // Animated background pills
+    const time = performance.now() / 1000;
+    for(let i = 0; i < 5; i++){
+      ctx.save();
+      const x = (w / 6) * (i + 1);
+      const y = h / 2 + Math.sin(time + i) * 100;
+      const rotation = time * 0.5 + i;
+
+      ctx.translate(x, y);
+      ctx.rotate(rotation);
+      ctx.globalAlpha = 0.1;
+
+      // Pill shape
+      ctx.fillStyle = '#00d17a';
+      ctx.beginPath();
+      ctx.arc(-20, 0, 15, Math.PI/2, -Math.PI/2);
+      ctx.arc(20, 0, 15, -Math.PI/2, Math.PI/2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Stats display
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.font = '16px system-ui';
+    ctx.textAlign = 'center';
+    ctx.fillText(`Best Score: ${Math.floor(best)}  |  Total Games: ${totalGames}`, w / 2, 80);
+
+    // Menu options
+    const menuStartY = 140;
+    const menuSpacing = 55;
+
+    mainMenuOptions.forEach((option, index) => {
+      const y = menuStartY + index * menuSpacing;
+      const isSelected = index === mainMenuSelectedIndex;
+      const boxX = w/2 - 250;
+      const boxY = y - 35;
+      const boxW = 500;
+      const boxH = 45;
+
+      // Background with gradient (style site web)
+      const bgGradient = ctx.createLinearGradient(boxX, boxY, boxX, boxY + boxH);
+      bgGradient.addColorStop(0, isSelected ? 'rgba(0, 209, 122, 0.15)' : 'rgba(20, 20, 40, 0.8)');
+      bgGradient.addColorStop(1, isSelected ? 'rgba(0, 209, 122, 0.05)' : 'rgba(10, 10, 20, 0.8)');
+      ctx.fillStyle = bgGradient;
+      ctx.fillRect(boxX, boxY, boxW, boxH);
+
+      // Triple border effect (comme les sections du site)
+      // Outer glow
+      ctx.shadowColor = isSelected ? 'rgba(0, 209, 122, 0.5)' : 'rgba(255, 23, 68, 0.3)';
+      ctx.shadowBlur = isSelected ? 15 : 8;
+      ctx.strokeStyle = isSelected ? '#00d17a' : 'rgba(255, 23, 68, 0.4)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(boxX, boxY, boxW, boxH);
+
+      // Inner border
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = isSelected ? 'rgba(0, 209, 122, 0.5)' : 'rgba(255, 23, 68, 0.2)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(boxX + 2, boxY + 2, boxW - 4, boxH - 4);
+
+      // Animated arrows only for selected
+      if(isSelected){
+        const arrowOffset = Math.sin(performance.now() / 200) * 5;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = 'rgba(0, 209, 122, 0.8)';
+        ctx.fillStyle = '#00d17a';
+        ctx.font = 'bold 24px system-ui';
+        ctx.fillText('►', w/2 - 280 - arrowOffset, y);
+        ctx.fillText('◄', w/2 + 280 + arrowOffset, y);
+      }
+
+      // Option text
+      ctx.shadowBlur = isSelected ? 8 : 0;
+      ctx.shadowColor = isSelected ? 'rgba(0, 209, 122, 0.6)' : 'transparent';
+      ctx.fillStyle = isSelected ? '#00d17a' : 'rgba(255, 255, 255, 0.8)';
+      ctx.font = isSelected ? 'bold 26px system-ui' : '600 22px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText(option.label, w / 2, y);
+
+      ctx.shadowBlur = 0;
+    });
+
+    // Footer
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.font = '14px system-ui';
+    ctx.fillText('↑↓ Navigate  |  ENTER Select', w / 2, h - 30);
+
+    // Cinema and Sound buttons in bottom right corner
+    const btnSize = 40;
+    const btnSpacing = 50;
+    const btnY = h - 60;
+
+    // Cinema button
+    const cinemaX = w - 110;
+    ctx.fillStyle = cinemaMode ? 'rgba(0, 209, 122, 0.3)' : 'rgba(255, 255, 255, 0.1)';
+    ctx.fillRect(cinemaX - btnSize/2, btnY - btnSize/2, btnSize, btnSize);
+    ctx.strokeStyle = cinemaMode ? '#00d17a' : 'rgba(255, 255, 255, 0.3)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(cinemaX - btnSize/2, btnY - btnSize/2, btnSize, btnSize);
+    ctx.font = '24px system-ui';
+    ctx.fillStyle = cinemaMode ? '#00d17a' : 'rgba(255, 255, 255, 0.7)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🎬', cinemaX, btnY);
+
+    // Sound button
+    const soundX = w - 50;
+    ctx.fillStyle = soundEnabled ? 'rgba(0, 209, 122, 0.3)' : 'rgba(255, 255, 255, 0.1)';
+    ctx.fillRect(soundX - btnSize/2, btnY - btnSize/2, btnSize, btnSize);
+    ctx.strokeStyle = soundEnabled ? '#00d17a' : 'rgba(255, 255, 255, 0.3)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(soundX - btnSize/2, btnY - btnSize/2, btnSize, btnSize);
+    ctx.font = '24px system-ui';
+    ctx.fillStyle = soundEnabled ? '#00d17a' : 'rgba(255, 255, 255, 0.7)';
+    ctx.fillText(soundEnabled ? '🔊' : '🔇', soundX, btnY);
+
+    ctx.textBaseline = 'alphabetic';
+  }
+
+  function handleMainMenuSelection(){
+    const action = mainMenuOptions[mainMenuSelectedIndex].action;
+
+    switch(action){
+      case 'solo':
+        isMultiplayer = false;
+        if (playerWallet) {
+          startCountdown();
+        } else {
+          openWalletModal();
+        }
+        break;
+      case 'multi':
+        openMultiplayerModal();
+        break;
+      case 'leaderboard':
+        // Scroll to leaderboard section
+        document.getElementById('leaderboard').scrollIntoView({ behavior: 'smooth' });
+        break;
+      case 'rewards':
+        // Scroll to rewards section
+        document.getElementById('rewardsSection').scrollIntoView({ behavior: 'smooth' });
+        break;
+      case 'cinema':
+        const body = document.body;
+        if (body.classList.contains('cinema-mode')) {
+          body.classList.remove('cinema-mode');
+          mainMenuOptions[4].label = '🎬  CINEMA MODE';
+        } else {
+          body.classList.add('cinema-mode');
+          mainMenuOptions[4].label = '✕  EXIT CINEMA';
+        }
+        break;
+      case 'sound':
+        isSoundEnabled = !isSoundEnabled;
+        localStorage.setItem('pill_sound', isSoundEnabled ? 'on' : 'off');
+        mainMenuOptions[5].label = isSoundEnabled ? '🔊  SOUND: ON' : '🔇  SOUND: OFF';
+        break;
+      case 'commands':
+        openCommandsModal();
+        break;
+      case 'rules':
+        openRulesModal();
+        break;
+    }
+  }
+
+  function handlePauseMenuSelection(){
+    const action = pauseMenuOptions[pauseMenuSelectedIndex].action;
+
+    switch(action){
+      case 'resume':
+        state='play';
+        last=performance.now();
+        requestAnimationFrame(loop);
+        break;
+      case 'restart':
+        isMultiplayer = false;
+        if (playerWallet) {
+          startCountdown();
+        } else {
+          openWalletModal();
+        }
+        break;
+      case 'mainmenu':
+        state='menu';
+        requestAnimationFrame(renderMainMenu);
+        break;
+      case 'cinema':
+        const body = document.body;
+        if (body.classList.contains('cinema-mode')) {
+          body.classList.remove('cinema-mode');
+          pauseMenuOptions[3].label = '🎬  Cinema Mode';
+        } else {
+          body.classList.add('cinema-mode');
+          pauseMenuOptions[3].label = '✕  Exit Cinema';
+        }
+        break;
+      case 'sound':
+        isSoundEnabled = !isSoundEnabled;
+        localStorage.setItem('pill_sound', isSoundEnabled ? 'on' : 'off');
+        pauseMenuOptions[4].label = isSoundEnabled ? '🔊  Sound: ON' : '🔇  Sound: OFF';
+        break;
+    }
+  }
+
+  function drawInGameMenu(){
+    const w = canvas.width;
+    const h = canvas.height;
+
+    // Semi-transparent background overlay
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+    ctx.fillRect(0, 0, w, h);
+
+    // Menu box
+    const menuWidth = 500;
+    const menuHeight = 520;
+    const menuX = (w - menuWidth) / 2;
+    const menuY = (h - menuHeight) / 2;
+
+    // Box background with glow
+    ctx.save();
+    ctx.shadowColor = 'rgba(0, 209, 122, 0.5)';
+    ctx.shadowBlur = 30;
+    ctx.fillStyle = 'rgba(20, 20, 30, 0.95)';
+    ctx.fillRect(menuX, menuY, menuWidth, menuHeight);
+    ctx.restore();
+
+    // Border
+    ctx.strokeStyle = '#00d17a';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(menuX, menuY, menuWidth, menuHeight);
+
+    // Title
+    ctx.fillStyle = '#ffd700';
+    ctx.font = 'bold 36px system-ui';
+    ctx.textAlign = 'center';
+    ctx.fillText('⏸️  GAME MENU', w / 2, menuY + 60);
+
+    // Stats
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.font = '16px system-ui';
+    ctx.fillText(`Best: ${Math.floor(best)}  |  Games: ${totalGames}`, w / 2, menuY + 95);
+
+    // Menu options
+    const optionStartY = menuY + 140;
+    const optionHeight = 55;
+
+    pauseMenuOptions.forEach((option, index) => {
+      const y = optionStartY + index * optionHeight;
+      const isSelected = index === pauseMenuSelectedIndex;
+
+      // Selection highlight
+      if (isSelected) {
+        ctx.fillStyle = 'rgba(0, 209, 122, 0.3)';
+        ctx.fillRect(menuX + 20, y - 30, menuWidth - 40, 40);
+        ctx.strokeStyle = '#00d17a';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(menuX + 20, y - 30, menuWidth - 40, 40);
+      }
+
+      // Option text
+      ctx.fillStyle = isSelected ? '#00d17a' : 'rgba(255, 255, 255, 0.8)';
+      ctx.font = isSelected ? 'bold 20px system-ui' : '18px system-ui';
+      ctx.textAlign = 'left';
+      ctx.fillText(option.label, menuX + 50, y);
+    });
+
+    // Footer hint
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.font = '14px system-ui';
+    ctx.textAlign = 'center';
+    ctx.fillText('↑↓ Navigate  |  ENTER Select  |  ESC/P Close', w / 2, menuY + menuHeight - 20);
+  }
+
+  function drawPowerUp(ctx, powerUp){
+    ctx.save();
+
+    // Floating animation
+    const t = performance.now() / 500;
+    const floatOffset = Math.sin(t + powerUp.x / 100) * 5;
+
+    // Glow effect
+    ctx.shadowColor = powerUp.color;
+    ctx.shadowBlur = 20;
+
+    // Draw circle background
+    ctx.beginPath();
+    ctx.arc(powerUp.x, powerUp.y + floatOffset, powerUp.size / 2, 0, Math.PI * 2);
+    ctx.fillStyle = powerUp.color + '40'; // Semi-transparent
+    ctx.fill();
+
+    // Draw power-up emoji
+    ctx.shadowBlur = 0;
+    ctx.font = `${powerUp.size}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(powerUp.emoji, powerUp.x, powerUp.y + floatOffset);
+
+    // Rotating particles
+    ctx.globalAlpha = 0.6;
+    for(let i = 0; i < 3; i++){
+      const angle = t + (i * Math.PI * 2 / 3);
+      const dist = powerUp.size * 0.8;
+      const px = powerUp.x + Math.cos(angle) * dist;
+      const py = powerUp.y + floatOffset + Math.sin(angle) * dist;
+
+      ctx.fillStyle = powerUp.color;
+      ctx.beginPath();
+      ctx.arc(px, py, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+
+  function drawObstacle(ctx,o){
+    ctx.save();
+
+    // Animation de pulsation (toujours activée)
+    const pulseTime = performance.now() / 1000;
+    const pulseScale = 1 + Math.sin(pulseTime * 3 + o.x / 100) * 0.12; // Pulse plus prononcé
+    const glowIntensity = 15 + Math.sin(pulseTime * 4 + o.x / 50) * 10; // Pulsating glow plus intense
+
+    const candleWidth = o.w * pulseScale;
+    const wickWidth = 4;
+
+    // Bougie du haut (VERTE - haussière)
+    if(o.top > 0){
+      const candleHeight = Math.min(100, o.top * 0.4);
+      const wickHeight = o.top;
+
+      // Mèche (wick) fine verte
+      ctx.fillStyle='#006400';
+      ctx.fillRect(o.x + candleWidth/2 - wickWidth/2, 0, wickWidth, wickHeight);
+
+      // Corps de la bougie verte (body)
+      const bodyTop = wickHeight - candleHeight;
+      const grd = ctx.createLinearGradient(o.x, bodyTop, o.x + candleWidth, bodyTop);
+      grd.addColorStop(0,'#004d00');
+      grd.addColorStop(0.5,'#00d17a');
+      grd.addColorStop(1,'#004d00');
+      ctx.fillStyle=grd;
+      ctx.fillRect(o.x, bodyTop, candleWidth, candleHeight);
+
+      // Glow vert
+      ctx.shadowColor='#00d17a';
+      ctx.shadowBlur=glowIntensity;
+      ctx.fillRect(o.x, bodyTop, candleWidth, candleHeight);
+      ctx.shadowBlur=0;
+
+      // Bordure de bougie
+      ctx.strokeStyle='#003300';
+      ctx.lineWidth=3;
+      ctx.strokeRect(o.x, bodyTop, candleWidth, candleHeight);
+
+      // Ombres 3D
+      ctx.fillStyle='#002200';
+      ctx.fillRect(o.x + candleWidth - 8, bodyTop, 8, candleHeight);
+      ctx.fillStyle='rgba(0,209,122,.3)';
+      ctx.fillRect(o.x, bodyTop, 8, candleHeight);
+    }
+
+    // Bougie du bas (ROUGE - baissière)
+    if(o.bottom < canvas.height){
+      const candleHeight = Math.min(100, (canvas.height - o.bottom) * 0.4);
+      const wickHeight = canvas.height - o.bottom;
+
+      // Mèche (wick) fine rouge
+      ctx.fillStyle='#8b0000';
+      ctx.fillRect(o.x + candleWidth/2 - wickWidth/2, o.bottom, wickWidth, wickHeight);
+
+      // Corps de la bougie rouge (body)
+      const bodyTop = o.bottom;
+      const grd = ctx.createLinearGradient(o.x, bodyTop, o.x + candleWidth, bodyTop);
+      grd.addColorStop(0,'#660000');
+      grd.addColorStop(0.5,'#ff1744');
+      grd.addColorStop(1,'#660000');
+      ctx.fillStyle=grd;
+      ctx.fillRect(o.x, bodyTop, candleWidth, candleHeight);
+
+      // Glow rouge
+      ctx.shadowColor='#ff1744';
+      ctx.shadowBlur=glowIntensity;
+      ctx.fillRect(o.x, bodyTop, candleWidth, candleHeight);
+      ctx.shadowBlur=0;
+
+      // Bordure de bougie
+      ctx.strokeStyle='#330000';
+      ctx.lineWidth=3;
+      ctx.strokeRect(o.x, bodyTop, candleWidth, candleHeight);
+
+      // Ombres 3D
+      ctx.fillStyle='#330000';
+      ctx.fillRect(o.x + candleWidth - 8, bodyTop, 8, candleHeight);
+      ctx.fillStyle='rgba(255,100,100,.3)';
+      ctx.fillRect(o.x, bodyTop, 8, candleHeight);
+    }
+
+    ctx.restore();
+  }
+
+  function drawPill(ctx, x, y, r, color = null, vy = 0){
+    ctx.save();
+    ctx.translate(x,y);
+
+    // Angle de rotation basé sur la vélocité (effet Flappy)
+    const rotationAngle = Math.min(Math.max(vy * 0.05, -0.5), 0.5);
+    ctx.rotate(rotationAngle);
+
+    // PILULE CAPSULE STYLE 💊 - Couleurs dynamiques
+    const pillWidth = r * 2.8;
+    const pillHeight = r * 1.4;
+
+    // Use player color if provided, otherwise default to green
+    const pillColor = color || { primary: '#00d17a', secondary: '#00ff88' };
+
+    // Glow avec la couleur du joueur
+    ctx.shadowColor = pillColor.primary + 'b3'; // Add alpha
+    ctx.shadowBlur=25;
+
+    // Corps principal de la capsule (shape arrondie)
+    ctx.beginPath();
+    ctx.arc(-pillWidth/4, 0, pillHeight/2, Math.PI/2, -Math.PI/2);
+    ctx.arc(pillWidth/4, 0, pillHeight/2, -Math.PI/2, Math.PI/2);
+    ctx.closePath();
+    ctx.fillStyle='#ffffff';
+    ctx.fill();
+
+    ctx.shadowBlur=0;
+
+    // Moitié colorée (gauche) - Couleur du joueur
+    ctx.beginPath();
+    ctx.arc(-pillWidth/4, 0, pillHeight/2, Math.PI/2, -Math.PI/2);
+    ctx.lineTo(0, -pillHeight/2);
+    ctx.lineTo(0, pillHeight/2);
+    ctx.closePath();
+    ctx.fillStyle = pillColor.primary;
+    ctx.fill();
+
+    // Moitié BLANCHE (droite)
+    ctx.beginPath();
+    ctx.arc(pillWidth/4, 0, pillHeight/2, -Math.PI/2, Math.PI/2);
+    ctx.lineTo(0, pillHeight/2);
+    ctx.lineTo(0, -pillHeight/2);
+    ctx.closePath();
+    ctx.fillStyle='#ffffff';
+    ctx.fill();
+
+    // Barre centrale de séparation
+    ctx.fillStyle='#e0e0e0';
+    ctx.fillRect(-2, -pillHeight/2, 4, pillHeight);
+
+    // Brillance sur la partie verte
+    ctx.globalAlpha=.35;
+    ctx.fillStyle='#ffffff';
+    ctx.beginPath();
+    ctx.ellipse(-pillWidth/4, -pillHeight/4, pillHeight/4, pillHeight/3, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    // Brillance sur la partie blanche
+    ctx.beginPath();
+    ctx.ellipse(pillWidth/4, -pillHeight/4, pillHeight/4, pillHeight/3, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    // Contour de la capsule
+    ctx.globalAlpha=1;
+    ctx.strokeStyle='#2a2a2a';
+    ctx.lineWidth=3;
+    ctx.beginPath();
+    ctx.arc(-pillWidth/4, 0, pillHeight/2, Math.PI/2, -Math.PI/2);
+    ctx.arc(pillWidth/4, 0, pillHeight/2, -Math.PI/2, Math.PI/2);
+    ctx.closePath();
+    ctx.stroke();
+
+    // Mini sparkles avec couleur du joueur (effet Pump)
+    const t = performance.now() / 300;
+    ctx.globalAlpha=.7;
+    for(let i=0; i<3; i++){
+      const angle = t + (i * Math.PI * 2 / 3);
+      const dist = pillHeight * 0.9;
+      const sx = Math.cos(angle) * dist;
+      const sy = Math.sin(angle) * dist;
+      ctx.fillStyle = pillColor.primary;
+      ctx.beginPath();
+      ctx.arc(sx, sy, 3, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+
+  function capsulePath(ctx,x,y,w,h,r){
+    const r2 = Math.min(r, h/2, w/2);
+    ctx.beginPath();
+    ctx.moveTo(x+r2,y);
+    ctx.lineTo(x+w-r2,y);
+    ctx.quadraticCurveTo(x+w,y, x+w,y+r2);
+    ctx.lineTo(x+w,y+h-r2);
+    ctx.quadraticCurveTo(x+w,y+h, x+w-r2,y+h);
+    ctx.lineTo(x+r2,y+h);
+    ctx.quadraticCurveTo(x,y+h, x,y+h-r2);
+    ctx.lineTo(x,y+r2);
+    ctx.quadraticCurveTo(x,y, x+r2,y);
+    ctx.closePath();
+  }
+
+  function drawTubeBackground(ctx,w,h,speed){
+    // Fond DEGEN - Sombre et agressif
+    const g = ctx.createLinearGradient(0,0,0,h);
+    g.addColorStop(0,'#0a0a0a'); // noir profond
+    g.addColorStop(0.5,'#1a0f0f'); // rouge très sombre
+    g.addColorStop(1,'#0f0a0a');
+    ctx.fillStyle=g;
+    ctx.fillRect(0,0,w,h);
+
+    // Grille de trading en arrière-plan (effet terminal)
+    const t = performance.now()/1000;
+    const gridOff = (t * speed * 5) % 40;
+
+    ctx.strokeStyle='rgba(255,0,0,.08)';
+    ctx.lineWidth=1;
+    // Lignes horizontales
+    for(let i=0; i<h; i+=40){
+      ctx.beginPath();
+      ctx.moveTo(0, i);
+      ctx.lineTo(w, i);
+      ctx.stroke();
+    }
+    // Lignes verticales qui scrollent
+    for(let i=0; i<w+40; i+=40){
+      const x = i - gridOff;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, h);
+      ctx.stroke();
+    }
+
+    // Graphiques de pump en arrière-plan (lignes vertes aléatoires)
+    ctx.strokeStyle='rgba(0,209,122,.15)';
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    for(let i=0; i<w; i+=20){
+      const x = i - (t * speed * 3) % w;
+      const y = h/2 + Math.sin(x * 0.02 + t) * 60;
+      if(i===0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // Chiffres verts qui défilent (effet Matrix/Terminal)
+    ctx.fillStyle='rgba(0,209,122,.25)';
+    ctx.font='bold 14px monospace';
+    for(let i=0; i<8; i++){
+      const tx = (i * 130 - t * speed * 15) % w;
+      const ty = 30 + (i * 70) % (h - 60);
+      ctx.fillText('$PUMP', tx, ty);
+      ctx.fillText('+420%', tx, ty + 20);
+    }
+
+    // Textes rouges de RUG qui défilent
+    ctx.fillStyle='rgba(255,59,59,.2)';
+    for(let i=0; i<6; i++){
+      const tx = (i * 180 + t * speed * 12) % w;
+      const ty = 80 + (i * 90) % (h - 100);
+      ctx.fillText('RUG', tx, ty);
+      ctx.fillText('-99%', tx, ty + 20);
+    }
+
+    // Effet scanline (vieux CRT)
+    for(let i=0; i<h; i+=4){
+      ctx.fillStyle='rgba(0,0,0,.15)';
+      ctx.fillRect(0, i, w, 2);
+    }
+  }
+
+  function clamp(v,a,b){ return Math.max(a, Math.min(b,v)); }
+
+  // ========= UI BUTTONS =========
+  // No more HTML buttons - all UI is on canvas now
+
+
+  // Multiplayer modal buttons
+  document.getElementById('showCreateRoomBtn').onclick = ()=> {
+    // Show max players selection and create room buttons
+    document.getElementById('maxPlayersSection').style.display = 'block';
+    document.getElementById('mainButtons').style.display = 'none';
+    document.getElementById('createRoomButtons').style.display = 'flex';
+    document.getElementById('availableRoomsSection').style.display = 'none';
+  };
+
+  document.getElementById('backBtn').onclick = ()=> {
+    // Go back to main buttons
+    document.getElementById('maxPlayersSection').style.display = 'none';
+    document.getElementById('mainButtons').style.display = 'flex';
+    document.getElementById('createRoomButtons').style.display = 'none';
+    document.getElementById('availableRoomsSection').style.display = 'block';
+  };
+
+  document.getElementById('confirmCreateRoomBtn').onclick = ()=> createRoom();
+
+  document.getElementById('joinRoomBtn').onclick = ()=> joinRoom();
+  document.getElementById('joinRoomConfirmBtn').onclick = ()=> joinRoomConfirm();
+  document.getElementById('startMultiplayerBtn').onclick = ()=> startMultiplayerGame();
+  document.getElementById('spawnBotsBtn').onclick = async ()=> {
+    if (!currentRoom) return;
+    const currentPlayers = Object.keys(otherPlayers).length + 1; // +1 for the host
+    const maxPlayers = selectedMaxPlayers || 4;
+    const botsToSpawn = Math.min(3, maxPlayers - currentPlayers);
+    if (botsToSpawn > 0) {
+      await spawnBotsInRoom(currentRoom, botsToSpawn);
+      alert(`🤖 ${botsToSpawn} bots added to room!`);
+    } else {
+      alert('Room is full!');
+    }
+  };
+  document.getElementById('leaveLobbyBtn').onclick = ()=> leaveRoom();
+  document.getElementById('leaveRoomBtn').onclick = ()=> leaveRoom();
+  document.getElementById('copyRoomIdBtn').onclick = ()=> copyRoomId();
+  document.getElementById('saveWalletBtn').onclick = ()=> saveWalletAndPlay();
+  document.getElementById('skipWalletBtn').onclick = ()=> skipWalletAndPlay();
+  // Modal Rules
+  // Modal Pause Menu
+  function openPauseModal(){
+    const modal = document.getElementById('pauseModal');
+    // Update stats in the modal
+    document.getElementById('pauseBestScore').textContent = Math.floor(best);
+    document.getElementById('pauseTotalGames').textContent = totalGames;
+    modal.classList.add('show');
+    if(state === 'play') togglePause(true);
+  }
+  function closePauseModal(){
+    document.getElementById('pauseModal').classList.remove('show');
+  }
+  document.getElementById('pauseModal').onclick = (e)=>{
+    if(e.target.id === 'pauseModal') closePauseModal();
+  };
+
+  // Pause Menu Buttons
+  document.getElementById('pausePlaySolo').onclick = ()=> {
+    closePauseModal();
+    if(state!=='play') {
+      isMultiplayer = false;
+      openWalletModal();
+    }
+  };
+  document.getElementById('pauseMultiplayer').onclick = ()=> {
+    closePauseModal();
+    openMultiplayerModal();
+  };
+  document.getElementById('pauseRestart').onclick = ()=> {
+    closePauseModal();
+    state='menu';
+    isMultiplayer = false;
+    if (playerWallet) {
+      startCountdown();
+    } else {
+      openWalletModal();
+    }
+  };
+  document.getElementById('pauseResume').onclick = ()=> {
+    closePauseModal();
+    if(state==='pause') {
+      state='play';
+      last=performance.now();
+      requestAnimationFrame(loop);
+    }
+  };
+  document.getElementById('pauseCinema').onclick = ()=> {
+    const body = document.body;
+    if (body.classList.contains('cinema-mode')) {
+      body.classList.remove('cinema-mode');
+    } else {
+      body.classList.add('cinema-mode');
+    }
+  };
+  document.getElementById('pauseSound').onclick = ()=> {
+    isSoundEnabled = !isSoundEnabled;
+    localStorage.setItem('pill_sound', isSoundEnabled ? 'on' : 'off');
+  };
+  document.getElementById('pauseCommands').onclick = ()=> {
+    closePauseModal();
+    openCommandsModal();
+  };
+  document.getElementById('pauseRules').onclick = ()=> {
+    closePauseModal();
+    openRulesModal();
+  };
+
+  // Modal Rules
+  function openRulesModal(){
+    document.getElementById('rulesModal').classList.add('show');
+  }
+  function closeRulesModal(){
+    document.getElementById('rulesModal').classList.remove('show');
+  }
+  document.getElementById('rulesModal').onclick = (e)=>{
+    if(e.target.id === 'rulesModal') closeRulesModal();
+  };
+
+  // Removed - buttons no longer exist in HTML (moved to menu)
+  // document.getElementById('howBtn').onclick = ()=> openRulesModal();
+
+  // Modal Commands
+  function openCommandsModal(){
+    document.getElementById('commandsModal').classList.add('show');
+  }
+  function closeCommandsModal(){
+    document.getElementById('commandsModal').classList.remove('show');
+  }
+  document.getElementById('commandsModal').onclick = (e)=>{
+    if(e.target.id === 'commandsModal') closeCommandsModal();
+  };
+
+  // Removed - buttons no longer exist in HTML (moved to menu)
+  // document.getElementById('commandsBtn').onclick = ()=> openCommandsModal();
+  // document.getElementById('shareX').onclick = ()=>{...};
+  // document.getElementById('copyMsg').onclick = async ()=>{...};
+  // document.getElementById('rewardsBtn').onclick = ()=> {...};
+
+  // Game Over Modal buttons
+  document.getElementById('restartGameBtn').onclick = ()=> {
+    closeGameOverModal();
+    state='menu';
+    isMultiplayer = false;
+    // If wallet is already saved, start directly. Otherwise, ask for it.
+    if (playerWallet) {
+      startCountdown();
+    } else {
+      openWalletModal();
+    }
+  };
+
+  document.getElementById('leaveRoomBtn').onclick = ()=> {
+    closeGameOverModal();
+    leaveRoom();
+    state='menu';
+    // Reopen multiplayer modal to show available rooms
+    openMultiplayerModal();
+  };
+
+  document.getElementById('shareGameBtn').onclick = ()=>{
+    const s = Math.floor(score);
+    const text = encodeURIComponent(`Just scored ${s} points on Pump The Pill! 💊💀\n\nThink you can beat me degen?\n\n#Solana #Pumpfun #WAGMI`);
+    const url = encodeURIComponent(window.location.href);
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`,'_blank');
+  };
+  document.getElementById('gameOverModal').onclick = (e)=>{
+    if(e.target.id === 'gameOverModal') closeGameOverModal();
+  };
+
+  // kick off in menu render
+  render({speed:CFG.speed,gap:CFG.tubeGap});
+
+  // ========= HEADER PILL ANIMATION =========
+  const headerCanvas = document.getElementById('headerPill');
+  const hctx = headerCanvas.getContext('2d');
+
+  function animateHeaderPill(){
+    hctx.clearRect(0, 0, headerCanvas.width, headerCanvas.height);
+
+    const centerX = headerCanvas.width / 2;
+    const centerY = headerCanvas.height / 2;
+    const r = 7; // Un peu plus grande pour remplacer "— Mini Runner"
+    const pillWidth = r * 2.8;
+    const pillHeight = r * 1.4;
+
+    hctx.save();
+    hctx.translate(centerX, centerY);
+
+    // MEME CODE QUE LE JEU
+    // Rotation lente basée sur le temps
+    const rotationAngle = Math.sin(performance.now() / 1000) * 0.2;
+    hctx.rotate(rotationAngle);
+
+    // Glow vert Pump.fun
+    hctx.shadowColor='rgba(0,209,122,.7)';
+    hctx.shadowBlur=12;
+
+    // Corps principal de la capsule
+    hctx.beginPath();
+    hctx.arc(-pillWidth/4, 0, pillHeight/2, Math.PI/2, -Math.PI/2);
+    hctx.arc(pillWidth/4, 0, pillHeight/2, -Math.PI/2, Math.PI/2);
+    hctx.closePath();
+    hctx.fillStyle='#ffffff';
+    hctx.fill();
+
+    hctx.shadowBlur=0;
+
+    // Moitié VERTE (gauche) - Couleur Pump.fun
+    hctx.beginPath();
+    hctx.arc(-pillWidth/4, 0, pillHeight/2, Math.PI/2, -Math.PI/2);
+    hctx.lineTo(0, -pillHeight/2);
+    hctx.lineTo(0, pillHeight/2);
+    hctx.closePath();
+    hctx.fillStyle='#00d17a';
+    hctx.fill();
+
+    // Moitié BLANCHE (droite)
+    hctx.beginPath();
+    hctx.arc(pillWidth/4, 0, pillHeight/2, -Math.PI/2, Math.PI/2);
+    hctx.lineTo(0, pillHeight/2);
+    hctx.lineTo(0, -pillHeight/2);
+    hctx.closePath();
+    hctx.fillStyle='#ffffff';
+    hctx.fill();
+
+    // Barre centrale de séparation
+    hctx.fillStyle='#e0e0e0';
+    hctx.fillRect(-1.5, -pillHeight/2, 3, pillHeight);
+
+    // Brillance sur la partie verte
+    hctx.globalAlpha=.35;
+    hctx.fillStyle='#ffffff';
+    hctx.beginPath();
+    hctx.ellipse(-pillWidth/4, -pillHeight/4, pillHeight/4, pillHeight/3, 0, 0, Math.PI*2);
+    hctx.fill();
+
+    // Brillance sur la partie blanche
+    hctx.beginPath();
+    hctx.ellipse(pillWidth/4, -pillHeight/4, pillHeight/4, pillHeight/3, 0, 0, Math.PI*2);
+    hctx.fill();
+
+    // Contour de la capsule
+    hctx.globalAlpha=1;
+    hctx.strokeStyle='#2a2a2a';
+    hctx.lineWidth=1;
+    hctx.beginPath();
+    hctx.arc(-pillWidth/4, 0, pillHeight/2, Math.PI/2, -Math.PI/2);
+    hctx.arc(pillWidth/4, 0, pillHeight/2, -Math.PI/2, Math.PI/2);
+    hctx.closePath();
+    hctx.stroke();
+
+    // Mini sparkles verts autour (effet Pump)
+    const t = performance.now() / 300;
+    hctx.globalAlpha=.7;
+    for(let i=0; i<3; i++){
+      const angle = t + (i * Math.PI * 2 / 3);
+      const dist = pillHeight * 0.9;
+      const sx = Math.cos(angle) * dist;
+      const sy = Math.sin(angle) * dist;
+      hctx.fillStyle='#00d17a';
+      hctx.beginPath();
+      hctx.arc(sx, sy, 1, 0, Math.PI*2);
+      hctx.fill();
+    }
+
+    hctx.restore();
+
+    requestAnimationFrame(animateHeaderPill);
+  }
+
+  animateHeaderPill();
+
+  // ========= MODAL PILL ANIMATION =========
+  const modalCanvas = document.getElementById('modalPill');
+  const mctx = modalCanvas.getContext('2d');
+
+  function animateModalPill(){
+    mctx.clearRect(0, 0, modalCanvas.width, modalCanvas.height);
+
+    const centerX = modalCanvas.width / 2;
+    const centerY = modalCanvas.height / 2;
+    const r = 5;
+    const pillWidth = r * 2.8;
+    const pillHeight = r * 1.4;
+
+    mctx.save();
+    mctx.translate(centerX, centerY);
+
+    const rotationAngle = Math.sin(performance.now() / 1000) * 0.2;
+    mctx.rotate(rotationAngle);
+
+    // Glow vert Pump.fun
+    mctx.shadowColor='rgba(0,209,122,.7)';
+    mctx.shadowBlur=8;
+
+    // Corps principal de la capsule
+    mctx.beginPath();
+    mctx.arc(-pillWidth/4, 0, pillHeight/2, Math.PI/2, -Math.PI/2);
+    mctx.arc(pillWidth/4, 0, pillHeight/2, -Math.PI/2, Math.PI/2);
+    mctx.closePath();
+    mctx.fillStyle='#ffffff';
+    mctx.fill();
+
+    mctx.shadowBlur=0;
+
+    // Moitié VERTE
+    mctx.beginPath();
+    mctx.arc(-pillWidth/4, 0, pillHeight/2, Math.PI/2, -Math.PI/2);
+    mctx.lineTo(0, -pillHeight/2);
+    mctx.lineTo(0, pillHeight/2);
+    mctx.closePath();
+    mctx.fillStyle='#00d17a';
+    mctx.fill();
+
+    // Moitié BLANCHE
+    mctx.beginPath();
+    mctx.arc(pillWidth/4, 0, pillHeight/2, -Math.PI/2, Math.PI/2);
+    mctx.lineTo(0, pillHeight/2);
+    mctx.lineTo(0, -pillHeight/2);
+    mctx.closePath();
+    mctx.fillStyle='#ffffff';
+    mctx.fill();
+
+    // Barre centrale
+    mctx.fillStyle='#e0e0e0';
+    mctx.fillRect(-1.5, -pillHeight/2, 3, pillHeight);
+
+    // Brillances
+    mctx.globalAlpha=.35;
+    mctx.fillStyle='#ffffff';
+    mctx.beginPath();
+    mctx.ellipse(-pillWidth/4, -pillHeight/4, pillHeight/4, pillHeight/3, 0, 0, Math.PI*2);
+    mctx.fill();
+    mctx.beginPath();
+    mctx.ellipse(pillWidth/4, -pillHeight/4, pillHeight/4, pillHeight/3, 0, 0, Math.PI*2);
+    mctx.fill();
+
+    // Contour
+    mctx.globalAlpha=1;
+    mctx.strokeStyle='#2a2a2a';
+    mctx.lineWidth=1;
+    mctx.beginPath();
+    mctx.arc(-pillWidth/4, 0, pillHeight/2, Math.PI/2, -Math.PI/2);
+    mctx.arc(pillWidth/4, 0, pillHeight/2, -Math.PI/2, Math.PI/2);
+    mctx.closePath();
+    mctx.stroke();
+
+    // Sparkles
+    const t = performance.now() / 300;
+    mctx.globalAlpha=.7;
+    for(let i=0; i<3; i++){
+      const angle = t + (i * Math.PI * 2 / 3);
+      const dist = pillHeight * 0.9;
+      const sx = Math.cos(angle) * dist;
+      const sy = Math.sin(angle) * dist;
+      mctx.fillStyle='#00d17a';
+      mctx.beginPath();
+      mctx.arc(sx, sy, 1, 0, Math.PI*2);
+      mctx.fill();
+    }
+
+    mctx.restore();
+
+    requestAnimationFrame(animateModalPill);
+  }
+
+  animateModalPill();
+
+  // ========= LOADING SCREEN =========
+  const loadingPillCanvas = document.getElementById('loadingPill');
+  const loadingPillCtx = loadingPillCanvas.getContext('2d');
+
+  function animateLoadingPill() {
+    loadingPillCtx.clearRect(0, 0, loadingPillCanvas.width, loadingPillCanvas.height);
+
+    const centerX = loadingPillCanvas.width / 2;
+    const centerY = loadingPillCanvas.height / 2;
+    const r = 15;
+    const pillWidth = r * 2.8;
+    const pillHeight = r * 1.4;
+
+    loadingPillCtx.save();
+    loadingPillCtx.translate(centerX, centerY);
+
+    // Rotation continue
+    const rotationAngle = (performance.now() / 1000) * Math.PI / 2;
+    loadingPillCtx.rotate(rotationAngle);
+
+    // Glow vert Pump.fun
+    loadingPillCtx.shadowColor = 'rgba(0,209,122,.9)';
+    loadingPillCtx.shadowBlur = 25;
+
+    // Corps principal de la capsule
+    loadingPillCtx.beginPath();
+    loadingPillCtx.arc(-pillWidth/4, 0, pillHeight/2, Math.PI/2, -Math.PI/2);
+    loadingPillCtx.arc(pillWidth/4, 0, pillHeight/2, -Math.PI/2, Math.PI/2);
+    loadingPillCtx.closePath();
+    loadingPillCtx.fillStyle = '#ffffff';
+    loadingPillCtx.fill();
+
+    loadingPillCtx.shadowBlur = 0;
+
+    // Moitié VERTE
+    loadingPillCtx.beginPath();
+    loadingPillCtx.arc(-pillWidth/4, 0, pillHeight/2, Math.PI/2, -Math.PI/2);
+    loadingPillCtx.lineTo(0, -pillHeight/2);
+    loadingPillCtx.lineTo(0, pillHeight/2);
+    loadingPillCtx.closePath();
+    loadingPillCtx.fillStyle = '#00d17a';
+    loadingPillCtx.fill();
+
+    // Moitié BLANCHE
+    loadingPillCtx.beginPath();
+    loadingPillCtx.arc(pillWidth/4, 0, pillHeight/2, -Math.PI/2, Math.PI/2);
+    loadingPillCtx.lineTo(0, pillHeight/2);
+    loadingPillCtx.lineTo(0, -pillHeight/2);
+    loadingPillCtx.closePath();
+    loadingPillCtx.fillStyle = '#ffffff';
+    loadingPillCtx.fill();
+
+    // Barre centrale
+    loadingPillCtx.fillStyle = '#e0e0e0';
+    loadingPillCtx.fillRect(-2, -pillHeight/2, 4, pillHeight);
+
+    // Brillances
+    loadingPillCtx.globalAlpha = .35;
+    loadingPillCtx.fillStyle = '#ffffff';
+    loadingPillCtx.beginPath();
+    loadingPillCtx.ellipse(-pillWidth/4, -pillHeight/4, pillHeight/4, pillHeight/3, 0, 0, Math.PI*2);
+    loadingPillCtx.fill();
+    loadingPillCtx.beginPath();
+    loadingPillCtx.ellipse(pillWidth/4, -pillHeight/4, pillHeight/4, pillHeight/3, 0, 0, Math.PI*2);
+    loadingPillCtx.fill();
+
+    // Contour
+    loadingPillCtx.globalAlpha = 1;
+    loadingPillCtx.strokeStyle = '#2a2a2a';
+    loadingPillCtx.lineWidth = 2;
+    loadingPillCtx.beginPath();
+    loadingPillCtx.arc(-pillWidth/4, 0, pillHeight/2, Math.PI/2, -Math.PI/2);
+    loadingPillCtx.arc(pillWidth/4, 0, pillHeight/2, -Math.PI/2, Math.PI/2);
+    loadingPillCtx.closePath();
+    loadingPillCtx.stroke();
+
+    // Sparkles
+    const t = performance.now() / 300;
+    loadingPillCtx.globalAlpha = .7;
+    for(let i=0; i<3; i++){
+      const angle = t + (i * Math.PI * 2 / 3);
+      const dist = pillHeight * 1.2;
+      const sx = Math.cos(angle) * dist;
+      const sy = Math.sin(angle) * dist;
+      loadingPillCtx.fillStyle = '#00d17a';
+      loadingPillCtx.beginPath();
+      loadingPillCtx.arc(sx, sy, 2.5, 0, Math.PI*2);
+      loadingPillCtx.fill();
+    }
+
+    loadingPillCtx.restore();
+
+    requestAnimationFrame(animateLoadingPill);
+  }
+
+  animateLoadingPill();
+
+  // Simuler le chargement
+  let loadProgress = 0;
+  const loadingBar = document.getElementById('loadingBar');
+  const loadingPercentage = document.getElementById('loadingPercentage');
+  const loadingScreen = document.getElementById('loadingScreen');
+
+  const loadingInterval = setInterval(() => {
+    loadProgress += Math.random() * 15 + 5;
+
+    if (loadProgress >= 100) {
+      loadProgress = 100;
+      clearInterval(loadingInterval);
+
+      setTimeout(() => {
+        loadingScreen.classList.add('hidden');
+        setTimeout(() => {
+          loadingScreen.style.display = 'none';
+          // Start game loop (will show menu since state='menu')
+          requestAnimationFrame(loop);
+        }, 500);
+      }, 500);
+    }
+
+    loadingBar.style.width = loadProgress + '%';
+    loadingPercentage.textContent = Math.floor(loadProgress) + '%';
+  }, 200);
+  </script>
+</body>
+</html>
