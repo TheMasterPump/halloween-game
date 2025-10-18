@@ -3448,7 +3448,12 @@
   document.getElementById('restartBtn').onclick = ()=>{
     state='menu';
     isMultiplayer = false;
-    openWalletModal();
+    // If wallet is already saved, start directly. Otherwise, ask for it.
+    if (playerWallet) {
+      startCountdown();
+    } else {
+      openWalletModal();
+    }
   };
   document.getElementById('pauseBtn').onclick = ()=> togglePause();
 
@@ -3554,6 +3559,8 @@
     closeGameOverModal();
     leaveRoom();
     state='menu';
+    // Reopen multiplayer modal to show available rooms
+    openMultiplayerModal();
   };
 
   document.getElementById('shareGameBtn').onclick = ()=>{
