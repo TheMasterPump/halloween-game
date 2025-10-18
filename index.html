@@ -3553,6 +3553,13 @@
   document.getElementById('restartGameBtn').onclick = ()=> {
     closeGameOverModal();
     state='menu';
+    isMultiplayer = false;
+    // If wallet is already saved, start directly. Otherwise, ask for it.
+    if (playerWallet) {
+      startCountdown();
+    } else {
+      openWalletModal();
+    }
   };
 
   document.getElementById('leaveRoomBtn').onclick = ()=> {
