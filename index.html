@@ -734,15 +734,10 @@
       <span style="font-size:14px;font-weight:600;letter-spacing:.5px;color:#00d17a">📜 Contract: Coming soon...</span>
     </div>
 
-    <div class="panel">
-      <button class="btn primary" id="playBtn">▶️ Play Solo</button>
-      <button class="btn primary" id="multiplayerBtn" style="background:rgba(255,215,0,.8);border-color:#ffd700;color:#000">🎮 Multiplayer</button>
-      <button class="btn" id="pauseBtn">⏸️ Pause</button>
-      <button class="btn" id="restartBtn">🔄 Restart</button>
-      <button class="btn" id="cinemaBtn" title="Cinema Mode">🎬 Cinema</button>
-      <button class="btn" id="soundBtn" title="Toggle Sound">🔊 Sound</button>
-      <span class="badge" id="bestBadge">🏆 Best: 0</span>
-      <span class="badge" id="totalGamesBadge" style="background:rgba(255,215,0,.15);border-color:#ffd700">🎮 Games: 0</span>
+    <div class="panel" style="justify-content:center">
+      <button class="btn primary" id="menuBtn" style="font-size:16px;padding:14px 24px">
+        ☰ MENU
+      </button>
     </div>
 
     <canvas id="game" width="960" height="540" aria-label="Pump the Pill"></canvas>
@@ -999,6 +994,85 @@
     </div>
   </div>
 
+  <!-- Modal Pause Menu -->
+  <div id="pauseModal" class="modal">
+    <div class="modal-content" style="max-width:500px">
+      <div class="modal-header">
+        <div class="icon" style="filter:drop-shadow(0 0 12px #ffd700);font-size:32px">⏸️</div>
+        <h2>GAME MENU</h2>
+        <button class="modal-close" onclick="closePauseModal()">✕</button>
+      </div>
+      <div class="modal-body">
+
+        <!-- Stats Display -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+          <div style="background:rgba(255,23,68,.15);border:1px solid rgba(255,23,68,.3);border-radius:8px;padding:14px;text-align:center">
+            <div style="font-size:11px;opacity:.7;margin-bottom:4px">Best Score</div>
+            <div style="font-size:24px;font-weight:700;color:#ff1744" id="pauseBestScore">0</div>
+          </div>
+          <div style="background:rgba(255,215,0,.15);border:1px solid rgba(255,215,0,.3);border-radius:8px;padding:14px;text-align:center">
+            <div style="font-size:11px;opacity:.7;margin-bottom:4px">Total Games</div>
+            <div style="font-size:24px;font-weight:700;color:#ffd700" id="pauseTotalGames">0</div>
+          </div>
+        </div>
+
+        <!-- Game Mode -->
+        <div style="margin-bottom:16px">
+          <h3 style="font-size:14px;color:#00d17a;margin:0 0 12px 0;text-transform:uppercase;letter-spacing:.5px">Game Mode</h3>
+          <button class="btn primary" id="pausePlaySolo" style="width:100%;margin-bottom:8px;padding:14px">
+            ▶️ Play Solo
+          </button>
+          <button class="btn primary" id="pauseMultiplayer" style="width:100%;background:rgba(255,215,0,.8);border-color:#ffd700;color:#000;padding:14px">
+            🎮 Multiplayer
+          </button>
+        </div>
+
+        <!-- Game Controls -->
+        <div style="margin-bottom:16px">
+          <h3 style="font-size:14px;color:#00d17a;margin:0 0 12px 0;text-transform:uppercase;letter-spacing:.5px">Controls</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <button class="btn" id="pauseRestart" style="padding:12px">
+              🔄 Restart
+            </button>
+            <button class="btn" id="pauseResume" style="padding:12px;background:rgba(0,209,122,.2);border-color:#00d17a">
+              ▶️ Resume
+            </button>
+          </div>
+        </div>
+
+        <!-- Settings -->
+        <div style="margin-bottom:16px">
+          <h3 style="font-size:14px;color:#00d17a;margin:0 0 12px 0;text-transform:uppercase;letter-spacing:.5px">Settings</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <button class="btn" id="pauseCinema" style="padding:12px">
+              🎬 Cinema
+            </button>
+            <button class="btn" id="pauseSound" style="padding:12px">
+              🔊 Sound
+            </button>
+          </div>
+        </div>
+
+        <!-- Info -->
+        <div>
+          <h3 style="font-size:14px;color:#00d17a;margin:0 0 12px 0;text-transform:uppercase;letter-spacing:.5px">Information</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <button class="btn" id="pauseCommands" style="padding:12px">
+              🎮 Commands
+            </button>
+            <button class="btn" id="pauseRules" style="padding:12px">
+              ❓ Rules
+            </button>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        Press <strong>ESC</strong> or <strong>P</strong> to pause/resume
+      </div>
+    </div>
+  </div>
+
   <!-- Modal Commands -->
   <div id="commandsModal" class="modal">
     <div class="modal-content">
@@ -1247,13 +1321,7 @@
   let soundEnabled = true;
   const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-  // Sound toggle button
-  const soundBtn = document.getElementById('soundBtn');
-  soundBtn.onclick = () => {
-    soundEnabled = !soundEnabled;
-    soundBtn.textContent = soundEnabled ? '🔊 Sound' : '🔇 Muted';
-    soundBtn.style.opacity = soundEnabled ? '1' : '0.5';
-  };
+  // Sound toggle is now in the pause menu
 
   // Flap/Jump sound
   function playFlapSound() {
@@ -1354,8 +1422,8 @@
 
     // Listen to total games count
     totalGamesRef.on('value', (snapshot) => {
-      const totalGames = snapshot.val() || 0;
-      document.getElementById('totalGamesBadge').textContent = `🎮 Games: ${totalGames}`;
+      totalGames = snapshot.val() || 0;
+      // Total games badge is now in the pause menu, updated when opened
     });
   }
 
@@ -2110,8 +2178,6 @@
   const scoreEl = document.getElementById('score');
   const pumpEl = document.getElementById('pump');
   const pumpBar = document.getElementById('pumpBar');
-  const bestBadge = document.getElementById('bestBadge');
-
   let state = 'menu'; // 'menu' | 'play' | 'pause' | 'over' | 'countdown'
   let last = 0, accSpawn = 0, elapsed = 0;
   let obstacles = [];
@@ -2119,7 +2185,6 @@
   let pump = 0; // 0..100
   let pressing = false;
   let rng = mulberry32(CFG.seed);
-  bestBadge.textContent = '🏆 Best: ' + Math.floor(best);
 
   const player = { x: 200, y: canvas.height/2, vy: 0 };
   let countdownValue = 3;
@@ -2368,6 +2433,22 @@
   }
 
   window.addEventListener('keydown',e=>{
+    // ESC or P to open/close pause menu
+    if(e.code==='Escape' || e.code==='KeyP'){
+      e.preventDefault();
+      const pauseModal = document.getElementById('pauseModal');
+      if(pauseModal.classList.contains('show')){
+        closePauseModal();
+        if(state==='pause') {
+          state='play';
+          last=performance.now();
+          requestAnimationFrame(loop);
+        }
+      } else {
+        openPauseModal();
+      }
+      return;
+    }
     if(e.code==='Space'){
       e.preventDefault();
       flap();
@@ -2661,7 +2742,6 @@
     playGameOverSound(); // Play game over sound
     localStorage.setItem('pill_best', Math.floor(Math.max(best,score)));
     best = Math.max(best,score);
-    bestBadge.textContent = '🏆 Best: ' + Math.floor(best);
     saveToLeaderboard(score); // Ajouter au leaderboard
 
     // Save multiplayer match result
@@ -3497,40 +3577,9 @@
   function clamp(v,a,b){ return Math.max(a, Math.min(b,v)); }
 
   // ========= UI BUTTONS =========
-  document.getElementById('playBtn').onclick = ()=>{
-    if(state!=='play') {
-      isMultiplayer = false;
-      openWalletModal();
-    }
-  };
-  document.getElementById('multiplayerBtn').onclick = ()=> openMultiplayerModal();
-  document.getElementById('restartBtn').onclick = ()=>{
-    state='menu';
-    isMultiplayer = false;
-    // If wallet is already saved, start directly. Otherwise, ask for it.
-    if (playerWallet) {
-      startCountdown();
-    } else {
-      openWalletModal();
-    }
-  };
-  document.getElementById('pauseBtn').onclick = ()=> togglePause();
+  // Main menu button
+  document.getElementById('menuBtn').onclick = ()=> openPauseModal();
 
-  // Cinema Mode button
-  document.getElementById('cinemaBtn').onclick = ()=> {
-    const body = document.body;
-    const btn = document.getElementById('cinemaBtn');
-
-    if (body.classList.contains('cinema-mode')) {
-      // Exit cinema mode
-      body.classList.remove('cinema-mode');
-      btn.textContent = '🎬 Cinema';
-    } else {
-      // Enter cinema mode
-      body.classList.add('cinema-mode');
-      btn.textContent = '✕ Exit Cinema';
-    }
-  };
 
   // Multiplayer modal buttons
   document.getElementById('showCreateRoomBtn').onclick = ()=> {
@@ -3571,6 +3620,74 @@
   document.getElementById('copyRoomIdBtn').onclick = ()=> copyRoomId();
   document.getElementById('saveWalletBtn').onclick = ()=> saveWalletAndPlay();
   document.getElementById('skipWalletBtn').onclick = ()=> skipWalletAndPlay();
+  // Modal Rules
+  // Modal Pause Menu
+  function openPauseModal(){
+    const modal = document.getElementById('pauseModal');
+    // Update stats in the modal
+    document.getElementById('pauseBestScore').textContent = Math.floor(best);
+    document.getElementById('pauseTotalGames').textContent = totalGames;
+    modal.classList.add('show');
+    if(state === 'play') togglePause(true);
+  }
+  function closePauseModal(){
+    document.getElementById('pauseModal').classList.remove('show');
+  }
+  document.getElementById('pauseModal').onclick = (e)=>{
+    if(e.target.id === 'pauseModal') closePauseModal();
+  };
+
+  // Pause Menu Buttons
+  document.getElementById('pausePlaySolo').onclick = ()=> {
+    closePauseModal();
+    if(state!=='play') {
+      isMultiplayer = false;
+      openWalletModal();
+    }
+  };
+  document.getElementById('pauseMultiplayer').onclick = ()=> {
+    closePauseModal();
+    openMultiplayerModal();
+  };
+  document.getElementById('pauseRestart').onclick = ()=> {
+    closePauseModal();
+    state='menu';
+    isMultiplayer = false;
+    if (playerWallet) {
+      startCountdown();
+    } else {
+      openWalletModal();
+    }
+  };
+  document.getElementById('pauseResume').onclick = ()=> {
+    closePauseModal();
+    if(state==='pause') {
+      state='play';
+      last=performance.now();
+      requestAnimationFrame(loop);
+    }
+  };
+  document.getElementById('pauseCinema').onclick = ()=> {
+    const body = document.body;
+    if (body.classList.contains('cinema-mode')) {
+      body.classList.remove('cinema-mode');
+    } else {
+      body.classList.add('cinema-mode');
+    }
+  };
+  document.getElementById('pauseSound').onclick = ()=> {
+    isSoundEnabled = !isSoundEnabled;
+    localStorage.setItem('pill_sound', isSoundEnabled ? 'on' : 'off');
+  };
+  document.getElementById('pauseCommands').onclick = ()=> {
+    closePauseModal();
+    openCommandsModal();
+  };
+  document.getElementById('pauseRules').onclick = ()=> {
+    closePauseModal();
+    openRulesModal();
+  };
+
   // Modal Rules
   function openRulesModal(){
     document.getElementById('rulesModal').classList.add('show');
