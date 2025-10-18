@@ -666,14 +666,29 @@
       right: 0;
       bottom: 0;
     }
-    body.cinema-mode canvas#game {
+    canvas#game:fullscreen {
       width: 100vw !important;
       height: 100vh !important;
-      max-width: 100vw;
-      max-height: 100vh;
-      margin: 0 !important;
-      display: block !important;
       object-fit: contain;
+      background: #000;
+    }
+    canvas#game:-webkit-full-screen {
+      width: 100vw !important;
+      height: 100vh !important;
+      object-fit: contain;
+      background: #000;
+    }
+    canvas#game:-moz-full-screen {
+      width: 100vw !important;
+      height: 100vh !important;
+      object-fit: contain;
+      background: #000;
+    }
+    canvas#game:-ms-fullscreen {
+      width: 100vw !important;
+      height: 100vh !important;
+      object-fit: contain;
+      background: #000;
     }
     body.cinema-mode .hud {
       position: fixed;
@@ -734,11 +749,6 @@
       <span style="font-size:14px;font-weight:600;letter-spacing:.5px;color:#00d17a">📜 Contract: Coming soon...</span>
     </div>
 
-    <div class="panel" style="justify-content:center">
-      <button class="btn primary" id="menuBtn" style="font-size:16px;padding:14px 24px">
-        ☰ MENU
-      </button>
-    </div>
 
     <canvas id="game" width="960" height="540" aria-label="Pump the Pill"></canvas>
 
@@ -747,16 +757,9 @@
       📱 TAP ANYWHERE TO PLAY
     </div>
 
-    <div class="hud" style="display:flex;flex-direction:column;align-items:flex-start;gap:8px">
-      <div style="display:flex;justify-content:flex-start;align-items:center;gap:12px;flex-wrap:wrap;width:100%">
-        <span class="badge">Score: <b id="score">0</b></span>
-        <span class="badge">Pump: <b id="pump">0</b>%</span>
-        <button class="btn" id="shareX">Share on X</button>
-        <button class="btn" id="copyMsg">📋 Copy Brag</button>
-        <button class="btn" id="rewardsBtn" style="background:rgba(255,215,0,.2);border-color:#ffd700;color:#ffd700">💰 Rewards</button>
-        <button class="btn" id="commandsBtn">🎮 Commands</button>
-        <button class="btn" id="howBtn">❓ Rules</button>
-      </div>
+    <div class="hud" style="display:none">
+      <span class="badge">Score: <b id="score">0</b></span>
+      <span class="badge">Pump: <b id="pump">0</b>%</span>
       <div class="meter" style="width:220px"><i id="pumpBar"></i></div>
     </div>
 
@@ -2182,12 +2185,39 @@
   let last = 0, accSpawn = 0, elapsed = 0;
   let obstacles = [];
   let score = 0, best = Number(localStorage.getItem('pill_best')||0);
+  let totalGames = 0; // Total games played (loaded from Firebase)
   let pump = 0; // 0..100
   let pressing = false;
   let rng = mulberry32(CFG.seed);
+  let cinemaMode = false; // Cinema mode (hides UI elements)
+
+  // Main menu system
+  let mainMenuSelectedIndex = 0;
+  const mainMenuOptions = [
+    { label: '▶️  PLAY SOLO', action: 'solo' },
+    { label: '👥  MULTIPLAYER', action: 'multi' },
+    { label: '🏆  LEADERBOARD', action: 'leaderboard' },
+    { label: '💰  REWARDS', action: 'rewards' },
+    { label: '🎮  COMMANDS', action: 'commands' },
+    { label: '❓  RULES', action: 'rules' }
+  ];
+
+  // Pause menu system (when in game)
+  let pauseMenuSelectedIndex = 0;
+  const pauseMenuOptions = [
+    { label: '▶️  Resume', action: 'resume' },
+    { label: '🔄  Restart', action: 'restart' },
+    { label: '🏠  Main Menu', action: 'mainmenu' },
+    { label: '🎬  Cinema Mode', action: 'cinema' },
+    { label: '🔊  Sound: ON', action: 'sound' }
+  ];
 
   const player = { x: 200, y: canvas.height/2, vy: 0 };
   let countdownValue = 3;
+
+  // Trail graph (graphique qui suit la pilule)
+  let pillTrail = []; // Array de points {x, y, color}
+  const maxTrailLength = 150; // Nombre max de points dans le trail
 
   // Helper function to get player X with nitro boost
   function getPlayerX() {
@@ -2433,22 +2463,58 @@
   }
 
   window.addEventListener('keydown',e=>{
-    // ESC or P to open/close pause menu
+    // Main menu navigation
+    if(state==='menu'){
+      if(e.code==='ArrowUp'){
+        e.preventDefault();
+        mainMenuSelectedIndex = (mainMenuSelectedIndex - 1 + mainMenuOptions.length) % mainMenuOptions.length;
+        return;
+      }
+      if(e.code==='ArrowDown'){
+        e.preventDefault();
+        mainMenuSelectedIndex = (mainMenuSelectedIndex + 1) % mainMenuOptions.length;
+        return;
+      }
+      if(e.code==='Enter' || e.code==='NumpadEnter'){
+        e.preventDefault();
+        handleMainMenuSelection();
+        return;
+      }
+    }
+
+    // ESC or P to open/close pause menu (only in game)
     if(e.code==='Escape' || e.code==='KeyP'){
       e.preventDefault();
-      const pauseModal = document.getElementById('pauseModal');
-      if(pauseModal.classList.contains('show')){
-        closePauseModal();
-        if(state==='pause') {
-          state='play';
-          last=performance.now();
-          requestAnimationFrame(loop);
-        }
-      } else {
-        openPauseModal();
+      if(state==='pause') {
+        state='play';
+        last=performance.now();
+        requestAnimationFrame(loop);
+      } else if(state==='play') {
+        state='pause';
+        requestAnimationFrame(loop);
       }
       return;
     }
+
+    // Pause menu navigation
+    if(state==='pause'){
+      if(e.code==='ArrowUp'){
+        e.preventDefault();
+        pauseMenuSelectedIndex = (pauseMenuSelectedIndex - 1 + pauseMenuOptions.length) % pauseMenuOptions.length;
+        return;
+      }
+      if(e.code==='ArrowDown'){
+        e.preventDefault();
+        pauseMenuSelectedIndex = (pauseMenuSelectedIndex + 1) % pauseMenuOptions.length;
+        return;
+      }
+      if(e.code==='Enter'){
+        e.preventDefault();
+        handlePauseMenuSelection();
+        return;
+      }
+    }
+
     if(e.code==='Space'){
       e.preventDefault();
       flap();
@@ -2490,6 +2556,49 @@
   setInterval(updateTouchHelper, 500);
 
   window.addEventListener('blur',()=>{ if(state==='play') togglePause(true); });
+
+  // Click handler for menu buttons (cinema and sound)
+  canvas.addEventListener('click', (e) => {
+    if (state !== 'menu') return;
+
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
+
+    const btnSize = 40;
+    const btnY = canvas.height - 60;
+    const cinemaX = canvas.width - 110;
+    const soundX = canvas.width - 50;
+
+    // Check cinema button
+    if (x >= cinemaX - btnSize/2 && x <= cinemaX + btnSize/2 &&
+        y >= btnY - btnSize/2 && y <= btnY + btnSize/2) {
+      toggleCinemaMode();
+    }
+
+    // Check sound button
+    if (x >= soundX - btnSize/2 && x <= soundX + btnSize/2 &&
+        y >= btnY - btnSize/2 && y <= btnY + btnSize/2) {
+      soundEnabled = !soundEnabled;
+    }
+  });
+
+  // Écouter les changements de fullscreen pour synchroniser cinemaMode
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement && cinemaMode) {
+      cinemaMode = false;
+      document.body.classList.remove('cinema-mode');
+    }
+  });
+
+  document.addEventListener('webkitfullscreenchange', () => {
+    if (!document.webkitFullscreenElement && cinemaMode) {
+      cinemaMode = false;
+      document.body.classList.remove('cinema-mode');
+    }
+  });
 
   // ========= COUNTDOWN =========
   function startCountdown() {
@@ -2558,6 +2667,7 @@
     accSpawn=0; accPowerUp=0; elapsed=0; score=0; pump=0;
     obstacles.length=0; powerUps.length=0; rng = mulberry32(CFG.seed);
     lastPowerUpId = null; // Reset last power-up
+    pillTrail.length = 0; // Reset trail graphique
     player.y=canvas.height/2; player.vy=0;
 
     // Reset power-ups
@@ -2780,6 +2890,36 @@
     }, 600);
   }
 
+  function toggleCinemaMode() {
+    cinemaMode = !cinemaMode;
+
+    if (cinemaMode) {
+      // Ajouter la classe cinema-mode au body
+      document.body.classList.add('cinema-mode');
+
+      // Entrer en plein écran
+      if (canvas.requestFullscreen) {
+        canvas.requestFullscreen();
+      } else if (canvas.webkitRequestFullscreen) {
+        canvas.webkitRequestFullscreen();
+      } else if (canvas.msRequestFullscreen) {
+        canvas.msRequestFullscreen();
+      }
+    } else {
+      // Retirer la classe cinema-mode du body
+      document.body.classList.remove('cinema-mode');
+
+      // Sortir du plein écran
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      } else if (document.msExitFullscreen) {
+        document.msExitFullscreen();
+      }
+    }
+  }
+
   function showGameOverModal(){
     const modal = document.getElementById('gameOverModal');
     const finalScoreEl = document.getElementById('finalScore');
@@ -2816,7 +2956,26 @@
     document.getElementById('gameOverModal').classList.remove('show');
   }
 
+  // Main menu rendering loop
+  function renderMainMenu(){
+    if(state!=='menu') return;
+    render({ speed: 0, gap: 0 });
+    requestAnimationFrame(renderMainMenu);
+  }
+
   function loop(ts){
+    // Continue rendering in menu mode
+    if(state==='menu'){
+      render({ speed: 0, gap: 0 });
+      requestAnimationFrame(loop);
+      return;
+    }
+    // Continue rendering in pause mode to show menu
+    if(state==='pause'){
+      render({ speed: 0, gap: 0 });
+      requestAnimationFrame(loop);
+      return;
+    }
     if(state!=='play') return;
     const dt = Math.min(33, ts-last); last=ts; // clamp dt
     const dtS = dt/1000; // seconds
@@ -2840,7 +2999,19 @@
     player.vy = clamp(player.vy, -CFG.maxVy, CFG.maxVy);
 
     const speedMod = playerPowerUps.speedActive ? 1.3 : 1; // Faster movement
+    const oldY = player.y;
     player.y += player.vy * speedMod;
+
+    // Ajouter la position au trail (graphique qui scroll)
+    if (!isMultiplayer) { // Seulement en solo
+      const color = player.y < oldY ? '#00d17a' : '#ff1744'; // Vert si monte, rouge si descend
+      pillTrail.push({ y: player.y, color: color });
+
+      // Limiter la longueur du trail
+      if (pillTrail.length > maxTrailLength) {
+        pillTrail.shift();
+      }
+    }
 
     // spawn obstacles
     if(accSpawn >= CFG.spawnEvery){
@@ -3005,6 +3176,77 @@
 
     // parallax tube walls
     drawTubeBackground(ctx, w, h, speed);
+
+    // Draw trading chart (graphique) - seulement en solo
+    if (!isMultiplayer && pillTrail.length > 1) {
+      ctx.save();
+
+      // Grille de fond (style chart de trading)
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.lineWidth = 1;
+
+      // Lignes horizontales
+      for (let i = 0; i <= 8; i++) {
+        const y = (h / 8) * i;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+
+      // Lignes verticales
+      for (let i = 0; i <= 12; i++) {
+        const x = (w / 12) * i;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+      }
+
+      // Dessiner le graphique
+      const spacing = 4; // Espacement entre les points
+      const startX = player.x - (pillTrail.length * spacing); // Commence derrière la pilule
+
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      // Dessiner les segments avec couleurs
+      for (let i = 1; i < pillTrail.length; i++) {
+        const prev = pillTrail[i - 1];
+        const curr = pillTrail[i];
+
+        const x1 = startX + (i - 1) * spacing;
+        const x2 = startX + i * spacing;
+
+        // Gradient pour chaque segment
+        const gradient = ctx.createLinearGradient(x1, prev.y, x2, curr.y);
+        gradient.addColorStop(0, prev.color + 'dd');
+        gradient.addColorStop(1, curr.color + 'dd');
+
+        ctx.strokeStyle = gradient;
+        ctx.shadowColor = curr.color;
+        ctx.shadowBlur = 8;
+
+        ctx.beginPath();
+        ctx.moveTo(x1, prev.y);
+        ctx.lineTo(x2, curr.y);
+        ctx.stroke();
+      }
+
+      // Point actuel (position de la pilule)
+      const lastPoint = pillTrail[pillTrail.length - 1];
+      const lastX = startX + (pillTrail.length - 1) * spacing;
+
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = lastPoint.color;
+      ctx.fillStyle = lastPoint.color;
+      ctx.beginPath();
+      ctx.arc(lastX, lastPoint.y, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
 
     // obstacles
     obstacles.forEach(o=> drawObstacle(ctx,o));
@@ -3244,8 +3486,8 @@
       });
     }
 
-    if(state==='menu') drawCenterText('Press Play button to start');
-    if(state==='pause') drawCenterText('⏸️ PAUSED');
+    if(state==='menu') drawMainMenu();
+    if(state==='pause') drawInGameMenu();
     if(state==='over') drawCenterText('💀 REKT -99% 💀 CLICK TO RETRY');
   }
 
@@ -3258,6 +3500,292 @@
     ctx.textAlign='center';
     ctx.fillText(t, canvas.width/2, canvas.height/2+10);
     ctx.restore();
+  }
+
+  function drawMainMenu(){
+    const w = canvas.width;
+    const h = canvas.height;
+
+    // Dark background with gradient
+    const bgGradient = ctx.createLinearGradient(0, 0, 0, h);
+    bgGradient.addColorStop(0, 'rgba(10, 10, 20, 0.95)');
+    bgGradient.addColorStop(1, 'rgba(20, 10, 30, 0.95)');
+    ctx.fillStyle = bgGradient;
+    ctx.fillRect(0, 0, w, h);
+
+    // Animated background pills
+    const time = performance.now() / 1000;
+    for(let i = 0; i < 5; i++){
+      ctx.save();
+      const x = (w / 6) * (i + 1);
+      const y = h / 2 + Math.sin(time + i) * 100;
+      const rotation = time * 0.5 + i;
+
+      ctx.translate(x, y);
+      ctx.rotate(rotation);
+      ctx.globalAlpha = 0.1;
+
+      // Pill shape
+      ctx.fillStyle = '#00d17a';
+      ctx.beginPath();
+      ctx.arc(-20, 0, 15, Math.PI/2, -Math.PI/2);
+      ctx.arc(20, 0, 15, -Math.PI/2, Math.PI/2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Stats display
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.font = '16px system-ui';
+    ctx.textAlign = 'center';
+    ctx.fillText(`Best Score: ${Math.floor(best)}  |  Total Games: ${totalGames}`, w / 2, 80);
+
+    // Menu options
+    const menuStartY = 140;
+    const menuSpacing = 55;
+
+    mainMenuOptions.forEach((option, index) => {
+      const y = menuStartY + index * menuSpacing;
+      const isSelected = index === mainMenuSelectedIndex;
+      const boxX = w/2 - 250;
+      const boxY = y - 35;
+      const boxW = 500;
+      const boxH = 45;
+
+      // Background with gradient (style site web)
+      const bgGradient = ctx.createLinearGradient(boxX, boxY, boxX, boxY + boxH);
+      bgGradient.addColorStop(0, isSelected ? 'rgba(0, 209, 122, 0.15)' : 'rgba(20, 20, 40, 0.8)');
+      bgGradient.addColorStop(1, isSelected ? 'rgba(0, 209, 122, 0.05)' : 'rgba(10, 10, 20, 0.8)');
+      ctx.fillStyle = bgGradient;
+      ctx.fillRect(boxX, boxY, boxW, boxH);
+
+      // Triple border effect (comme les sections du site)
+      // Outer glow
+      ctx.shadowColor = isSelected ? 'rgba(0, 209, 122, 0.5)' : 'rgba(255, 23, 68, 0.3)';
+      ctx.shadowBlur = isSelected ? 15 : 8;
+      ctx.strokeStyle = isSelected ? '#00d17a' : 'rgba(255, 23, 68, 0.4)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(boxX, boxY, boxW, boxH);
+
+      // Inner border
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = isSelected ? 'rgba(0, 209, 122, 0.5)' : 'rgba(255, 23, 68, 0.2)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(boxX + 2, boxY + 2, boxW - 4, boxH - 4);
+
+      // Animated arrows only for selected
+      if(isSelected){
+        const arrowOffset = Math.sin(performance.now() / 200) * 5;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = 'rgba(0, 209, 122, 0.8)';
+        ctx.fillStyle = '#00d17a';
+        ctx.font = 'bold 24px system-ui';
+        ctx.fillText('►', w/2 - 280 - arrowOffset, y);
+        ctx.fillText('◄', w/2 + 280 + arrowOffset, y);
+      }
+
+      // Option text
+      ctx.shadowBlur = isSelected ? 8 : 0;
+      ctx.shadowColor = isSelected ? 'rgba(0, 209, 122, 0.6)' : 'transparent';
+      ctx.fillStyle = isSelected ? '#00d17a' : 'rgba(255, 255, 255, 0.8)';
+      ctx.font = isSelected ? 'bold 26px system-ui' : '600 22px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText(option.label, w / 2, y);
+
+      ctx.shadowBlur = 0;
+    });
+
+    // Footer
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.font = '14px system-ui';
+    ctx.fillText('↑↓ Navigate  |  ENTER Select', w / 2, h - 30);
+
+    // Cinema and Sound buttons in bottom right corner
+    const btnSize = 40;
+    const btnSpacing = 50;
+    const btnY = h - 60;
+
+    // Cinema button
+    const cinemaX = w - 110;
+    ctx.fillStyle = cinemaMode ? 'rgba(0, 209, 122, 0.3)' : 'rgba(255, 255, 255, 0.1)';
+    ctx.fillRect(cinemaX - btnSize/2, btnY - btnSize/2, btnSize, btnSize);
+    ctx.strokeStyle = cinemaMode ? '#00d17a' : 'rgba(255, 255, 255, 0.3)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(cinemaX - btnSize/2, btnY - btnSize/2, btnSize, btnSize);
+    ctx.font = '24px system-ui';
+    ctx.fillStyle = cinemaMode ? '#00d17a' : 'rgba(255, 255, 255, 0.7)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🎬', cinemaX, btnY);
+
+    // Sound button
+    const soundX = w - 50;
+    ctx.fillStyle = soundEnabled ? 'rgba(0, 209, 122, 0.3)' : 'rgba(255, 255, 255, 0.1)';
+    ctx.fillRect(soundX - btnSize/2, btnY - btnSize/2, btnSize, btnSize);
+    ctx.strokeStyle = soundEnabled ? '#00d17a' : 'rgba(255, 255, 255, 0.3)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(soundX - btnSize/2, btnY - btnSize/2, btnSize, btnSize);
+    ctx.font = '24px system-ui';
+    ctx.fillStyle = soundEnabled ? '#00d17a' : 'rgba(255, 255, 255, 0.7)';
+    ctx.fillText(soundEnabled ? '🔊' : '🔇', soundX, btnY);
+
+    ctx.textBaseline = 'alphabetic';
+  }
+
+  function handleMainMenuSelection(){
+    const action = mainMenuOptions[mainMenuSelectedIndex].action;
+
+    switch(action){
+      case 'solo':
+        isMultiplayer = false;
+        if (playerWallet) {
+          startCountdown();
+        } else {
+          openWalletModal();
+        }
+        break;
+      case 'multi':
+        openMultiplayerModal();
+        break;
+      case 'leaderboard':
+        // Scroll to leaderboard section
+        document.getElementById('leaderboard').scrollIntoView({ behavior: 'smooth' });
+        break;
+      case 'rewards':
+        // Scroll to rewards section
+        document.getElementById('rewardsSection').scrollIntoView({ behavior: 'smooth' });
+        break;
+      case 'cinema':
+        const body = document.body;
+        if (body.classList.contains('cinema-mode')) {
+          body.classList.remove('cinema-mode');
+          mainMenuOptions[4].label = '🎬  CINEMA MODE';
+        } else {
+          body.classList.add('cinema-mode');
+          mainMenuOptions[4].label = '✕  EXIT CINEMA';
+        }
+        break;
+      case 'sound':
+        isSoundEnabled = !isSoundEnabled;
+        localStorage.setItem('pill_sound', isSoundEnabled ? 'on' : 'off');
+        mainMenuOptions[5].label = isSoundEnabled ? '🔊  SOUND: ON' : '🔇  SOUND: OFF';
+        break;
+      case 'commands':
+        openCommandsModal();
+        break;
+      case 'rules':
+        openRulesModal();
+        break;
+    }
+  }
+
+  function handlePauseMenuSelection(){
+    const action = pauseMenuOptions[pauseMenuSelectedIndex].action;
+
+    switch(action){
+      case 'resume':
+        state='play';
+        last=performance.now();
+        requestAnimationFrame(loop);
+        break;
+      case 'restart':
+        isMultiplayer = false;
+        if (playerWallet) {
+          startCountdown();
+        } else {
+          openWalletModal();
+        }
+        break;
+      case 'mainmenu':
+        state='menu';
+        requestAnimationFrame(renderMainMenu);
+        break;
+      case 'cinema':
+        const body = document.body;
+        if (body.classList.contains('cinema-mode')) {
+          body.classList.remove('cinema-mode');
+          pauseMenuOptions[3].label = '🎬  Cinema Mode';
+        } else {
+          body.classList.add('cinema-mode');
+          pauseMenuOptions[3].label = '✕  Exit Cinema';
+        }
+        break;
+      case 'sound':
+        isSoundEnabled = !isSoundEnabled;
+        localStorage.setItem('pill_sound', isSoundEnabled ? 'on' : 'off');
+        pauseMenuOptions[4].label = isSoundEnabled ? '🔊  Sound: ON' : '🔇  Sound: OFF';
+        break;
+    }
+  }
+
+  function drawInGameMenu(){
+    const w = canvas.width;
+    const h = canvas.height;
+
+    // Semi-transparent background overlay
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+    ctx.fillRect(0, 0, w, h);
+
+    // Menu box
+    const menuWidth = 500;
+    const menuHeight = 520;
+    const menuX = (w - menuWidth) / 2;
+    const menuY = (h - menuHeight) / 2;
+
+    // Box background with glow
+    ctx.save();
+    ctx.shadowColor = 'rgba(0, 209, 122, 0.5)';
+    ctx.shadowBlur = 30;
+    ctx.fillStyle = 'rgba(20, 20, 30, 0.95)';
+    ctx.fillRect(menuX, menuY, menuWidth, menuHeight);
+    ctx.restore();
+
+    // Border
+    ctx.strokeStyle = '#00d17a';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(menuX, menuY, menuWidth, menuHeight);
+
+    // Title
+    ctx.fillStyle = '#ffd700';
+    ctx.font = 'bold 36px system-ui';
+    ctx.textAlign = 'center';
+    ctx.fillText('⏸️  GAME MENU', w / 2, menuY + 60);
+
+    // Stats
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.font = '16px system-ui';
+    ctx.fillText(`Best: ${Math.floor(best)}  |  Games: ${totalGames}`, w / 2, menuY + 95);
+
+    // Menu options
+    const optionStartY = menuY + 140;
+    const optionHeight = 55;
+
+    pauseMenuOptions.forEach((option, index) => {
+      const y = optionStartY + index * optionHeight;
+      const isSelected = index === pauseMenuSelectedIndex;
+
+      // Selection highlight
+      if (isSelected) {
+        ctx.fillStyle = 'rgba(0, 209, 122, 0.3)';
+        ctx.fillRect(menuX + 20, y - 30, menuWidth - 40, 40);
+        ctx.strokeStyle = '#00d17a';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(menuX + 20, y - 30, menuWidth - 40, 40);
+      }
+
+      // Option text
+      ctx.fillStyle = isSelected ? '#00d17a' : 'rgba(255, 255, 255, 0.8)';
+      ctx.font = isSelected ? 'bold 20px system-ui' : '18px system-ui';
+      ctx.textAlign = 'left';
+      ctx.fillText(option.label, menuX + 50, y);
+    });
+
+    // Footer hint
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.font = '14px system-ui';
+    ctx.textAlign = 'center';
+    ctx.fillText('↑↓ Navigate  |  ENTER Select  |  ESC/P Close', w / 2, menuY + menuHeight - 20);
   }
 
   function drawPowerUp(ctx, powerUp){
@@ -3304,69 +3832,60 @@
   function drawObstacle(ctx,o){
     ctx.save();
 
-    // Animation for multiplayer (pulsating effect)
-    let pulseScale = 1;
-    let glowIntensity = 15;
-    if(isMultiplayer){
-      const pulseTime = performance.now() / 1000;
-      pulseScale = 1 + Math.sin(pulseTime * 2 + o.x / 100) * 0.05; // Subtle pulse
-      glowIntensity = 15 + Math.sin(pulseTime * 3 + o.x / 50) * 5; // Pulsating glow
-    }
+    // Animation de pulsation (toujours activée)
+    const pulseTime = performance.now() / 1000;
+    const pulseScale = 1 + Math.sin(pulseTime * 3 + o.x / 100) * 0.12; // Pulse plus prononcé
+    const glowIntensity = 15 + Math.sin(pulseTime * 4 + o.x / 50) * 10; // Pulsating glow plus intense
 
-    // BOUGIES DE RUG - Style chandelier rouge baissier
     const candleWidth = o.w * pulseScale;
     const wickWidth = 4;
 
-    // Bougie du haut (baissière rouge)
+    // Bougie du haut (VERTE - haussière)
     if(o.top > 0){
       const candleHeight = Math.min(100, o.top * 0.4);
       const wickHeight = o.top;
 
-      // Mèche (wick) fine
-      ctx.fillStyle='#8b0000';
+      // Mèche (wick) fine verte
+      ctx.fillStyle='#006400';
       ctx.fillRect(o.x + candleWidth/2 - wickWidth/2, 0, wickWidth, wickHeight);
 
-      // Corps de la bougie (body)
+      // Corps de la bougie verte (body)
       const bodyTop = wickHeight - candleHeight;
       const grd = ctx.createLinearGradient(o.x, bodyTop, o.x + candleWidth, bodyTop);
-      grd.addColorStop(0,'#660000');
-      grd.addColorStop(0.5,'#ff1744');
-      grd.addColorStop(1,'#660000');
+      grd.addColorStop(0,'#004d00');
+      grd.addColorStop(0.5,'#00d17a');
+      grd.addColorStop(1,'#004d00');
       ctx.fillStyle=grd;
       ctx.fillRect(o.x, bodyTop, candleWidth, candleHeight);
 
+      // Glow vert
+      ctx.shadowColor='#00d17a';
+      ctx.shadowBlur=glowIntensity;
+      ctx.fillRect(o.x, bodyTop, candleWidth, candleHeight);
+      ctx.shadowBlur=0;
+
       // Bordure de bougie
-      ctx.strokeStyle='#330000';
+      ctx.strokeStyle='#003300';
       ctx.lineWidth=3;
       ctx.strokeRect(o.x, bodyTop, candleWidth, candleHeight);
 
       // Ombres 3D
-      ctx.fillStyle='#330000';
+      ctx.fillStyle='#002200';
       ctx.fillRect(o.x + candleWidth - 8, bodyTop, 8, candleHeight);
-      ctx.fillStyle='rgba(255,100,100,.3)';
+      ctx.fillStyle='rgba(0,209,122,.3)';
       ctx.fillRect(o.x, bodyTop, 8, candleHeight);
-
-      // Texte RUG avec effet néon (pulsating in multiplayer)
-      ctx.save();
-      ctx.shadowColor='#ff0000';
-      ctx.shadowBlur=glowIntensity;
-      ctx.fillStyle='#ffffff';
-      ctx.font='bold 22px monospace';
-      ctx.textAlign='center';
-      ctx.fillText('RUG', o.x + candleWidth/2, bodyTop + candleHeight/2 + 8);
-      ctx.restore();
     }
 
-    // Bougie du bas (baissière rouge)
+    // Bougie du bas (ROUGE - baissière)
     if(o.bottom < canvas.height){
       const candleHeight = Math.min(100, (canvas.height - o.bottom) * 0.4);
       const wickHeight = canvas.height - o.bottom;
 
-      // Mèche (wick) fine
+      // Mèche (wick) fine rouge
       ctx.fillStyle='#8b0000';
       ctx.fillRect(o.x + candleWidth/2 - wickWidth/2, o.bottom, wickWidth, wickHeight);
 
-      // Corps de la bougie (body)
+      // Corps de la bougie rouge (body)
       const bodyTop = o.bottom;
       const grd = ctx.createLinearGradient(o.x, bodyTop, o.x + candleWidth, bodyTop);
       grd.addColorStop(0,'#660000');
@@ -3375,6 +3894,12 @@
       ctx.fillStyle=grd;
       ctx.fillRect(o.x, bodyTop, candleWidth, candleHeight);
 
+      // Glow rouge
+      ctx.shadowColor='#ff1744';
+      ctx.shadowBlur=glowIntensity;
+      ctx.fillRect(o.x, bodyTop, candleWidth, candleHeight);
+      ctx.shadowBlur=0;
+
       // Bordure de bougie
       ctx.strokeStyle='#330000';
       ctx.lineWidth=3;
@@ -3385,16 +3910,6 @@
       ctx.fillRect(o.x + candleWidth - 8, bodyTop, 8, candleHeight);
       ctx.fillStyle='rgba(255,100,100,.3)';
       ctx.fillRect(o.x, bodyTop, 8, candleHeight);
-
-      // Texte RUG avec effet néon (pulsating in multiplayer)
-      ctx.save();
-      ctx.shadowColor='#ff0000';
-      ctx.shadowBlur=glowIntensity;
-      ctx.fillStyle='#ffffff';
-      ctx.font='bold 22px monospace';
-      ctx.textAlign='center';
-      ctx.fillText('RUG', o.x + candleWidth/2, bodyTop + candleHeight/2 + 8);
-      ctx.restore();
     }
 
     ctx.restore();
@@ -3577,8 +4092,7 @@
   function clamp(v,a,b){ return Math.max(a, Math.min(b,v)); }
 
   // ========= UI BUTTONS =========
-  // Main menu button
-  document.getElementById('menuBtn').onclick = ()=> openPauseModal();
+  // No more HTML buttons - all UI is on canvas now
 
 
   // Multiplayer modal buttons
@@ -3699,7 +4213,8 @@
     if(e.target.id === 'rulesModal') closeRulesModal();
   };
 
-  document.getElementById('howBtn').onclick = ()=> openRulesModal();
+  // Removed - buttons no longer exist in HTML (moved to menu)
+  // document.getElementById('howBtn').onclick = ()=> openRulesModal();
 
   // Modal Commands
   function openCommandsModal(){
@@ -3712,24 +4227,11 @@
     if(e.target.id === 'commandsModal') closeCommandsModal();
   };
 
-  document.getElementById('commandsBtn').onclick = ()=> openCommandsModal();
-
-  document.getElementById('shareX').onclick = ()=>{
-    const s = Math.floor(best);
-    const text = encodeURIComponent(`Just dodged ${s} RUG candles on Pump The Pill 💊🔥\n\nThink you can survive longer degen?\n\n#Solana #Pumpfun #WAGMI`);
-    const url = encodeURIComponent(window.location.href);
-    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`,'_blank');
-  };
-  document.getElementById('copyMsg').onclick = async ()=>{
-    const s = Math.floor(best);
-    const msg = `💊 Dodged ${s} RUG candles on Pump The Pill! Not bad for a degen 🔥 #Pumpfun`;
-    try{ await navigator.clipboard.writeText(msg); alert('📋 Copied! Flex on your friends 💎'); }catch(e){ alert(msg); }
-  };
-
-  document.getElementById('rewardsBtn').onclick = ()=> {
-    const rewardsSection = document.getElementById('rewardsSection');
-    rewardsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
+  // Removed - buttons no longer exist in HTML (moved to menu)
+  // document.getElementById('commandsBtn').onclick = ()=> openCommandsModal();
+  // document.getElementById('shareX').onclick = ()=>{...};
+  // document.getElementById('copyMsg').onclick = async ()=>{...};
+  // document.getElementById('rewardsBtn').onclick = ()=> {...};
 
   // Game Over Modal buttons
   document.getElementById('restartGameBtn').onclick = ()=> {
@@ -4066,6 +4568,7 @@
 
   const loadingInterval = setInterval(() => {
     loadProgress += Math.random() * 15 + 5;
+
     if (loadProgress >= 100) {
       loadProgress = 100;
       clearInterval(loadingInterval);
@@ -4074,6 +4577,8 @@
         loadingScreen.classList.add('hidden');
         setTimeout(() => {
           loadingScreen.style.display = 'none';
+          // Start game loop (will show menu since state='menu')
+          requestAnimationFrame(loop);
         }, 500);
       }, 500);
     }
