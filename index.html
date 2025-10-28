@@ -4219,89 +4219,111 @@
   function initSpiderWebs(w, h) {
     spiderWebs = [];
 
-    // Position de la lune (85% à droite, 20% du haut)
-    const moonX = w * 0.85;
-    const moonY = h * 0.20;
-    const moonRadius = 60;
-    const moonExclusionZone = moonRadius * 4; // Zone d'exclusion autour de la lune
-
-    let attempts = 0;
-    const maxAttempts = 100;
-
-    while(spiderWebs.length < 6 && attempts < maxAttempts) {
-      attempts++;
-
-      // Générer une position aléatoire
-      const x = Math.random() * w;
-      const y = Math.random() * h * 0.5;
-      const size = Math.random() * 35 + 35;
-
-      // Calculer la distance avec la lune
-      const distanceToMoon = Math.sqrt(
-        Math.pow(x - moonX, 2) + Math.pow(y - moonY, 2)
-      );
-
-      // Vérifier si trop proche de la lune
-      if(distanceToMoon < moonExclusionZone) {
-        continue; // Essayer une autre position
-      }
-
-      // Vérifier si trop proche d'autres toiles (éviter les chevauchements)
-      let tooClose = false;
-      for(let existing of spiderWebs) {
-        const distanceToExisting = Math.sqrt(
-          Math.pow(x - existing.x, 2) + Math.pow(y - existing.y, 2)
-        );
-        const minDistance = (size + existing.size) * 1.5; // Distance minimale = 1.5x la taille combinée
-
-        if(distanceToExisting < minDistance) {
-          tooClose = true;
-          break;
-        }
-      }
-
-      if(tooClose) {
-        continue; // Essayer une autre position
-      }
-
-      // Position valide ! Ajouter la toile
-      spiderWebs.push({
-        x: x,
-        y: y,
-        size: size,
-        swayPhase: Math.random() * Math.PI * 2
-      });
-    }
+    // Une seule toile en haut à gauche
+    spiderWebs.push({
+      x: w * 0.12,  // 12% de la largeur (haut gauche)
+      y: h * 0.15,  // 15% de la hauteur
+      size: 50,
+      swayPhase: Math.random() * Math.PI * 2
+    });
   }
 
   // Dessiner les toiles d'araignées 🕷️
   function drawSpiderWebs(ctx, dt) {
-    spiderWebs.forEach(web => {
+    spiderWebs.forEach((web, webIndex) => {
       web.swayPhase += dt * 0.5;
       const sway = Math.sin(web.swayPhase) * 5;
 
       ctx.save();
-      ctx.globalAlpha = 0.3;
-      ctx.strokeStyle = '#cccccc';
-      ctx.lineWidth = 1;
+      ctx.globalAlpha = 0.25;
+      ctx.strokeStyle = '#e0e0e0';
+      ctx.lineCap = 'round';
 
-      // Dessiner la toile
-      for(let i = 0; i < 8; i++) {
-        const angle = (i / 8) * Math.PI * 2;
+      // Fonction pour ajouter de la variation organique
+      const organic = (value, seed, amount) => {
+        return value + Math.sin(seed * 12.345 + webIndex) * amount;
+      };
+
+      // Lignes radiales avec irrégularités naturelles
+      const numSpokes = 8;
+      for(let i = 0; i < numSpokes; i++) {
+        const baseAngle = (i / numSpokes) * Math.PI * 2;
+        // Légère variation de l'angle pour chaque ligne
+        const angle = baseAngle + organic(0, i, 0.1);
+
+        ctx.lineWidth = 0.8 + Math.random() * 0.4; // Variation d'épaisseur
         ctx.beginPath();
         ctx.moveTo(web.x + sway, web.y);
-        ctx.lineTo(
-          web.x + Math.cos(angle) * web.size + sway,
-          web.y + Math.sin(angle) * web.size
-        );
+
+        // Créer une ligne avec plusieurs segments pour la rendre organique
+        const segments = 4;
+        for(let seg = 1; seg <= segments; seg++) {
+          const ratio = seg / segments;
+          const segmentLength = web.size * ratio;
+
+          // Ajouter des variations de position pour chaque segment
+          const wobbleX = organic(0, i * seg, 3);
+          const wobbleY = organic(0, i * seg + 100, 3);
+
+          const x = web.x + Math.cos(angle) * segmentLength + sway + wobbleX;
+          const y = web.y + Math.sin(angle) * segmentLength + wobbleY;
+
+          ctx.lineTo(x, y);
+        }
         ctx.stroke();
       }
 
-      // Anneaux concentriques
-      for(let r = web.size * 0.3; r <= web.size; r += web.size * 0.3) {
+      // Spirale irrégulière au lieu d'anneaux parfaits
+      const numRings = 4;
+      for(let ring = 1; ring <= numRings; ring++) {
+        const baseRadius = web.size * (ring / numRings);
+
+        ctx.lineWidth = 0.6 + Math.random() * 0.3;
         ctx.beginPath();
-        ctx.arc(web.x + sway, web.y, r, 0, Math.PI * 2);
+
+        // Créer une spirale avec des points pour la rendre organique
+        const numPoints = 32;
+        for(let p = 0; p <= numPoints; p++) {
+          const angle = (p / numPoints) * Math.PI * 2;
+
+          // Variations du rayon pour chaque point
+          const radiusVariation = organic(0, p * ring, baseRadius * 0.08);
+          const radius = baseRadius + radiusVariation;
+
+          // Petites variations de position
+          const wobbleX = organic(0, p + ring * 50, 2);
+          const wobbleY = organic(0, p + ring * 50 + 200, 2);
+
+          const x = web.x + Math.cos(angle) * radius + sway + wobbleX;
+          const y = web.y + Math.sin(angle) * radius + wobbleY;
+
+          if(p === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+        ctx.closePath();
         ctx.stroke();
+      }
+
+      // Ajouter quelques fils cassés/manquants pour plus de réalisme
+      if(Math.random() > 0.5) {
+        ctx.globalAlpha = 0.15;
+        ctx.lineWidth = 0.5;
+        ctx.setLineDash([2, 4]);
+        const brokenAngle = Math.random() * Math.PI * 2;
+        ctx.beginPath();
+        ctx.moveTo(
+          web.x + Math.cos(brokenAngle) * web.size * 0.4 + sway,
+          web.y + Math.sin(brokenAngle) * web.size * 0.4
+        );
+        ctx.lineTo(
+          web.x + Math.cos(brokenAngle) * web.size * 0.7 + sway,
+          web.y + Math.sin(brokenAngle) * web.size * 0.7
+        );
+        ctx.stroke();
+        ctx.setLineDash([]);
       }
 
       ctx.restore();
