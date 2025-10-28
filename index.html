@@ -3,15 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-  <title>Pump the Pill — Mini Runner</title>
+  <title>PILL KIN — Halloween Special</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Nosifer&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg:#0a0a0a;           /* fond très sombre */
-      --text:#e6ecff;         /* texte clair */
-      --accent:#00d17a;       /* vert pump.fun */
-      --accent-2:#ff1744;     /* rouge rug */
-      --danger:#ff3b3b;       /* obstacles = FUD */
-      --success:#00d17a;      /* points / pump */
+      --bg:#1a0f00;           /* fond Halloween noir-orange */
+      --text:#ffe6cc;         /* texte clair orange */
+      --accent:#ff6600;       /* orange Halloween principal */
+      --accent-2:#000000;     /* noir Halloween */
+      --danger:#ff4500;       /* obstacles orange foncé */
+      --success:#ff8c00;      /* points orange doré */
     }
     *{box-sizing:border-box}
     html,body{
@@ -23,14 +26,14 @@
       position:relative;
       overflow-x:hidden;
     }
-    /* Effet Matrix/Terminal en arrière-plan */
+    /* Effet Halloween en arrière-plan */
     html::before{
       content:'';
       position:fixed;
       top:0;left:0;right:0;bottom:0;
       background:
-        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,209,122,.03) 2px, rgba(0,209,122,.03) 4px),
-        repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,23,68,.03) 2px, rgba(255,23,68,.03) 4px);
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,102,0,.05) 2px, rgba(255,102,0,.05) 4px),
+        repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,.08) 2px, rgba(0,0,0,.08) 4px);
       pointer-events:none;
       z-index:0;
     }
@@ -41,8 +44,8 @@
       padding:20px;
       background:rgba(0,0,0,.6);
       border-radius:12px;
-      border:1px solid rgba(0,209,122,.3);
-      box-shadow:0 0 30px rgba(0,209,122,.2);
+      border:1px solid rgba(255,102,0,.3);
+      box-shadow:0 0 30px rgba(255,102,0,.2);
       position:relative;
     }
     .x-logo{
@@ -70,12 +73,21 @@
       box-shadow:0 4px 12px rgba(255,255,255,.2);
     }
     h1{
-      font-size:28px;
+      font-family:'Creepster', cursive;
+      font-size:42px;
       margin:0;
-      letter-spacing:1px;
-      color:#00d17a;
-      text-shadow:0 0 20px rgba(0,209,122,.8);
+      letter-spacing:3px;
+      color:#ff6600;
+      text-shadow:
+        0 0 20px rgba(255,102,0,.8),
+        0 0 40px rgba(255,102,0,.5),
+        2px 2px 4px rgba(0,0,0,.8);
       text-transform:uppercase;
+      animation: titlePulse 3s ease-in-out infinite;
+    }
+    @keyframes titlePulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
     }
     .panel{
       display:flex;
@@ -86,12 +98,12 @@
       padding:12px;
       background:rgba(0,0,0,.5);
       border-radius:12px;
-      border:1px solid rgba(255,23,68,.2);
+      border:1px solid rgba(139,0,255,.2);
     }
     .btn{
       appearance:none;
-      border:1px solid rgba(0,209,122,.3);
-      background:rgba(0,209,122,.1);
+      border:1px solid rgba(255,102,0,.3);
+      background:rgba(255,102,0,.1);
       color:var(--text);
       padding:10px 16px;
       border-radius:8px;
@@ -105,23 +117,23 @@
     }
     .btn:hover{
       transform:translateY(-2px);
-      background:rgba(0,209,122,.2);
-      box-shadow:0 4px 12px rgba(0,209,122,.3);
+      background:rgba(255,102,0,.2);
+      box-shadow:0 4px 12px rgba(255,102,0,.3);
     }
     .btn.primary{
-      border-color:#00d17a;
-      background:#00d17a;
+      border-color:#ff6600;
+      background:#ff6600;
       color:#000;
-      box-shadow:0 4px 20px rgba(0,209,122,.4);
+      box-shadow:0 4px 20px rgba(255,102,0,.4);
     }
     .btn.primary:hover{
-      box-shadow:0 6px 25px rgba(0,209,122,.6);
+      box-shadow:0 6px 25px rgba(255,102,0,.6);
     }
     .badge{
       padding:6px 12px;
       border-radius:6px;
-      border:1px solid rgba(0,209,122,.3);
-      background:rgba(0,209,122,.1);
+      border:1px solid rgba(255,102,0,.3);
+      background:rgba(255,102,0,.1);
       font-size:12px;
       font-weight:600;
       text-transform:uppercase;
@@ -129,17 +141,17 @@
     }
     .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 
-    /* Canvas avec bordures degen */
+    /* Canvas avec bordures Halloween */
     canvas#game{
       width:100%;
       height:auto;
       border-radius:8px;
-      background:linear-gradient(180deg,#0b1226 0%,#061026 100%);
+      background:linear-gradient(180deg,#1a0f2e 0%,#0a0520 100%);
       box-shadow:
-        0 0 0 3px rgba(0,209,122,.3),
-        0 0 0 6px rgba(255,23,68,.2),
-        0 20px 60px rgba(0,0,0,.8),
-        inset 0 0 100px rgba(0,0,0,.5);
+        0 0 0 3px rgba(255,102,0,.4),
+        0 0 0 6px rgba(0,0,0,.3),
+        0 20px 60px rgba(0,0,0,.9),
+        inset 0 0 100px rgba(0,0,0,.6);
       position:relative;
     }
 
@@ -157,7 +169,7 @@
       padding:12px;
       background:rgba(0,0,0,.5);
       border-radius:12px;
-      border:1px solid rgba(0,209,122,.2);
+      border:1px solid rgba(255,102,0,.2);
     }
     .hud .left, .hud .right{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .meter{
@@ -166,14 +178,14 @@
       border-radius:999px;
       position:relative;
       overflow:hidden;
-      border:1px solid rgba(0,209,122,.3);
+      border:1px solid rgba(255,102,0,.3);
     }
     .meter>i{
       display:block;
       height:100%;
-      background:linear-gradient(90deg,#00d17a,#00ff88);
+      background:linear-gradient(90deg,#ff6600,#ff8c00);
       width:0%;
-      box-shadow:0 0 10px rgba(0,209,122,.6);
+      box-shadow:0 0 10px rgba(255,102,0,.6);
     }
 
     footer{
@@ -183,11 +195,11 @@
       padding:20px;
       background:rgba(0,0,0,.5);
       border-radius:12px;
-      border:1px solid rgba(0,209,122,.3);
+      border:1px solid rgba(255,102,0,.3);
     }
     footer h3{
-      color:#ff1744;
-      text-shadow:0 0 10px rgba(255,23,68,.5);
+      color:#8b00ff;
+      text-shadow:0 0 10px rgba(139,0,255,.5);
       margin:0 0 16px 0;
     }
 
@@ -216,13 +228,18 @@
       50%{transform:translateY(-20px)}
     }
     .loading-title{
-      font-size:48px;
+      font-family:'Creepster', cursive;
+      font-size:56px;
       font-weight:700;
-      color:#00d17a;
-      text-shadow:0 0 30px rgba(0,209,122,.8);
+      color:#ff6600;
+      text-shadow:
+        0 0 30px rgba(255,102,0,.8),
+        0 0 50px rgba(255,102,0,.6),
+        3px 3px 6px rgba(0,0,0,.9);
       margin-bottom:40px;
-      letter-spacing:2px;
+      letter-spacing:4px;
       text-transform:uppercase;
+      animation: float 2s ease-in-out infinite;
     }
     .loading-bar-container{
       width:400px;
@@ -230,17 +247,17 @@
       height:30px;
       background:rgba(0,0,0,.5);
       border-radius:999px;
-      border:2px solid rgba(0,209,122,.3);
+      border:2px solid rgba(255,102,0,.3);
       overflow:hidden;
       position:relative;
-      box-shadow:0 0 20px rgba(0,209,122,.2);
+      box-shadow:0 0 20px rgba(255,102,0,.2);
     }
     .loading-bar{
       height:100%;
-      background:linear-gradient(90deg, #00d17a 0%, #00ff88 100%);
+      background:linear-gradient(90deg, #ff6600 0%, #ff8c00 100%);
       width:0%;
       transition:width 0.3s ease;
-      box-shadow:0 0 20px rgba(0,209,122,.6);
+      box-shadow:0 0 20px rgba(255,102,0,.6);
       position:relative;
     }
     .loading-bar::after{
@@ -258,8 +275,8 @@
       margin-top:20px;
       font-size:24px;
       font-weight:600;
-      color:#00d17a;
-      text-shadow:0 0 10px rgba(0,209,122,.5);
+      color:#ff6600;
+      text-shadow:0 0 10px rgba(255,102,0,.5);
     }
     .loading-text{
       margin-top:10px;
@@ -270,9 +287,9 @@
     code.k{
       padding:3px 8px;
       border-radius:6px;
-      background:rgba(0,209,122,.15);
-      border:1px solid rgba(0,209,122,.3);
-      color:#00d17a;
+      background:rgba(255,102,0,.15);
+      border:1px solid rgba(255,102,0,.3);
+      color:#ff6600;
       font-weight:600;
     }
 
@@ -290,12 +307,12 @@
     .modal.show{display:flex}
     .modal-content{
       background:linear-gradient(135deg, #0a0a0a 0%, #1a0f0f 100%);
-      border:2px solid #00d17a;
+      border:2px solid #ff6600;
       border-radius:16px;
       padding:32px;
       max-width:500px;
       width:90%;
-      box-shadow:0 0 60px rgba(0,209,122,.4), inset 0 0 60px rgba(0,0,0,.5);
+      box-shadow:0 0 60px rgba(255,102,0,.4), inset 0 0 60px rgba(0,0,0,.5);
       position:relative;
       animation:slideIn .3s ease;
     }
@@ -309,19 +326,19 @@
       gap:12px;
       margin-bottom:24px;
       padding-bottom:16px;
-      border-bottom:1px solid rgba(0,209,122,.3);
+      border-bottom:1px solid rgba(255,102,0,.3);
     }
     .modal-header h2{
       margin:0;
       font-size:24px;
-      color:#00d17a;
-      text-shadow:0 0 20px rgba(0,209,122,.8);
+      color:#ff6600;
+      text-shadow:0 0 20px rgba(255,102,0,.8);
       flex:1;
     }
     .modal-close{
-      background:rgba(255,23,68,.2);
-      border:1px solid #ff1744;
-      color:#ff1744;
+      background:rgba(139,0,255,.2);
+      border:1px solid #8b00ff;
+      color:#8b00ff;
       width:32px;
       height:32px;
       border-radius:50%;
@@ -333,7 +350,7 @@
       transition:.2s;
     }
     .modal-close:hover{
-      background:#ff1744;
+      background:#8b00ff;
       color:#000;
       transform:rotate(90deg);
     }
@@ -346,13 +363,13 @@
       gap:12px;
       margin-bottom:16px;
       padding:12px;
-      background:rgba(0,209,122,.05);
+      background:rgba(255,102,0,.05);
       border-radius:8px;
-      border-left:3px solid #00d17a;
+      border-left:3px solid #ff6600;
     }
     .modal-body .rule.danger{
-      background:rgba(255,23,68,.05);
-      border-left-color:#ff1744;
+      background:rgba(139,0,255,.05);
+      border-left-color:#8b00ff;
     }
     .modal-body .rule .icon{
       font-size:28px;
@@ -382,17 +399,17 @@
       flex:1;
     }
     .modal-body .rule .text strong{
-      color:#00d17a;
+      color:#ff6600;
       display:block;
       margin-bottom:4px;
     }
     .modal-body .rule.danger .text strong{
-      color:#ff1744;
+      color:#8b00ff;
     }
     .modal-footer{
       margin-top:24px;
       padding-top:16px;
-      border-top:1px solid rgba(0,209,122,.3);
+      border-top:1px solid rgba(255,102,0,.3);
       text-align:center;
       font-size:14px;
       opacity:.8;
@@ -411,10 +428,10 @@
     /* Leaderboard Pulse Animation */
     @keyframes leaderboardPulse{
       0%, 100%{
-        box-shadow:0 0 20px rgba(255,23,68,.4);
+        box-shadow:0 0 20px rgba(255,102,0,.4);
       }
       50%{
-        box-shadow:0 0 30px rgba(255,23,68,.7);
+        box-shadow:0 0 30px rgba(255,102,0,.7);
       }
     }
     #leaderboard{
@@ -422,12 +439,12 @@
     }
     #gameOverModal .modal-content{
       background:linear-gradient(135deg, #1a0000 0%, #0a0a0a 100%);
-      border:3px solid #ff1744;
-      box-shadow:0 0 80px rgba(255,23,68,.6), inset 0 0 80px rgba(255,0,0,.3);
+      border:3px solid #8b00ff;
+      box-shadow:0 0 80px rgba(139,0,255,.6), inset 0 0 80px rgba(139,0,255,.3);
     }
     #gameOverModal .modal-header h2{
-      color:#ff1744;
-      text-shadow:0 0 30px rgba(255,23,68,1);
+      color:#8b00ff;
+      text-shadow:0 0 30px rgba(139,0,255,1);
       font-size:48px;
       margin:20px 0;
     }
@@ -442,9 +459,9 @@
       justify-content:space-between;
       align-items:center;
       padding:16px;
-      background:rgba(255,23,68,.1);
+      background:rgba(139,0,255,.1);
       border-radius:8px;
-      border:1px solid rgba(255,23,68,.3);
+      border:1px solid rgba(139,0,255,.3);
     }
     #gameOverModal .stat-label{
       font-size:14px;
@@ -455,16 +472,16 @@
     #gameOverModal .stat-value{
       font-size:28px;
       font-weight:700;
-      color:#ff1744;
-      text-shadow:0 0 10px rgba(255,23,68,.5);
+      color:#8b00ff;
+      text-shadow:0 0 10px rgba(139,0,255,.5);
     }
     #gameOverModal .btn-restart{
       width:100%;
       font-size:18px;
       padding:18px;
       margin-top:10px;
-      border:2px solid #00d17a;
-      background:#00d17a;
+      border:2px solid #ff6600;
+      background:#ff6600;
       color:#000;
       font-weight:700;
       text-transform:uppercase;
@@ -472,11 +489,11 @@
       cursor:pointer;
       border-radius:8px;
       transition:.2s;
-      box-shadow:0 4px 20px rgba(0,209,122,.4);
+      box-shadow:0 4px 20px rgba(255,102,0,.4);
     }
     #gameOverModal .btn-restart:hover{
       transform:translateY(-2px);
-      box-shadow:0 6px 30px rgba(0,209,122,.6);
+      box-shadow:0 6px 30px rgba(255,102,0,.6);
     }
 
     /* ========= MOBILE RESPONSIVE ========= */
@@ -581,11 +598,11 @@
         bottom:20px;
         left:50%;
         transform:translateX(-50%);
-        background:rgba(0,209,122,.2);
-        border:2px solid rgba(0,209,122,.5);
+        background:rgba(255,102,0,.2);
+        border:2px solid rgba(255,102,0,.5);
         border-radius:12px;
         padding:12px 24px;
-        color:#00d17a;
+        color:#ff6600;
         font-size:14px;
         font-weight:600;
         text-align:center;
@@ -727,7 +744,7 @@
     <div class="loading-pill-container">
       <canvas id="loadingPill" width="120" height="70"></canvas>
     </div>
-    <div class="loading-title">PUMP THE PILL</div>
+    <div class="loading-title">PILL KIN</div>
     <div class="loading-bar-container">
       <div class="loading-bar" id="loadingBar"></div>
     </div>
@@ -740,17 +757,17 @@
         𝕏
       </a>
       <div style="display:flex;align-items:center;justify-content:center;gap:12px">
-        <h1>Pump the Pill</h1>
+        <h1>PILL KIN</h1>
         <canvas id="headerPill" width="40" height="24" style="display:block"></canvas>
       </div>
     </header>
 
-    <div class="panel" style="justify-content:center;background:rgba(0,209,122,.05);border-color:rgba(0,209,122,.3)">
-      <span style="font-size:14px;font-weight:600;letter-spacing:.5px;color:#00d17a">📜 Contract: Coming soon...</span>
+    <div class="panel" style="justify-content:center;background:rgba(255,102,0,.05);border-color:rgba(255,102,0,.3)">
+      <span style="font-size:14px;font-weight:600;letter-spacing:.5px;color:#ff6600">🎃 Halloween Special Edition 🎃</span>
     </div>
 
 
-    <canvas id="game" width="960" height="540" aria-label="Pump the Pill"></canvas>
+    <canvas id="game" width="960" height="540" aria-label="PILL KIN - Halloween Special"></canvas>
 
     <!-- Touch helper for mobile -->
     <div id="touchHelper" style="display:none">
@@ -759,51 +776,51 @@
 
     <div class="hud" style="display:none">
       <span class="badge">Score: <b id="score">0</b></span>
-      <span class="badge">Pump: <b id="pump">0</b>%</span>
+      <span class="badge">Spooky Power: <b id="pump">0</b>%</span>
       <div class="meter" style="width:220px"><i id="pumpBar"></i></div>
     </div>
 
     <!-- Leaderboard Section -->
     <section>
-      <h3 style="margin-top:24px;margin-bottom:12px;display:flex;align-items:center;gap:8px">🏆 LEADERBOARD DEGEN</h3>
-      <div id="leaderboard" style="background:rgba(0,0,0,.3);border-radius:12px;padding:16px;border:2px solid #ff1744">
+      <h3 style="margin-top:24px;margin-bottom:12px;display:flex;align-items:center;gap:8px">🎃 SPOOKY LEADERBOARD 👻</h3>
+      <div id="leaderboard" style="background:rgba(0,0,0,.3);border-radius:12px;padding:16px;border:2px solid #ff6600">
         <div id="leaderboardList" style="display:flex;flex-direction:column;gap:8px"></div>
       </div>
     </section>
 
     <!-- Rewards History Section -->
     <section id="rewardsSection">
-      <h3 style="margin-top:32px;margin-bottom:12px;display:flex;align-items:center;gap:8px">💰 REWARDS HISTORY</h3>
-      <div style="background:rgba(0,0,0,.3);border-radius:12px;padding:24px;border:2px solid rgba(255,215,0,.5)">
+      <h3 style="margin-top:32px;margin-bottom:12px;display:flex;align-items:center;gap:8px">🍬 CANDY REWARDS 🎃</h3>
+      <div style="background:rgba(0,0,0,.3);border-radius:12px;padding:24px;border:2px solid rgba(255,102,0,.5)">
 
         <!-- Coming Soon Message -->
         <div id="rewardsComingSoon" style="text-align:center;padding:40px 20px">
-          <div style="font-size:64px;margin-bottom:16px">🚀</div>
-          <h4 style="color:#ffd700;font-size:20px;margin:0 0 12px 0;font-weight:700">Token Launch Coming Soon!</h4>
+          <div style="font-size:64px;margin-bottom:16px">🎃</div>
+          <h4 style="color:#ff6600;font-size:20px;margin:0 0 12px 0;font-weight:700">Halloween Treats Await!</h4>
           <p style="font-size:14px;opacity:.8;line-height:1.6;max-width:500px;margin:0 auto 20px auto">
-            Rewards will be distributed after the $???? token launches on Pump.fun. Keep playing and climbing the leaderboard to maximize your rewards when we launch! 💎
+            Collect spooky points and climb the leaderboard to earn sweet Halloween rewards! The best ghost pilots win special treats! 👻🍭
           </p>
-          <div style="background:rgba(255,215,0,.15);border:1px solid rgba(255,215,0,.4);border-radius:8px;padding:16px;margin-top:24px;max-width:600px;margin-left:auto;margin-right:auto">
-            <div style="font-weight:600;color:#ffd700;margin-bottom:8px;font-size:14px">📊 Total Rewards Distributed</div>
-            <div style="font-size:32px;font-weight:700;color:#ffd700" id="totalRewardsDistributed">0 SOL</div>
-            <div style="font-size:11px;opacity:.7;margin-top:8px">Payouts will appear here once token launches</div>
+          <div style="background:rgba(255,102,0,.15);border:1px solid rgba(255,102,0,.4);border-radius:8px;padding:16px;margin-top:24px;max-width:600px;margin-left:auto;margin-right:auto">
+            <div style="font-weight:600;color:#ff6600;margin-bottom:8px;font-size:14px">🎃 Total Spooky Points</div>
+            <div style="font-size:32px;font-weight:700;color:#ff6600" id="totalRewardsDistributed">0 TREATS</div>
+            <div style="font-size:11px;opacity:.7;margin-top:8px">Your Halloween achievements will appear here</div>
           </div>
         </div>
 
         <!-- Rewards List (Hidden initially, will show when there are rewards) -->
         <div id="rewardsList" style="display:none">
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:20px">
-            <div style="background:rgba(255,215,0,.15);border:1px solid rgba(255,215,0,.4);border-radius:8px;padding:16px;text-align:center">
-              <div style="font-size:11px;opacity:.7;margin-bottom:4px">Total Distributed</div>
-              <div style="font-size:24px;font-weight:700;color:#ffd700" id="totalDistributed">0 SOL</div>
+            <div style="background:rgba(255,102,0,.15);border:1px solid rgba(255,102,0,.4);border-radius:8px;padding:16px;text-align:center">
+              <div style="font-size:11px;opacity:.7;margin-bottom:4px">Total Candy Given</div>
+              <div style="font-size:24px;font-weight:700;color:#ff6600" id="totalDistributed">0 🍬</div>
             </div>
-            <div style="background:rgba(0,209,122,.15);border:1px solid rgba(0,209,122,.4);border-radius:8px;padding:16px;text-align:center">
-              <div style="font-size:11px;opacity:.7;margin-bottom:4px">Total Winners</div>
-              <div style="font-size:24px;font-weight:700;color:#00d17a" id="totalWinners">0</div>
+            <div style="background:rgba(138,0,255,.15);border:1px solid rgba(138,0,255,.4);border-radius:8px;padding:16px;text-align:center">
+              <div style="font-size:11px;opacity:.7;margin-bottom:4px">Spooky Winners</div>
+              <div style="font-size:24px;font-weight:700;color:#8b00ff" id="totalWinners">0</div>
             </div>
-            <div style="background:rgba(255,23,68,.15);border:1px solid rgba(255,23,68,.4);border-radius:8px;padding:16px;text-align:center">
-              <div style="font-size:11px;opacity:.7;margin-bottom:4px">Latest Payout</div>
-              <div style="font-size:24px;font-weight:700;color:#ff1744" id="latestPayout">-</div>
+            <div style="background:rgba(255,140,0,.15);border:1px solid rgba(255,140,0,.4);border-radius:8px;padding:16px;text-align:center">
+              <div style="font-size:11px;opacity:.7;margin-bottom:4px">Latest Treat</div>
+              <div style="font-size:24px;font-weight:700;color:#ff8c00" id="latestPayout">-</div>
             </div>
           </div>
 
@@ -811,12 +828,12 @@
           <div style="overflow-x:auto">
             <table style="width:100%;border-collapse:collapse;font-size:12px">
               <thead>
-                <tr style="background:rgba(255,215,0,.1);border-bottom:2px solid rgba(255,215,0,.3)">
-                  <th style="padding:12px;text-align:left;font-weight:600;color:#ffd700">Date</th>
-                  <th style="padding:12px;text-align:left;font-weight:600;color:#ffd700">Wallet</th>
-                  <th style="padding:12px;text-align:right;font-weight:600;color:#ffd700">Amount</th>
-                  <th style="padding:12px;text-align:right;font-weight:600;color:#ffd700">Score</th>
-                  <th style="padding:12px;text-align:center;font-weight:600;color:#ffd700">Type</th>
+                <tr style="background:rgba(255,102,0,.1);border-bottom:2px solid rgba(255,102,0,.3)">
+                  <th style="padding:12px;text-align:left;font-weight:600;color:#ff6600">Date</th>
+                  <th style="padding:12px;text-align:left;font-weight:600;color:#ff6600">Ghost</th>
+                  <th style="padding:12px;text-align:right;font-weight:600;color:#ff6600">Treats</th>
+                  <th style="padding:12px;text-align:right;font-weight:600;color:#ff6600">Score</th>
+                  <th style="padding:12px;text-align:center;font-weight:600;color:#ff6600">Type</th>
                 </tr>
               </thead>
               <tbody id="rewardsTableBody">
@@ -828,58 +845,58 @@
       </div>
     </section>
 
-    <!-- Tokenomics & Rewards Section -->
+    <!-- Halloween Features Section -->
     <section>
-      <h3 style="margin-top:32px;margin-bottom:12px;display:flex;align-items:center;gap:8px">💎 TOKENOMICS & REWARDS</h3>
-      <div style="background:rgba(0,0,0,.3);border-radius:12px;padding:20px;border:2px solid rgba(0,209,122,.5)">
+      <h3 style="margin-top:32px;margin-bottom:12px;display:flex;align-items:center;gap:8px">🎃 HALLOWEEN FEATURES 👻</h3>
+      <div style="background:rgba(0,0,0,.3);border-radius:12px;padding:20px;border:2px solid rgba(255,102,0,.5)">
 
-        <!-- Supply Info -->
-        <div style="background:rgba(255,215,0,.15);padding:16px;border-radius:8px;border:1px solid rgba(255,215,0,.4);margin-bottom:16px">
+        <!-- Main Feature Info -->
+        <div style="background:rgba(255,102,0,.15);padding:16px;border-radius:8px;border:1px solid rgba(255,102,0,.4);margin-bottom:16px">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-            <span style="font-size:20px">📊</span>
-            <span style="font-weight:600;color:#ffd700;font-size:16px">Total Supply</span>
+            <span style="font-size:20px">🎃</span>
+            <span style="font-weight:600;color:#ff6600;font-size:16px">PILL KIN</span>
           </div>
-          <div style="font-size:24px;font-weight:700;color:#ffd700;margin-bottom:8px">1,000,000,000 $????</div>
+          <div style="font-size:24px;font-weight:700;color:#ff6600;margin-bottom:8px">Halloween Special Game</div>
           <div style="font-size:12px;opacity:.8;line-height:1.6">
-            Fair launch on Pump.fun • No presale • Community-driven
+            Navigate through the spooky night sky • Collect Halloween power-ups • Compete for treats!
           </div>
         </div>
 
-        <!-- Tokenomics Grid -->
+        <!-- Halloween Theme Grid -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:16px">
-          <div style="background:rgba(255,215,0,.1);padding:14px;border-radius:8px;border:1px solid rgba(255,215,0,.3)">
-            <div style="font-size:22px;margin-bottom:6px">🔒</div>
-            <div style="font-weight:600;margin-bottom:4px;color:#ffd700;font-size:14px">Token Lock</div>
-            <div style="font-size:12px;opacity:.8;line-height:1.5">Tokens locked to reduce circulating supply and increase value</div>
+          <div style="background:rgba(255,102,0,.1);padding:14px;border-radius:8px;border:1px solid rgba(255,102,0,.3)">
+            <div style="font-size:22px;margin-bottom:6px">🌙</div>
+            <div style="font-weight:600;margin-bottom:4px;color:#ff6600;font-size:14px">Spooky Night Sky</div>
+            <div style="font-size:12px;opacity:.8;line-height:1.5">Navigate through a haunted Halloween atmosphere with moon and stars</div>
           </div>
-          <div style="background:rgba(255,215,0,.1);padding:14px;border-radius:8px;border:1px solid rgba(255,215,0,.3)">
-            <div style="font-size:22px;margin-bottom:6px">💰</div>
-            <div style="font-weight:600;margin-bottom:4px;color:#ffd700;font-size:14px">Buyback Program</div>
-            <div style="font-size:12px;opacity:.8;line-height:1.5">Fees used to buy back tokens from the market</div>
+          <div style="background:rgba(255,102,0,.1);padding:14px;border-radius:8px;border:1px solid rgba(255,102,0,.3)">
+            <div style="font-size:22px;margin-bottom:6px">🕯️</div>
+            <div style="font-weight:600;margin-bottom:4px;color:#ff6600;font-size:14px">Magic Candles</div>
+            <div style="font-size:12px;opacity:.8;line-height:1.5">Dodge glowing Halloween candles with mystical powers</div>
           </div>
-          <div style="background:rgba(255,215,0,.1);padding:14px;border-radius:8px;border:1px solid rgba(255,215,0,.3)">
-            <div style="font-size:22px;margin-bottom:6px">⚡</div>
-            <div style="font-weight:600;margin-bottom:4px;color:#ffd700;font-size:14px">Creator Fees</div>
-            <div style="font-size:12px;opacity:.8;line-height:1.5">Support development & grow the ecosystem</div>
+          <div style="background:rgba(255,102,0,.1);padding:14px;border-radius:8px;border:1px solid rgba(255,102,0,.3)">
+            <div style="font-size:22px;margin-bottom:6px">🎃</div>
+            <div style="font-weight:600;margin-bottom:4px;color:#ff6600;font-size:14px">Pumpkin Power</div>
+            <div style="font-size:12px;opacity:.8;line-height:1.5">Collect Halloween-themed power-ups for special abilities</div>
           </div>
         </div>
 
-        <!-- Rewards Grid -->
+        <!-- Game Modes Grid -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
-          <div style="background:rgba(0,209,122,.1);padding:14px;border-radius:8px;border:1px solid rgba(0,209,122,.3)">
-            <div style="font-size:22px;margin-bottom:6px">🎁</div>
-            <div style="font-weight:600;margin-bottom:4px;color:#00d17a;font-size:14px">Play to Earn</div>
-            <div style="font-size:12px;opacity:.8;line-height:1.5">Earn $???? & $SOL tokens for high scores</div>
+          <div style="background:rgba(138,0,255,.1);padding:14px;border-radius:8px;border:1px solid rgba(138,0,255,.3)">
+            <div style="font-size:22px;margin-bottom:6px">👻</div>
+            <div style="font-weight:600;margin-bottom:4px;color:#8b00ff;font-size:14px">Solo Mode</div>
+            <div style="font-size:12px;opacity:.8;line-height:1.5">Fly solo through the haunted night and beat your high score</div>
           </div>
-          <div style="background:rgba(0,209,122,.1);padding:14px;border-radius:8px;border:1px solid rgba(0,209,122,.3)">
-            <div style="font-size:22px;margin-bottom:6px">🏆</div>
-            <div style="font-weight:600;margin-bottom:4px;color:#00d17a;font-size:14px">Leaderboard Prizes</div>
-            <div style="font-size:12px;opacity:.8;line-height:1.5">Top players receive bonus rewards</div>
+          <div style="background:rgba(138,0,255,.1);padding:14px;border-radius:8px;border:1px solid rgba(138,0,255,.3)">
+            <div style="font-size:22px;margin-bottom:6px">🦇</div>
+            <div style="font-weight:600;margin-bottom:4px;color:#8b00ff;font-size:14px">Multiplayer Mode</div>
+            <div style="font-size:12px;opacity:.8;line-height:1.5">Race against other spooky pilots in real-time</div>
           </div>
-          <div style="background:rgba(0,209,122,.1);padding:14px;border-radius:8px;border:1px solid rgba(0,209,122,.3)">
-            <div style="font-size:22px;margin-bottom:6px">🎮</div>
-            <div style="font-weight:600;margin-bottom:4px;color:#00d17a;font-size:14px">Daily Challenges</div>
-            <div style="font-size:12px;opacity:.8;line-height:1.5">Complete challenges for extra tokens</div>
+          <div style="background:rgba(138,0,255,.1);padding:14px;border-radius:8px;border:1px solid rgba(138,0,255,.3)">
+            <div style="font-size:22px;margin-bottom:6px">🍬</div>
+            <div style="font-weight:600;margin-bottom:4px;color:#8b00ff;font-size:14px">Candy Collection</div>
+            <div style="font-size:12px;opacity:.8;line-height:1.5">Collect special Halloween treats for bonus points</div>
           </div>
         </div>
       </div>
@@ -887,57 +904,57 @@
 
     <!-- Roadmap Section -->
     <section>
-      <h3 style="margin-top:32px;margin-bottom:12px;display:flex;align-items:center;gap:8px">🗺️ ROADMAP</h3>
-      <div style="background:rgba(0,0,0,.3);border-radius:12px;padding:20px;border:2px solid rgba(255,215,0,.5)">
+      <h3 style="margin-top:32px;margin-bottom:12px;display:flex;align-items:center;gap:8px">🗺️ HALLOWEEN JOURNEY 🎃</h3>
+      <div style="background:rgba(0,0,0,.3);border-radius:12px;padding:20px;border:2px solid rgba(255,102,0,.5)">
 
         <!-- Roadmap Timeline -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:20px">
 
           <!-- Phase 1 -->
-          <div style="background:rgba(0,209,122,.1);padding:16px;border-radius:8px;border:1px solid rgba(0,209,122,.4);position:relative">
-            <div style="position:absolute;top:-10px;left:12px;background:#00d17a;color:#000;font-weight:700;font-size:11px;padding:4px 12px;border-radius:12px">PHASE 1</div>
-            <div style="margin-top:12px;font-weight:600;margin-bottom:12px;color:#00d17a;font-size:15px">🚀 Launch</div>
+          <div style="background:rgba(255,102,0,.1);padding:16px;border-radius:8px;border:1px solid rgba(255,102,0,.4);position:relative">
+            <div style="position:absolute;top:-10px;left:12px;background:#ff6600;color:#000;font-weight:700;font-size:11px;padding:4px 12px;border-radius:12px">PHASE 1</div>
+            <div style="margin-top:12px;font-weight:600;margin-bottom:12px;color:#ff6600;font-size:15px">🎃 Pumpkin Patch</div>
             <ul style="margin:0;padding-left:20px;font-size:12px;opacity:.9;line-height:1.8">
-              <li>Game v1 launch on web</li>
-              <li>Token launch on Pump.fun</li>
-              <li>Live stream to play the game</li>
-              <li>Play-to-earn system live</li>
-              <li>Leaderboard rewards</li>
+              <li>Halloween game launch</li>
+              <li>Spooky night atmosphere</li>
+              <li>Basic power-ups collection</li>
+              <li>Solo & multiplayer modes</li>
+              <li>Leaderboard system</li>
             </ul>
           </div>
 
           <!-- Phase 2 -->
-          <div style="background:rgba(255,215,0,.1);padding:16px;border-radius:8px;border:1px solid rgba(255,215,0,.4);position:relative">
-            <div style="position:absolute;top:-10px;left:12px;background:#ffd700;color:#000;font-weight:700;font-size:11px;padding:4px 12px;border-radius:12px">PHASE 2</div>
-            <div style="margin-top:12px;font-weight:600;margin-bottom:12px;color:#ffd700;font-size:15px">💎 Growth</div>
+          <div style="background:rgba(138,0,255,.1);padding:16px;border-radius:8px;border:1px solid rgba(138,0,255,.4);position:relative">
+            <div style="position:absolute;top:-10px;left:12px;background:#8b00ff;color:#fff;font-weight:700;font-size:11px;padding:4px 12px;border-radius:12px">PHASE 2</div>
+            <div style="margin-top:12px;font-weight:600;margin-bottom:12px;color:#8b00ff;font-size:15px">👻 Haunted House</div>
             <ul style="margin:0;padding-left:20px;font-size:12px;opacity:.9;line-height:1.8">
-              <li>Dev wallet lock</li>
-              <li>Community strengthening</li>
-              <li>Marketing campaign and CGK & CMC listing</li>
-              <li>Buyback program launch</li>
+              <li>New spooky obstacles</li>
+              <li>More Halloween power-ups</li>
+              <li>Special ghost effects</li>
+              <li>Enhanced multiplayer rooms</li>
             </ul>
           </div>
 
           <!-- Phase 3 -->
-          <div style="background:rgba(138,43,226,.1);padding:16px;border-radius:8px;border:1px solid rgba(138,43,226,.4);position:relative">
-            <div style="position:absolute;top:-10px;left:12px;background:#8a2be2;color:#fff;font-weight:700;font-size:11px;padding:4px 12px;border-radius:12px">PHASE 3</div>
-            <div style="margin-top:12px;font-weight:600;margin-bottom:12px;color:#a855f7;font-size:15px">🎮 Expansion</div>
+          <div style="background:rgba(255,140,0,.1);padding:16px;border-radius:8px;border:1px solid rgba(255,140,0,.4);position:relative">
+            <div style="position:absolute;top:-10px;left:12px;background:#ff8c00;color:#000;font-weight:700;font-size:11px;padding:4px 12px;border-radius:12px">PHASE 3</div>
+            <div style="margin-top:12px;font-weight:600;margin-bottom:12px;color:#ff8c00;font-size:15px">🦇 Midnight Magic</div>
             <ul style="margin:0;padding-left:20px;font-size:12px;opacity:.9;line-height:1.8">
-              <li>New game modes</li>
-              <li>Daily challenges</li>
-              <li>Tournament system</li>
-              <li>Second live stream for tournament</li>
-              <li>Partnerships</li>
+              <li>Trick or treat challenges</li>
+              <li>Bat swarm obstacles</li>
+              <li>Witch broom power-ups</li>
+              <li>Halloween tournaments</li>
+              <li>Spooky sound effects</li>
             </ul>
           </div>
 
         </div>
 
         <!-- Coming Soon Phase -->
-        <div style="background:rgba(255,255,255,.03);padding:16px;border-radius:8px;border:1px dashed rgba(255,255,255,.2);text-align:center">
-          <div style="display:inline-block;background:rgba(255,255,255,.1);color:#fff;font-weight:700;font-size:11px;padding:6px 16px;border-radius:12px;margin-bottom:8px">PHASE 4 - COMING SOON</div>
+        <div style="background:rgba(255,102,0,.03);padding:16px;border-radius:8px;border:1px dashed rgba(255,102,0,.3);text-align:center">
+          <div style="display:inline-block;background:rgba(255,102,0,.15);color:#ff6600;font-weight:700;font-size:11px;padding:6px 16px;border-radius:12px;margin-bottom:8px">PHASE 4 - COMING SOON</div>
           <div style="font-size:13px;opacity:.7;line-height:1.6">
-            🌟 More exciting features • Partnerships • DAO governance • Cross-chain expansion
+            🎃 More spooky surprises • 🧙 Special witch modes • 💀 Skull bosses • 🕷️ Spider web traps
           </div>
         </div>
       </div>
@@ -945,9 +962,10 @@
 
     <!-- Footer -->
     <footer>
-      <div style="text-align:center;margin-top:32px;padding-top:24px;border-top:1px solid rgba(255,255,255,.1);opacity:.7;font-size:12px;line-height:1.8">
-        <p style="margin:0 0 8px 0">© 2025 Pump The Pill - All Rights Reserved</p>
-        <p style="margin:0;font-weight:600">Built by <a href="https://www.trencheslabs.io/" target="_blank" style="color:#00d17a;text-decoration:none;transition:.2s" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Trenches Labs</a></p>
+      <div style="text-align:center;margin-top:32px;padding-top:24px;border-top:1px solid rgba(255,102,0,.3);opacity:.7;font-size:12px;line-height:1.8">
+        <p style="margin:0 0 8px 0">🎃 © 2025 PILL KIN - Halloween Special 👻</p>
+        <p style="margin:0;font-weight:600">Built by <a href="https://www.trencheslabs.io/" target="_blank" style="color:#ff6600;text-decoration:none;transition:.2s" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Trenches Labs</a></p>
+        <p style="margin:8px 0 0 0;font-size:11px;opacity:.6">Happy Halloween! 🕷️🦇🍬</p>
       </div>
     </footer>
   </div>
@@ -957,42 +975,42 @@
     <div class="modal-content">
       <div class="modal-header">
         <canvas id="modalPill" width="30" height="18" style="display:block"></canvas>
-        <h2>GAME RULES</h2>
+        <h2>🎃 SPOOKY RULES 👻</h2>
         <button class="modal-close" onclick="closeRulesModal()">✕</button>
       </div>
       <div class="modal-body">
         <div class="rule">
-          <div class="icon" style="filter:drop-shadow(0 0 8px #ff6b00)">🔥</div>
+          <div class="icon" style="filter:drop-shadow(0 0 8px #ff6600)">🎃</div>
           <div class="text">
-            <strong>How to Play</strong>
-            Click / Space / Tap to PUMP the pill up
+            <strong>How to Fly</strong>
+            Click / Space / Tap to fly the PILL KIN up through the spooky night!
           </div>
         </div>
         <div class="rule danger">
-          <div class="icon" style="filter:drop-shadow(0 0 8px #ff1744)">📉</div>
+          <div class="icon" style="filter:drop-shadow(0 0 8px #8b00ff)">🕯️</div>
           <div class="text">
-            <strong>Avoid the RUG!</strong>
-            Red candles = RUG PULL (-99%) = REKT 💀
+            <strong>Avoid the Candles!</strong>
+            Touch the glowing Halloween candles and it's GAME OVER! 💀
           </div>
         </div>
         <div class="rule">
-          <div class="icon" style="filter:drop-shadow(0 0 8px #00d17a)">📈</div>
+          <div class="icon" style="filter:drop-shadow(0 0 8px #ff6600)">👻</div>
           <div class="text">
             <strong>Score & Survival</strong>
-            The longer you survive, the higher you score. Brag rights guaranteed!
+            The longer you survive the spooky night, the higher you score!
           </div>
         </div>
-        <div class="rule" style="background:rgba(255,215,0,.1);border-left-color:#ffd700">
-          <div class="icon" style="filter:drop-shadow(0 0 12px #ffd700);font-size:32px">💰</div>
+        <div class="rule" style="background:rgba(255,102,0,.1);border-left-color:#ff6600">
+          <div class="icon" style="filter:drop-shadow(0 0 12px #ff6600);font-size:32px">🍬</div>
           <div class="text">
-            <strong style="color:#ffd700">FREE CREATOR FEES!</strong>
-            Every 20min to the top winner
+            <strong style="color:#ff6600">COLLECT TREATS!</strong>
+            Grab Halloween power-ups for special abilities!
           </div>
         </div>
       </div>
       <div class="modal-footer">
-        No paper hands allowed here! 💎🙌<br>
-        <strong>Wagmi or ngmi? Let's play degen 🎰</strong>
+        Boo! Are you brave enough? 👻🎃<br>
+        <strong>Trick or treat? Let's play! 🍬🦇</strong>
       </div>
     </div>
   </div>
@@ -1009,9 +1027,9 @@
 
         <!-- Stats Display -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
-          <div style="background:rgba(255,23,68,.15);border:1px solid rgba(255,23,68,.3);border-radius:8px;padding:14px;text-align:center">
+          <div style="background:rgba(139,0,255,.15);border:1px solid rgba(139,0,255,.3);border-radius:8px;padding:14px;text-align:center">
             <div style="font-size:11px;opacity:.7;margin-bottom:4px">Best Score</div>
-            <div style="font-size:24px;font-weight:700;color:#ff1744" id="pauseBestScore">0</div>
+            <div style="font-size:24px;font-weight:700;color:#8b00ff" id="pauseBestScore">0</div>
           </div>
           <div style="background:rgba(255,215,0,.15);border:1px solid rgba(255,215,0,.3);border-radius:8px;padding:14px;text-align:center">
             <div style="font-size:11px;opacity:.7;margin-bottom:4px">Total Games</div>
@@ -1021,23 +1039,23 @@
 
         <!-- Game Mode -->
         <div style="margin-bottom:16px">
-          <h3 style="font-size:14px;color:#00d17a;margin:0 0 12px 0;text-transform:uppercase;letter-spacing:.5px">Game Mode</h3>
+          <h3 style="font-size:14px;color:#ff6600;margin:0 0 12px 0;text-transform:uppercase;letter-spacing:.5px">Game Mode</h3>
           <button class="btn primary" id="pausePlaySolo" style="width:100%;margin-bottom:8px;padding:14px">
             ▶️ Play Solo
           </button>
-          <button class="btn primary" id="pauseMultiplayer" style="width:100%;background:rgba(255,215,0,.8);border-color:#ffd700;color:#000;padding:14px">
+          <button class="btn primary" id="pauseMultiplayer" style="width:100%;background:rgba(255,102,0,.8);border-color:#ff6600;color:#000;padding:14px">
             🎮 Multiplayer
           </button>
         </div>
 
         <!-- Game Controls -->
         <div style="margin-bottom:16px">
-          <h3 style="font-size:14px;color:#00d17a;margin:0 0 12px 0;text-transform:uppercase;letter-spacing:.5px">Controls</h3>
+          <h3 style="font-size:14px;color:#ff6600;margin:0 0 12px 0;text-transform:uppercase;letter-spacing:.5px">Controls</h3>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
             <button class="btn" id="pauseRestart" style="padding:12px">
               🔄 Restart
             </button>
-            <button class="btn" id="pauseResume" style="padding:12px;background:rgba(0,209,122,.2);border-color:#00d17a">
+            <button class="btn" id="pauseResume" style="padding:12px;background:rgba(255,102,0,.2);border-color:#ff6600">
               ▶️ Resume
             </button>
           </div>
@@ -1045,7 +1063,7 @@
 
         <!-- Settings -->
         <div style="margin-bottom:16px">
-          <h3 style="font-size:14px;color:#00d17a;margin:0 0 12px 0;text-transform:uppercase;letter-spacing:.5px">Settings</h3>
+          <h3 style="font-size:14px;color:#ff6600;margin:0 0 12px 0;text-transform:uppercase;letter-spacing:.5px">Settings</h3>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
             <button class="btn" id="pauseCinema" style="padding:12px">
               🎬 Cinema
@@ -1058,7 +1076,7 @@
 
         <!-- Info -->
         <div>
-          <h3 style="font-size:14px;color:#00d17a;margin:0 0 12px 0;text-transform:uppercase;letter-spacing:.5px">Information</h3>
+          <h3 style="font-size:14px;color:#ff6600;margin:0 0 12px 0;text-transform:uppercase;letter-spacing:.5px">Information</h3>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
             <button class="btn" id="pauseCommands" style="padding:12px">
               🎮 Commands
@@ -1080,28 +1098,28 @@
   <div id="commandsModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <div class="icon" style="filter:drop-shadow(0 0 8px #00d17a);font-size:32px">🎮</div>
+        <div class="icon" style="filter:drop-shadow(0 0 8px #ff6600);font-size:32px">🎮</div>
         <h2>GAME CONTROLS</h2>
         <button class="modal-close" onclick="closeCommandsModal()">✕</button>
       </div>
       <div class="modal-body">
         <div class="rule">
-          <div class="icon" style="filter:drop-shadow(0 0 8px #00d17a);font-size:36px">🖥️</div>
+          <div class="icon" style="filter:drop-shadow(0 0 8px #ff6600);font-size:36px">🖥️</div>
           <div class="text">
-            <strong style="color:#00d17a">PC / Desktop</strong>
-            Press <code class="k">SPACE</code> or <strong>Click</strong> to pump the pill up
+            <strong style="color:#ff6600">PC / Desktop</strong>
+            Press <code class="k">SPACE</code> or <strong>Click</strong> to fly the PILL KIN up
           </div>
         </div>
         <div class="rule">
-          <div class="icon" style="filter:drop-shadow(0 0 8px #00d17a);font-size:36px">📱</div>
+          <div class="icon" style="filter:drop-shadow(0 0 8px #ff6600);font-size:36px">📱</div>
           <div class="text">
-            <strong style="color:#00d17a">Mobile / Tablet</strong>
-            <strong>Tap</strong> anywhere on the screen to pump the pill up
+            <strong style="color:#ff6600">Mobile / Tablet</strong>
+            <strong>Tap</strong> anywhere on the screen to fly the PILL KIN up
           </div>
         </div>
       </div>
       <div class="modal-footer">
-        Master the controls to avoid the RUG! 💎🙌
+        Master the controls to survive the spooky night! 🎃👻
       </div>
     </div>
   </div>
@@ -1110,27 +1128,27 @@
   <div id="walletModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <div class="icon" style="filter:drop-shadow(0 0 12px #ffd700);font-size:32px">💰</div>
-        <h2>DEPOSIT YOUR SOLANA WALLET</h2>
+        <div class="icon" style="filter:drop-shadow(0 0 12px #ff6600);font-size:32px">🎃</div>
+        <h2>PLAYER NAME</h2>
       </div>
       <div class="modal-body">
         <div style="margin-bottom:16px">
-          <label style="font-size:12px;color:#00d17a;font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">
-            Solana Address for Rewards
+          <label style="font-size:12px;color:#ff6600;font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">
+            Enter Your Spooky Name
           </label>
-          <input type="text" id="walletInput" placeholder="Ex: 7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU"
-            style="width:100%;padding:12px;background:rgba(0,0,0,.5);border:1px solid rgba(0,209,122,.3);border-radius:8px;color:var(--text);font-family:'Courier New',monospace;font-size:12px;box-sizing:border-box" />
+          <input type="text" id="walletInput" placeholder="Ex: SpookyGhost42"
+            style="width:100%;padding:12px;background:rgba(0,0,0,.5);border:1px solid rgba(255,102,0,.3);border-radius:8px;color:var(--text);font-family:'Courier New',monospace;font-size:12px;box-sizing:border-box" />
           <div id="walletStatus" style="font-size:11px;opacity:.7;margin-top:8px"></div>
         </div>
         <button class="btn primary" id="saveWalletBtn" style="width:100%;font-size:14px;padding:14px">
-          💾 SAVE AND PLAY
+          👻 START PLAYING
         </button>
         <button class="btn" id="skipWalletBtn" style="width:100%;font-size:12px;padding:10px;margin-top:8px;opacity:.7">
-          Skip (no reward)
+          Skip (anonymous)
         </button>
       </div>
       <div class="modal-footer">
-        Deposit your wallet to be eligible for rewards! 🚀💎
+        Choose your name to appear on the leaderboard! 🎃🦇
       </div>
     </div>
   </div>
@@ -1139,9 +1157,9 @@
   <div id="gameOverModal" class="modal">
     <div class="modal-content">
       <div class="modal-header" style="flex-direction:column;border:none">
-        <div style="font-size:80px;margin:20px 0">💀</div>
+        <div style="font-size:80px;margin:20px 0">👻</div>
         <h2>GAME OVER</h2>
-        <p style="color:#ff1744;font-size:18px;font-weight:600;margin:0">RUG PULL -99%</p>
+        <p style="color:#ff6600;font-size:18px;font-weight:600;margin:0">THE NIGHT CAUGHT YOU! 💀</p>
       </div>
       <div class="modal-body">
         <div class="stats">
@@ -1161,14 +1179,14 @@
         <button class="btn-restart" id="restartGameBtn">
           🔄 PLAY AGAIN
         </button>
-        <button class="btn" id="leaveRoomBtn" style="width:100%;font-size:16px;padding:14px;margin-top:10px;display:none;background:rgba(255,23,68,.2);border-color:#ff1744;color:#ff1744">
+        <button class="btn" id="leaveRoomBtn" style="width:100%;font-size:16px;padding:14px;margin-top:10px;display:none;background:rgba(139,0,255,.2);border-color:#8b00ff;color:#8b00ff">
           🚪 LEAVE ROOM
         </button>
         <button class="btn" id="shareGameBtn" style="width:100%;font-size:16px;padding:14px;margin-top:10px">
           📤 SHARE ON X
         </button>
       </div>
-      <div class="modal-footer" style="border-color:rgba(255,23,68,.3)">
+      <div class="modal-footer" style="border-color:rgba(139,0,255,.3)">
         Better luck next time degen! 🎰
       </div>
     </div>
@@ -1178,51 +1196,51 @@
   <div id="multiplayerModal" class="modal">
     <div class="modal-content" style="max-width:600px">
       <div class="modal-header">
-        <div class="icon" style="filter:drop-shadow(0 0 12px #00d17a);font-size:32px">🎮</div>
-        <h2>MULTIPLAYER LOBBY</h2>
+        <div class="icon" style="filter:drop-shadow(0 0 12px #ff6600);font-size:32px">🎃</div>
+        <h2>👻 SPOOKY LOBBY 🦇</h2>
         <button class="modal-close" onclick="closeMultiplayerModal()">✕</button>
       </div>
       <div class="modal-body">
         <div style="margin-bottom:20px">
-          <label style="font-size:12px;color:#00d17a;font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">
-            Your Name
+          <label style="font-size:12px;color:#ff6600;font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">
+            🎃 Your Spooky Name
           </label>
-          <input type="text" id="playerNameInput" placeholder="Enter your degen name..."
-            style="width:100%;padding:12px;background:rgba(0,0,0,.5);border:1px solid rgba(0,209,122,.3);border-radius:8px;color:var(--text);font-family:'Courier New',monospace;font-size:12px;box-sizing:border-box" />
+          <input type="text" id="playerNameInput" placeholder="Enter your Halloween name..."
+            style="width:100%;padding:12px;background:rgba(0,0,0,.5);border:1px solid rgba(255,102,0,.3);border-radius:8px;color:var(--text);font-family:'Courier New',monospace;font-size:12px;box-sizing:border-box" />
         </div>
 
-        <div style="margin-bottom:20px">
-          <label style="font-size:12px;color:#ffd700;font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">
-            💰 Solana Wallet (Required for Rewards)
+        <div style="margin-bottom:20px;display:none">
+          <label style="font-size:12px;color:#ff6600;font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">
+            👻 Player ID (Optional)
           </label>
-          <input type="text" id="multiplayerWalletInput" placeholder="Ex: 7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU"
-            style="width:100%;padding:12px;background:rgba(0,0,0,.5);border:1px solid rgba(255,215,0,.3);border-radius:8px;color:var(--text);font-family:'Courier New',monospace;font-size:11px;box-sizing:border-box" />
+          <input type="text" id="multiplayerWalletInput" placeholder="Ex: SpookyGhost123"
+            style="width:100%;padding:12px;background:rgba(0,0,0,.5);border:1px solid rgba(255,102,0,.3);border-radius:8px;color:var(--text);font-family:'Courier New',monospace;font-size:11px;box-sizing:border-box" />
           <div id="multiplayerWalletStatus" style="font-size:11px;margin-top:6px;opacity:.8"></div>
         </div>
 
         <div id="maxPlayersSection" style="margin-bottom:20px;display:none">
-          <label style="font-size:12px;color:#00d17a;font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">
-            👥 Max Players
+          <label style="font-size:12px;color:#ff6600;font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">
+            🦇 Max Ghosts
           </label>
           <div style="display:flex;gap:8px">
-            <button class="btn max-players-btn" data-max="2" style="flex:1;padding:12px;background:rgba(0,209,122,.1);border-color:rgba(0,209,122,.3)" onclick="selectMaxPlayers(2)">
-              2 Players
+            <button class="btn max-players-btn" data-max="2" style="flex:1;padding:12px;background:rgba(255,102,0,.1);border-color:rgba(255,102,0,.3)" onclick="selectMaxPlayers(2)">
+              2 Ghosts
             </button>
-            <button class="btn max-players-btn" data-max="3" style="flex:1;padding:12px;background:rgba(0,209,122,.1);border-color:rgba(0,209,122,.3)" onclick="selectMaxPlayers(3)">
-              3 Players
+            <button class="btn max-players-btn" data-max="3" style="flex:1;padding:12px;background:rgba(255,102,0,.1);border-color:rgba(255,102,0,.3)" onclick="selectMaxPlayers(3)">
+              3 Ghosts
             </button>
-            <button class="btn max-players-btn selected" data-max="4" style="flex:1;padding:12px;background:#00d17a;border-color:#00d17a;color:#000" onclick="selectMaxPlayers(4)">
-              4 Players
+            <button class="btn max-players-btn selected" data-max="4" style="flex:1;padding:12px;background:#ff6600;border-color:#ff6600;color:#000" onclick="selectMaxPlayers(4)">
+              4 Ghosts
             </button>
           </div>
         </div>
 
         <div id="mainButtons" style="display:flex;gap:10px;margin-bottom:20px">
           <button class="btn primary" id="showCreateRoomBtn" style="flex:1;padding:14px">
-            🎲 CREATE ROOM
+            🎃 CREATE ROOM
           </button>
           <button class="btn" id="joinRoomBtn" style="flex:1;padding:14px">
-            🚪 JOIN BY ID
+            👻 JOIN BY ID
           </button>
         </div>
 
@@ -1237,8 +1255,8 @@
 
         <!-- Available Rooms List -->
         <div id="availableRoomsSection" style="margin-bottom:20px">
-          <h3 style="font-size:14px;color:#00d17a;margin:0 0 12px 0;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;justify-content:space-between">
-            <span>🎮 Available Rooms</span>
+          <h3 style="font-size:14px;color:#ff6600;margin:0 0 12px 0;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;justify-content:space-between">
+            <span>🎃 Haunted Rooms</span>
             <span id="roomsCount" style="font-size:12px;opacity:.7">0</span>
           </h3>
           <div id="availableRoomsList" style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto">
@@ -1249,21 +1267,21 @@
         </div>
 
         <div id="roomIdSection" style="display:none;margin-bottom:20px">
-          <label style="font-size:12px;color:#00d17a;font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">
+          <label style="font-size:12px;color:#ff6600;font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">
             Room ID
           </label>
           <input type="text" id="roomIdInput" placeholder="Enter room ID..."
-            style="width:100%;padding:12px;background:rgba(0,0,0,.5);border:1px solid rgba(0,209,122,.3);border-radius:8px;color:var(--text);font-family:'Courier New',monospace;font-size:12px;box-sizing:border-box" />
+            style="width:100%;padding:12px;background:rgba(0,0,0,.5);border:1px solid rgba(255,102,0,.3);border-radius:8px;color:var(--text);font-family:'Courier New',monospace;font-size:12px;box-sizing:border-box" />
           <button class="btn primary" id="joinRoomConfirmBtn" style="width:100%;margin-top:10px;padding:12px">
             ✅ JOIN
           </button>
         </div>
 
         <div id="roomInfo" style="display:none">
-          <div style="background:rgba(0,209,122,.1);border:1px solid rgba(0,209,122,.3);border-radius:8px;padding:16px;margin-bottom:20px">
+          <div style="background:rgba(255,102,0,.1);border:1px solid rgba(255,102,0,.3);border-radius:8px;padding:16px;margin-bottom:20px">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-              <span style="font-size:14px;font-weight:600;color:#00d17a">Room ID:</span>
-              <span id="currentRoomId" style="font-size:18px;font-weight:700;color:#00d17a">----</span>
+              <span style="font-size:14px;font-weight:600;color:#ff6600">Room ID:</span>
+              <span id="currentRoomId" style="font-size:18px;font-weight:700;color:#ff6600">----</span>
             </div>
             <button class="btn" id="copyRoomIdBtn" style="width:100%;padding:10px">
               📋 COPY ROOM ID
@@ -1271,8 +1289,8 @@
           </div>
 
           <div style="margin-bottom:16px">
-            <h3 style="font-size:14px;color:#00d17a;margin:0 0 12px 0;text-transform:uppercase;letter-spacing:.5px">
-              Players (<span id="playerCount">0</span>/<span id="maxPlayerCount">4</span>)
+            <h3 style="font-size:14px;color:#ff6600;margin:0 0 12px 0;text-transform:uppercase;letter-spacing:.5px">
+              👻 Ghosts (<span id="playerCount">0</span>/<span id="maxPlayerCount">4</span>)
             </h3>
             <div id="playersList" style="display:flex;flex-direction:column;gap:8px"></div>
           </div>
@@ -1286,7 +1304,7 @@
             🤖 ADD BOTS (TEST)
           </button>
 
-          <button class="btn" id="leaveLobbyBtn" style="width:100%;padding:12px;margin-top:10px;background:rgba(255,23,68,.1);border-color:#ff1744">
+          <button class="btn" id="leaveLobbyBtn" style="width:100%;padding:12px;margin-top:10px;background:rgba(139,0,255,.1);border-color:#8b00ff">
             🚪 LEAVE ROOM
           </button>
         </div>
@@ -1573,84 +1591,84 @@
     gapMin: 110,           // ouverture minimale
     spawnEvery: 1800,      // ms entre obstacles (≈ 1.8s, Flappy style)
     runTarget: 120,        // durée cible d'un run réussi (s) - 2 minutes
-    pill: { r: 20, green:'#00d17a', white:'#ffffff' }, // Capsule 💊 Pump.fun (vert/blanc)
+    pill: { r: 20, orange:'#ff6600', white:'#ffffff' }, // Capsule 💊 Halloween (orange/blanc)
     seed: Math.floor(Math.random()*1e9),
     powerUpSpawnInterval: 8000, // Power-up toutes les 8 secondes
   };
 
-  // ========= POWER-UPS CONFIG =========
+  // ========= POWER-UPS CONFIG - HALLOWEEN EDITION =========
   const POWER_UPS = {
     MUSHROOM: {
       id: 'mushroom',
-      emoji: '🍄',
-      name: 'Extra Life',
-      color: '#ff6b6b',
+      emoji: '🎃',
+      name: 'Pumpkin Life',
+      color: '#ff6600',
       duration: 0 // Instant effect
     },
     CHRONO: {
       id: 'chrono',
-      emoji: '⏰',
-      name: 'Time Slow',
-      color: '#4dabf7',
+      emoji: '👻',
+      name: 'Ghost Slow',
+      color: '#e0e0e0',
       duration: 5000 // 5 seconds
     },
     STAR: {
       id: 'star',
-      emoji: '⭐',
-      name: '2x Score',
-      color: '#ffd700',
+      emoji: '🦇',
+      name: 'Bat Bonus',
+      color: '#1a1a1a',
       duration: 8000 // 8 seconds
     },
     SHIELD: {
       id: 'shield',
-      emoji: '🛡️',
-      name: 'Shield',
-      color: '#00d9ff',
+      emoji: '🧙',
+      name: 'Witch Shield',
+      color: '#8b00ff',
       duration: 0 // Instant - protects from 1 hit
     },
     SPEED: {
       id: 'speed',
-      emoji: '⚡',
-      name: 'Speed Boost',
-      color: '#ffeb3b',
+      emoji: '🧹',
+      name: 'Broom Boost',
+      color: '#8b4513',
       duration: 6000 // 6 seconds
     },
     FIRE: {
       id: 'fire',
-      emoji: '🔥',
-      name: 'Fire Mode',
-      color: '#ff5722',
+      emoji: '💀',
+      name: 'Skull Power',
+      color: '#ffffff',
       duration: 5000 // 5 seconds
     },
     TORNADO: {
       id: 'tornado',
-      emoji: '🌀',
-      name: 'Tornado',
-      color: '#9c27b0',
+      emoji: '🕷️',
+      name: 'Spider Web',
+      color: '#666666',
       duration: 0 // Instant effect
     },
     BOMB: {
       id: 'bomb',
-      emoji: '💣',
-      name: 'Clear Screen',
-      color: '#000000',
+      emoji: '🍬',
+      name: 'Candy Blast',
+      color: '#ff1493',
       duration: 0 // Instant effect
     },
     NITRO: {
       id: 'nitro',
-      emoji: '🚀',
-      name: 'Nitro Boost',
-      color: '#00ffff',
+      emoji: '🐈‍⬛',
+      name: 'Black Cat Rush',
+      color: '#000000',
       duration: 3000 // 3 seconds
     }
   };
 
   // ========= MULTIPLAYER SYSTEM =========
   const PLAYER_COLORS = [
-    { name: 'Green', primary: '#00d17a', secondary: '#00ff88', depth: 1.0, xOffset: 0 }, // Front (normal size)
-    { name: 'Blue', primary: '#00b4ff', secondary: '#00e0ff', depth: 0.85, xOffset: -30 }, // Middle-back left
-    { name: 'Red', primary: '#ff1744', secondary: '#ff5252', depth: 0.85, xOffset: 30 }, // Middle-back right
-    { name: 'Yellow', primary: '#ffd700', secondary: '#ffed4e', depth: 0.7, xOffset: 0 }, // Far back (smaller)
+    { name: 'Orange', primary: '#ff6600', secondary: '#ff8c00', depth: 1.0, xOffset: 0 }, // Front (normal size) - Citrouille
+    { name: 'Purple', primary: '#8b00ff', secondary: '#a020f0', depth: 0.85, xOffset: -30 }, // Middle-back left - Sorcière
+    { name: 'Black', primary: '#1a1a1a', secondary: '#333333', depth: 0.85, xOffset: 30 }, // Middle-back right - Nuit
+    { name: 'Gold', primary: '#ffa500', secondary: '#ffb84d', depth: 0.7, xOffset: 0 }, // Far back (smaller) - Lune
   ];
 
   let isMultiplayer = false;
@@ -1680,13 +1698,13 @@
     document.querySelectorAll('.max-players-btn').forEach(btn => {
       const btnMax = parseInt(btn.getAttribute('data-max'));
       if (btnMax === max) {
-        btn.style.background = '#00d17a';
-        btn.style.borderColor = '#00d17a';
+        btn.style.background = '#ff6600';
+        btn.style.borderColor = '#ff6600';
         btn.style.color = '#000';
         btn.classList.add('selected');
       } else {
-        btn.style.background = 'rgba(0,209,122,.1)';
-        btn.style.borderColor = 'rgba(0,209,122,.3)';
+        btn.style.background = 'rgba(255,102,0,.1)';
+        btn.style.borderColor = 'rgba(255,102,0,.3)';
         btn.style.color = 'var(--text)';
         btn.classList.remove('selected');
       }
@@ -1700,7 +1718,7 @@
 
     if (playerWallet) {
       document.getElementById('multiplayerWalletStatus').textContent = '✅ Wallet saved';
-      document.getElementById('multiplayerWalletStatus').style.color = '#00d17a';
+      document.getElementById('multiplayerWalletStatus').style.color = '#ff6600';
     } else {
       document.getElementById('multiplayerWalletStatus').textContent = '';
     }
@@ -1757,13 +1775,13 @@
       ).join('');
 
       return `
-        <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(0,209,122,.05);border-radius:8px;border:1px solid rgba(0,209,122,.2);cursor:pointer;transition:.2s"
-             onmouseover="this.style.background='rgba(0,209,122,.1)'; this.style.borderColor='rgba(0,209,122,.4)'"
-             onmouseout="this.style.background='rgba(0,209,122,.05)'; this.style.borderColor='rgba(0,209,122,.2)'"
+        <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,102,0,.05);border-radius:8px;border:1px solid rgba(255,102,0,.2);cursor:pointer;transition:.2s"
+             onmouseover="this.style.background='rgba(255,102,0,.1)'; this.style.borderColor='rgba(255,102,0,.4)'"
+             onmouseout="this.style.background='rgba(255,102,0,.05)'; this.style.borderColor='rgba(255,102,0,.2)'"
              onclick="quickJoinRoom('${roomId}')">
           <div style="flex:1">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-              <span style="font-weight:700;font-size:16px;color:#00d17a">${roomId}</span>
+              <span style="font-weight:700;font-size:16px;color:#ff6600">${roomId}</span>
               <span style="font-size:11px;opacity:.6">${timeAgo}</span>
             </div>
             <div style="font-size:12px;opacity:.8">Host: ${hostName}</div>
@@ -1788,13 +1806,13 @@
     // Validate wallet address
     if (!walletAddress) {
       statusEl.textContent = '❌ Wallet required to join';
-      statusEl.style.color = '#ff1744';
+      statusEl.style.color = '#8b00ff';
       return;
     }
 
     if (!validateSolanaAddress(walletAddress)) {
       statusEl.textContent = '❌ Invalid Solana address';
-      statusEl.style.color = '#ff1744';
+      statusEl.style.color = '#8b00ff';
       return;
     }
 
@@ -1868,22 +1886,25 @@
     const walletAddress = document.getElementById('multiplayerWalletInput').value.trim();
     const statusEl = document.getElementById('multiplayerWalletStatus');
 
-    // Validate wallet address
-    if (!walletAddress) {
-      statusEl.textContent = '❌ Wallet required for multiplayer rewards';
-      statusEl.style.color = '#ff1744';
-      return;
+    // Validate wallet address (OPTIONAL for testing)
+    if (walletAddress && !validateSolanaAddress(walletAddress)) {
+      statusEl.textContent = '⚠️ Invalid Solana address - continuing without wallet';
+      statusEl.style.color = '#ff6600';
+      playerWallet = null;
+    } else if (walletAddress) {
+      // Save wallet if valid
+      playerWallet = walletAddress;
+      localStorage.setItem('pill_wallet', walletAddress);
+      statusEl.textContent = '✅ Wallet validated';
+      statusEl.style.color = '#ff6600';
+    } else {
+      // No wallet provided - allow anyway
+      playerWallet = null;
+      statusEl.textContent = '⚠️ No wallet - rewards disabled';
+      statusEl.style.color = '#ff6600';
     }
 
-    if (!validateSolanaAddress(walletAddress)) {
-      statusEl.textContent = '❌ Invalid Solana address (32-44 base58 characters)';
-      statusEl.style.color = '#ff1744';
-      return;
-    }
-
-    // Save wallet and player name
-    playerWallet = walletAddress;
-    localStorage.setItem('pill_wallet', walletAddress);
+    // Save player name
     localStorage.setItem('pill_player_name', playerName);
 
     currentRoom = generateRoomId();
@@ -1935,7 +1956,7 @@
     } catch (error) {
       console.error('❌ Error creating room:', error);
       statusEl.textContent = '❌ Error: ' + error.message;
-      statusEl.style.color = '#ff1744';
+      statusEl.style.color = '#8b00ff';
       alert('Failed to create room: ' + error.message + '\n\nMake sure Firebase Realtime Database is enabled in your Firebase Console.');
     }
   }
@@ -1955,22 +1976,23 @@
       return;
     }
 
-    // Validate wallet address
-    if (!walletAddress) {
-      statusEl.textContent = '❌ Wallet required for multiplayer rewards';
-      statusEl.style.color = '#ff1744';
-      return;
+    // Validate wallet address (OPTIONAL for testing)
+    if (walletAddress && !validateSolanaAddress(walletAddress)) {
+      statusEl.textContent = '⚠️ Invalid Solana address - continuing without wallet';
+      statusEl.style.color = '#ff6600';
+      playerWallet = null;
+    } else if (walletAddress) {
+      // Save wallet if valid
+      playerWallet = walletAddress;
+      localStorage.setItem('pill_wallet', walletAddress);
+      statusEl.textContent = '✅ Wallet validated';
+      statusEl.style.color = '#ff6600';
+    } else {
+      // No wallet provided - allow anyway
+      playerWallet = null;
+      statusEl.textContent = '⚠️ No wallet - rewards disabled';
+      statusEl.style.color = '#ff6600';
     }
-
-    if (!validateSolanaAddress(walletAddress)) {
-      statusEl.textContent = '❌ Invalid Solana address (32-44 base58 characters)';
-      statusEl.style.color = '#ff1744';
-      return;
-    }
-
-    // Save wallet and player name
-    playerWallet = walletAddress;
-    localStorage.setItem('pill_wallet', walletAddress);
     localStorage.setItem('pill_player_name', playerName);
 
     try {
@@ -2096,7 +2118,7 @@
         const walletShort = player.wallet.substring(0, 4) + '...' + player.wallet.substring(player.wallet.length - 4);
         walletBadge = `<div style="font-size:10px;color:#ffd700;opacity:.8">💰 ${walletShort}</div>`;
       } else {
-        walletBadge = `<div style="font-size:10px;color:#ff1744;opacity:.8">⚠️ No wallet</div>`;
+        walletBadge = `<div style="font-size:10px;color:#8b00ff;opacity:.8">⚠️ No wallet</div>`;
       }
 
       return `
@@ -2219,6 +2241,21 @@
   let pillTrail = []; // Array de points {x, y, color}
   const maxTrailLength = 150; // Nombre max de points dans le trail
 
+  // Traînée lumineuse du joueur (effet glow orange)
+  let playerLightTrail = []; // Array de points {x, y}
+  const maxLightTrailLength = 20; // Longueur de la traînée lumineuse
+
+  // ========= HALLOWEEN EFFECTS STATE =========
+  let bats = []; // Chauves-souris volantes
+  let spiderWebs = []; // Toiles d'araignées
+  let redEyes = []; // Yeux rouges dans l'obscurité
+  let crows = []; // Corbeaux
+  let skeletonHandTime = 0; // Timer pour la main de squelette
+  let lightningFlash = 0; // Intensité de l'éclair (0-1)
+  let lastLightningTime = 0;
+  let floatingOrbs = []; // Orbes lumineuses flottantes
+  let deathFlash = 0; // Effet de clignotement rouge à la mort
+
   // Helper function to get player X with nitro boost
   function getPlayerX() {
     const nitroOffset = playerPowerUps.nitroActive ? 80 : 0; // Move 80px forward with nitro
@@ -2265,7 +2302,7 @@
       playerWallet = '';
       localStorage.removeItem('pill_wallet');
       status.textContent = '❌ Adresse supprimée';
-      status.style.color = '#ff1744';
+      status.style.color = '#8b00ff';
       return;
     }
 
@@ -2273,10 +2310,10 @@
       playerWallet = address;
       localStorage.setItem('pill_wallet', address);
       status.textContent = '✅ Adresse sauvegardée ! Prêt pour les récompenses 💰';
-      status.style.color = '#00d17a';
+      status.style.color = '#ff6600';
     } else {
       status.textContent = '❌ Adresse Solana invalide (32-44 caractères base58)';
-      status.style.color = '#ff1744';
+      status.style.color = '#8b00ff';
     }
   }
 
@@ -2290,7 +2327,7 @@
     if (playerWallet) {
       input.value = playerWallet;
       status.textContent = '✅ Address already saved';
-      status.style.color = '#00d17a';
+      status.style.color = '#ff6600';
     } else {
       input.value = '';
       status.textContent = '';
@@ -2315,10 +2352,10 @@
       startCountdown();
     } else if (address) {
       status.textContent = '❌ Invalid Solana address (32-44 base58 characters)';
-      status.style.color = '#ff1744';
+      status.style.color = '#8b00ff';
     } else {
       status.textContent = '❌ Please enter an address';
-      status.style.color = '#ff1744';
+      status.style.color = '#8b00ff';
     }
   }
 
@@ -2390,14 +2427,14 @@
           if (entry.wallet) {
             const start = entry.wallet.substring(0, 4);
             const end = entry.wallet.substring(entry.wallet.length - 4);
-            walletDisplay = `<span style="opacity:.7;font-size:11px;color:#00d17a">💰 ${start}...${end}</span>`;
+            walletDisplay = `<span style="opacity:.7;font-size:11px;color:#ff6600">💰 ${start}...${end}</span>`;
           }
 
           return `
             <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(255,255,255,.05);border-radius:8px;border:1px solid rgba(255,255,255,.08)">
               <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
                 <span style="font-size:18px;width:32px">${emoji}</span>
-                <span style="font-weight:600;color:#00d17a">${entry.score} pts</span>
+                <span style="font-weight:600;color:#ff6600">${entry.score} pts</span>
                 <span style="opacity:.6;font-size:12px">${badge}</span>
                 ${walletDisplay}
               </div>
@@ -2421,13 +2458,13 @@
           if (entry.wallet) {
             const start = entry.wallet.substring(0, 4);
             const end = entry.wallet.substring(entry.wallet.length - 4);
-            walletDisplay = `<span style="opacity:.7;font-size:11px;color:#00d17a">💰 ${start}...${end}</span>`;
+            walletDisplay = `<span style="opacity:.7;font-size:11px;color:#ff6600">💰 ${start}...${end}</span>`;
           }
           return `
             <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(255,255,255,.05);border-radius:8px;border:1px solid rgba(255,255,255,.08)">
               <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
                 <span style="font-size:18px;width:32px">${emoji}</span>
-                <span style="font-weight:600;color:#00d17a">${entry.score} pts</span>
+                <span style="font-weight:600;color:#ff6600">${entry.score} pts</span>
                 <span style="opacity:.6;font-size:12px">${badge}</span>
                 ${walletDisplay}
               </div>
@@ -2635,8 +2672,8 @@
     ctx.fillStyle = 'rgba(0,0,0,.7)';
     ctx.fillRect(0, 0, w, h);
 
-    const text = countdownValue > 0 ? countdownValue.toString() : 'PUMP THE PILL';
-    const color = '#00d17a';
+    const text = countdownValue > 0 ? countdownValue.toString() : 'PILL KIN';
+    const color = '#ff6600';
 
     // Effet de glow
     ctx.shadowColor = color;
@@ -2793,14 +2830,14 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: rgba(0,209,122,.95);
+      background: rgba(255,102,0,.95);
       color: #000;
       padding: 16px 24px;
       border-radius: 12px;
       font-weight: 700;
       font-size: 18px;
       z-index: 10000;
-      box-shadow: 0 0 30px rgba(0,209,122,.6);
+      box-shadow: 0 0 30px rgba(255,102,0,.6);
       animation: powerUpPop 0.5s ease;
     `;
     document.body.appendChild(notification);
@@ -2849,6 +2886,7 @@
 
   async function gameOver(){
     state='over';
+    deathFlash = 1; // Déclencher le clignotement rouge à la mort
     playGameOverSound(); // Play game over sound
     localStorage.setItem('pill_best', Math.floor(Math.max(best,score)));
     best = Math.max(best,score);
@@ -2946,7 +2984,7 @@
       leaveRoomBtn.style.display = 'none';
       restartBtn.style.display = 'block';
       restartBtn.textContent = '🔄 PLAY AGAIN';
-      restartBtn.style.background = '#00d17a';
+      restartBtn.style.background = '#ff6600';
     }
 
     modal.classList.add('show');
@@ -3004,7 +3042,7 @@
 
     // Ajouter la position au trail (graphique qui scroll)
     if (!isMultiplayer) { // Seulement en solo
-      const color = player.y < oldY ? '#00d17a' : '#ff1744'; // Vert si monte, rouge si descend
+      const color = player.y < oldY ? '#ff6600' : '#1a1a1a'; // Orange si monte, noir si descend - Halloween
       pillTrail.push({ y: player.y, color: color });
 
       // Limiter la longueur du trail
@@ -3305,6 +3343,53 @@
     // player (pill) - Draw local player last so it's on top (only if alive)
     if (state !== 'over') {
       const playerX = getPlayerX();
+
+      // Halo lumineux circulaire autour du joueur
+      ctx.save();
+      const haloGradient = ctx.createRadialGradient(playerX, player.y, 0, playerX, player.y, CFG.pill.r * 3);
+      const haloColor = playerColor ? playerColor.primary : '#ff6600';
+      haloGradient.addColorStop(0, haloColor + '40');
+      haloGradient.addColorStop(0.5, haloColor + '20');
+      haloGradient.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = haloGradient;
+      ctx.fillRect(playerX - CFG.pill.r * 3, player.y - CFG.pill.r * 3, CFG.pill.r * 6, CFG.pill.r * 6);
+      ctx.restore();
+
+      // Traînée lumineuse orange quand le joueur saute (vy négatif)
+      if(player.vy < -2) {
+        playerLightTrail.push({x: playerX, y: player.y});
+        if(playerLightTrail.length > maxLightTrailLength) {
+          playerLightTrail.shift();
+        }
+      } else {
+        // Réduire la traînée quand ne saute pas
+        if(playerLightTrail.length > 0) {
+          playerLightTrail.shift();
+        }
+      }
+
+      // Dessiner la traînée lumineuse
+      if(playerLightTrail.length > 1) {
+        ctx.save();
+        for(let i = 0; i < playerLightTrail.length - 1; i++) {
+          const alpha = i / playerLightTrail.length;
+          const point = playerLightTrail[i];
+          const nextPoint = playerLightTrail[i + 1];
+
+          ctx.strokeStyle = `rgba(255, 102, 0, ${alpha * 0.6})`;
+          ctx.lineWidth = (CFG.pill.r / 2) * alpha;
+          ctx.lineCap = 'round';
+          ctx.shadowColor = '#ff6600';
+          ctx.shadowBlur = 10 * alpha;
+
+          ctx.beginPath();
+          ctx.moveTo(point.x, point.y);
+          ctx.lineTo(nextPoint.x, nextPoint.y);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
       drawPill(ctx, playerX, player.y, CFG.pill.r, playerColor, player.vy);
 
       // Draw local player name in multiplayer
@@ -3335,7 +3420,7 @@
     ctx.fillStyle='rgba(255,255,255,.75)';
     ctx.font='600 18px system-ui,Segoe UI';
     ctx.fillText('Score '+Math.floor(score), 16, 26);
-    ctx.fillText('Pump '+Math.floor(pump)+'%', w-150, 26);
+    ctx.fillText('Spooky '+Math.floor(pump)+'%', w-150, 26);
 
     // Draw active power-ups indicators
     let powerUpY = 60;
@@ -3444,11 +3529,11 @@
 
       ctx.fillStyle = 'rgba(0,0,0,.7)';
       ctx.fillRect(lbX, lbY, lbW, lbH);
-      ctx.strokeStyle = 'rgba(0,209,122,.5)';
+      ctx.strokeStyle = 'rgba(255,102,0,.5)';
       ctx.lineWidth = 2;
       ctx.strokeRect(lbX, lbY, lbW, lbH);
 
-      ctx.fillStyle = '#00d17a';
+      ctx.fillStyle = '#ff6600';
       ctx.font = 'bold 14px system-ui';
       ctx.textAlign = 'left';
       ctx.fillText('🏆 LIVE RANKS', lbX + 10, lbY + 20);
@@ -3526,7 +3611,7 @@
       ctx.globalAlpha = 0.1;
 
       // Pill shape
-      ctx.fillStyle = '#00d17a';
+      ctx.fillStyle = '#ff6600';
       ctx.beginPath();
       ctx.arc(-20, 0, 15, Math.PI/2, -Math.PI/2);
       ctx.arc(20, 0, 15, -Math.PI/2, Math.PI/2);
@@ -3555,22 +3640,22 @@
 
       // Background with gradient (style site web)
       const bgGradient = ctx.createLinearGradient(boxX, boxY, boxX, boxY + boxH);
-      bgGradient.addColorStop(0, isSelected ? 'rgba(0, 209, 122, 0.15)' : 'rgba(20, 20, 40, 0.8)');
-      bgGradient.addColorStop(1, isSelected ? 'rgba(0, 209, 122, 0.05)' : 'rgba(10, 10, 20, 0.8)');
+      bgGradient.addColorStop(0, isSelected ? 'rgba(255, 102, 0, 0.15)' : 'rgba(20, 20, 40, 0.8)');
+      bgGradient.addColorStop(1, isSelected ? 'rgba(255, 102, 0, 0.05)' : 'rgba(10, 10, 20, 0.8)');
       ctx.fillStyle = bgGradient;
       ctx.fillRect(boxX, boxY, boxW, boxH);
 
       // Triple border effect (comme les sections du site)
       // Outer glow
-      ctx.shadowColor = isSelected ? 'rgba(0, 209, 122, 0.5)' : 'rgba(255, 23, 68, 0.3)';
+      ctx.shadowColor = isSelected ? 'rgba(255, 102, 0, 0.5)' : 'rgba(139, 0, 255, 0.3)';
       ctx.shadowBlur = isSelected ? 15 : 8;
-      ctx.strokeStyle = isSelected ? '#00d17a' : 'rgba(255, 23, 68, 0.4)';
+      ctx.strokeStyle = isSelected ? '#ff6600' : 'rgba(139, 0, 255, 0.4)';
       ctx.lineWidth = 2;
       ctx.strokeRect(boxX, boxY, boxW, boxH);
 
       // Inner border
       ctx.shadowBlur = 0;
-      ctx.strokeStyle = isSelected ? 'rgba(0, 209, 122, 0.5)' : 'rgba(255, 23, 68, 0.2)';
+      ctx.strokeStyle = isSelected ? 'rgba(255, 102, 0, 0.5)' : 'rgba(139, 0, 255, 0.2)';
       ctx.lineWidth = 1;
       ctx.strokeRect(boxX + 2, boxY + 2, boxW - 4, boxH - 4);
 
@@ -3578,8 +3663,8 @@
       if(isSelected){
         const arrowOffset = Math.sin(performance.now() / 200) * 5;
         ctx.shadowBlur = 10;
-        ctx.shadowColor = 'rgba(0, 209, 122, 0.8)';
-        ctx.fillStyle = '#00d17a';
+        ctx.shadowColor = 'rgba(255, 102, 0, 0.8)';
+        ctx.fillStyle = '#ff6600';
         ctx.font = 'bold 24px system-ui';
         ctx.fillText('►', w/2 - 280 - arrowOffset, y);
         ctx.fillText('◄', w/2 + 280 + arrowOffset, y);
@@ -3587,8 +3672,8 @@
 
       // Option text
       ctx.shadowBlur = isSelected ? 8 : 0;
-      ctx.shadowColor = isSelected ? 'rgba(0, 209, 122, 0.6)' : 'transparent';
-      ctx.fillStyle = isSelected ? '#00d17a' : 'rgba(255, 255, 255, 0.8)';
+      ctx.shadowColor = isSelected ? 'rgba(255, 102, 0, 0.6)' : 'transparent';
+      ctx.fillStyle = isSelected ? '#ff6600' : 'rgba(255, 255, 255, 0.8)';
       ctx.font = isSelected ? 'bold 26px system-ui' : '600 22px system-ui';
       ctx.textAlign = 'center';
       ctx.fillText(option.label, w / 2, y);
@@ -3608,26 +3693,26 @@
 
     // Cinema button
     const cinemaX = w - 110;
-    ctx.fillStyle = cinemaMode ? 'rgba(0, 209, 122, 0.3)' : 'rgba(255, 255, 255, 0.1)';
+    ctx.fillStyle = cinemaMode ? 'rgba(255, 102, 0, 0.3)' : 'rgba(255, 255, 255, 0.1)';
     ctx.fillRect(cinemaX - btnSize/2, btnY - btnSize/2, btnSize, btnSize);
-    ctx.strokeStyle = cinemaMode ? '#00d17a' : 'rgba(255, 255, 255, 0.3)';
+    ctx.strokeStyle = cinemaMode ? '#ff6600' : 'rgba(255, 255, 255, 0.3)';
     ctx.lineWidth = 2;
     ctx.strokeRect(cinemaX - btnSize/2, btnY - btnSize/2, btnSize, btnSize);
     ctx.font = '24px system-ui';
-    ctx.fillStyle = cinemaMode ? '#00d17a' : 'rgba(255, 255, 255, 0.7)';
+    ctx.fillStyle = cinemaMode ? '#ff6600' : 'rgba(255, 255, 255, 0.7)';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('🎬', cinemaX, btnY);
 
     // Sound button
     const soundX = w - 50;
-    ctx.fillStyle = soundEnabled ? 'rgba(0, 209, 122, 0.3)' : 'rgba(255, 255, 255, 0.1)';
+    ctx.fillStyle = soundEnabled ? 'rgba(255, 102, 0, 0.3)' : 'rgba(255, 255, 255, 0.1)';
     ctx.fillRect(soundX - btnSize/2, btnY - btnSize/2, btnSize, btnSize);
-    ctx.strokeStyle = soundEnabled ? '#00d17a' : 'rgba(255, 255, 255, 0.3)';
+    ctx.strokeStyle = soundEnabled ? '#ff6600' : 'rgba(255, 255, 255, 0.3)';
     ctx.lineWidth = 2;
     ctx.strokeRect(soundX - btnSize/2, btnY - btnSize/2, btnSize, btnSize);
     ctx.font = '24px system-ui';
-    ctx.fillStyle = soundEnabled ? '#00d17a' : 'rgba(255, 255, 255, 0.7)';
+    ctx.fillStyle = soundEnabled ? '#ff6600' : 'rgba(255, 255, 255, 0.7)';
     ctx.fillText(soundEnabled ? '🔊' : '🔇', soundX, btnY);
 
     ctx.textBaseline = 'alphabetic';
@@ -3735,14 +3820,14 @@
 
     // Box background with glow
     ctx.save();
-    ctx.shadowColor = 'rgba(0, 209, 122, 0.5)';
+    ctx.shadowColor = 'rgba(255, 102, 0, 0.5)';
     ctx.shadowBlur = 30;
     ctx.fillStyle = 'rgba(20, 20, 30, 0.95)';
     ctx.fillRect(menuX, menuY, menuWidth, menuHeight);
     ctx.restore();
 
     // Border
-    ctx.strokeStyle = '#00d17a';
+    ctx.strokeStyle = '#ff6600';
     ctx.lineWidth = 3;
     ctx.strokeRect(menuX, menuY, menuWidth, menuHeight);
 
@@ -3767,15 +3852,15 @@
 
       // Selection highlight
       if (isSelected) {
-        ctx.fillStyle = 'rgba(0, 209, 122, 0.3)';
+        ctx.fillStyle = 'rgba(255, 102, 0, 0.3)';
         ctx.fillRect(menuX + 20, y - 30, menuWidth - 40, 40);
-        ctx.strokeStyle = '#00d17a';
+        ctx.strokeStyle = '#ff6600';
         ctx.lineWidth = 2;
         ctx.strokeRect(menuX + 20, y - 30, menuWidth - 40, 40);
       }
 
       // Option text
-      ctx.fillStyle = isSelected ? '#00d17a' : 'rgba(255, 255, 255, 0.8)';
+      ctx.fillStyle = isSelected ? '#ff6600' : 'rgba(255, 255, 255, 0.8)';
       ctx.font = isSelected ? 'bold 20px system-ui' : '18px system-ui';
       ctx.textAlign = 'left';
       ctx.fillText(option.label, menuX + 50, y);
@@ -3832,84 +3917,125 @@
   function drawObstacle(ctx,o){
     ctx.save();
 
-    // Animation de pulsation (toujours activée)
+    // Animation de pulsation
     const pulseTime = performance.now() / 1000;
-    const pulseScale = 1 + Math.sin(pulseTime * 3 + o.x / 100) * 0.12; // Pulse plus prononcé
-    const glowIntensity = 15 + Math.sin(pulseTime * 4 + o.x / 50) * 10; // Pulsating glow plus intense
+    const pulseScale = 1 + Math.sin(pulseTime * 3 + o.x / 100) * 0.08;
+    const glowIntensity = 15 + Math.sin(pulseTime * 4 + o.x / 50) * 10;
 
-    const candleWidth = o.w * pulseScale;
-    const wickWidth = 4;
+    const obstacleWidth = o.w * pulseScale;
 
-    // Bougie du haut (VERTE - haussière)
+    // Obstacle du haut - CITROUILLE 🎃 (ORANGE)
     if(o.top > 0){
-      const candleHeight = Math.min(100, o.top * 0.4);
-      const wickHeight = o.top;
+      const pumpkinSize = Math.min(80, o.top * 0.4);
+      const stemHeight = o.top - pumpkinSize;
+      const bodyTop = o.top - pumpkinSize;
 
-      // Mèche (wick) fine verte
-      ctx.fillStyle='#006400';
-      ctx.fillRect(o.x + candleWidth/2 - wickWidth/2, 0, wickWidth, wickHeight);
+      // Tige de citrouille
+      ctx.fillStyle='#2d5016';
+      const stemW = obstacleWidth * 0.2;
+      ctx.fillRect(o.x + obstacleWidth/2 - stemW/2, 0, stemW, stemHeight);
 
-      // Corps de la bougie verte (body)
-      const bodyTop = wickHeight - candleHeight;
-      const grd = ctx.createLinearGradient(o.x, bodyTop, o.x + candleWidth, bodyTop);
-      grd.addColorStop(0,'#004d00');
-      grd.addColorStop(0.5,'#00d17a');
-      grd.addColorStop(1,'#004d00');
-      ctx.fillStyle=grd;
-      ctx.fillRect(o.x, bodyTop, candleWidth, candleHeight);
-
-      // Glow vert
-      ctx.shadowColor='#00d17a';
+      // Corps de la citrouille (forme ovale)
+      ctx.fillStyle='#ff7700';
+      ctx.shadowColor='#ff6600';
       ctx.shadowBlur=glowIntensity;
-      ctx.fillRect(o.x, bodyTop, candleWidth, candleHeight);
+      ctx.beginPath();
+      ctx.ellipse(o.x + obstacleWidth/2, bodyTop + pumpkinSize/2, obstacleWidth/2, pumpkinSize/2, 0, 0, Math.PI * 2);
+      ctx.fill();
       ctx.shadowBlur=0;
 
-      // Bordure de bougie
-      ctx.strokeStyle='#003300';
-      ctx.lineWidth=3;
-      ctx.strokeRect(o.x, bodyTop, candleWidth, candleHeight);
+      // Rayures verticales de citrouille
+      ctx.strokeStyle='#cc5500';
+      ctx.lineWidth=2;
+      for(let i = 0; i < 5; i++){
+        const lineX = o.x + (i * obstacleWidth / 4);
+        ctx.beginPath();
+        ctx.moveTo(lineX, bodyTop + 5);
+        ctx.lineTo(lineX, bodyTop + pumpkinSize - 5);
+        ctx.stroke();
+      }
 
-      // Ombres 3D
-      ctx.fillStyle='#002200';
-      ctx.fillRect(o.x + candleWidth - 8, bodyTop, 8, candleHeight);
-      ctx.fillStyle='rgba(0,209,122,.3)';
-      ctx.fillRect(o.x, bodyTop, 8, candleHeight);
+      // Yeux triangulaires
+      ctx.fillStyle='#000000';
+      const eyeY = bodyTop + pumpkinSize * 0.35;
+      // Oeil gauche
+      ctx.beginPath();
+      ctx.moveTo(o.x + obstacleWidth * 0.25, eyeY - 8);
+      ctx.lineTo(o.x + obstacleWidth * 0.2, eyeY + 5);
+      ctx.lineTo(o.x + obstacleWidth * 0.35, eyeY + 5);
+      ctx.fill();
+      // Oeil droit
+      ctx.beginPath();
+      ctx.moveTo(o.x + obstacleWidth * 0.75, eyeY - 8);
+      ctx.lineTo(o.x + obstacleWidth * 0.65, eyeY + 5);
+      ctx.lineTo(o.x + obstacleWidth * 0.8, eyeY + 5);
+      ctx.fill();
+
+      // Bouche grimaçante
+      ctx.beginPath();
+      ctx.moveTo(o.x + obstacleWidth * 0.2, eyeY + 20);
+      for(let i = 0; i < 5; i++){
+        const mx = o.x + obstacleWidth * (0.2 + i * 0.15);
+        const my = eyeY + 20 + (i % 2 === 0 ? 5 : 0);
+        ctx.lineTo(mx, my);
+      }
+      ctx.stroke();
     }
 
-    // Bougie du bas (ROUGE - baissière)
+    // Obstacle du bas - PIERRE TOMBALE 🪦 (VIOLET)
     if(o.bottom < canvas.height){
-      const candleHeight = Math.min(100, (canvas.height - o.bottom) * 0.4);
-      const wickHeight = canvas.height - o.bottom;
-
-      // Mèche (wick) fine rouge
-      ctx.fillStyle='#8b0000';
-      ctx.fillRect(o.x + candleWidth/2 - wickWidth/2, o.bottom, wickWidth, wickHeight);
-
-      // Corps de la bougie rouge (body)
+      const tombstoneHeight = canvas.height - o.bottom; // Toute la hauteur jusqu'en bas
       const bodyTop = o.bottom;
-      const grd = ctx.createLinearGradient(o.x, bodyTop, o.x + candleWidth, bodyTop);
-      grd.addColorStop(0,'#660000');
-      grd.addColorStop(0.5,'#ff1744');
-      grd.addColorStop(1,'#660000');
-      ctx.fillStyle=grd;
-      ctx.fillRect(o.x, bodyTop, candleWidth, candleHeight);
+      const roundedTopHeight = Math.min(obstacleWidth, tombstoneHeight * 0.3); // Hauteur de la partie arrondie
 
-      // Glow rouge
-      ctx.shadowColor='#ff1744';
+      // Corps de la pierre tombale (remplit tout jusqu'en bas)
+      ctx.fillStyle='#2a2a3a';
+      ctx.shadowColor='#8b00ff';
       ctx.shadowBlur=glowIntensity;
-      ctx.fillRect(o.x, bodyTop, candleWidth, candleHeight);
+
+      // Forme de pierre tombale : partie rectangulaire jusqu'en bas
+      ctx.fillRect(o.x, bodyTop + roundedTopHeight, obstacleWidth, tombstoneHeight - roundedTopHeight);
+
+      // Partie arrondie au sommet
+      ctx.beginPath();
+      ctx.moveTo(o.x, bodyTop + roundedTopHeight);
+      ctx.lineTo(o.x + obstacleWidth, bodyTop + roundedTopHeight);
+      ctx.arc(o.x + obstacleWidth/2, bodyTop + obstacleWidth/2, obstacleWidth/2, 0, Math.PI, true);
+      ctx.closePath();
+      ctx.fill();
       ctx.shadowBlur=0;
 
-      // Bordure de bougie
-      ctx.strokeStyle='#330000';
-      ctx.lineWidth=3;
-      ctx.strokeRect(o.x, bodyTop, candleWidth, candleHeight);
+      // Bordure violette sur le haut arrondi
+      ctx.strokeStyle='#8b00ff';
+      ctx.lineWidth=2;
+      ctx.beginPath();
+      ctx.arc(o.x + obstacleWidth/2, bodyTop + obstacleWidth/2, obstacleWidth/2, 0, Math.PI, true);
+      ctx.stroke();
 
-      // Ombres 3D
-      ctx.fillStyle='#330000';
-      ctx.fillRect(o.x + candleWidth - 8, bodyTop, 8, candleHeight);
-      ctx.fillStyle='rgba(255,100,100,.3)';
-      ctx.fillRect(o.x, bodyTop, 8, candleHeight);
+      // Bordures latérales
+      ctx.beginPath();
+      ctx.moveTo(o.x, bodyTop + roundedTopHeight);
+      ctx.lineTo(o.x, canvas.height);
+      ctx.moveTo(o.x + obstacleWidth, bodyTop + roundedTopHeight);
+      ctx.lineTo(o.x + obstacleWidth, canvas.height);
+      ctx.stroke();
+
+      // Texte "RIP" sur la pierre tombale
+      ctx.fillStyle='#8b00ff';
+      ctx.font='bold 16px serif';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      ctx.fillText('RIP', o.x + obstacleWidth/2, bodyTop + roundedTopHeight + 30);
+
+      // Fissures sur la pierre
+      ctx.strokeStyle='rgba(0,0,0,0.4)';
+      ctx.lineWidth=1;
+      ctx.beginPath();
+      ctx.moveTo(o.x + obstacleWidth * 0.3, bodyTop + roundedTopHeight + 15);
+      ctx.lineTo(o.x + obstacleWidth * 0.4, bodyTop + roundedTopHeight + 50);
+      ctx.moveTo(o.x + obstacleWidth * 0.7, bodyTop + roundedTopHeight + 20);
+      ctx.lineTo(o.x + obstacleWidth * 0.6, bodyTop + roundedTopHeight + 55);
+      ctx.stroke();
     }
 
     ctx.restore();
@@ -3927,8 +4053,8 @@
     const pillWidth = r * 2.8;
     const pillHeight = r * 1.4;
 
-    // Use player color if provided, otherwise default to green
-    const pillColor = color || { primary: '#00d17a', secondary: '#00ff88' };
+    // Use player color if provided, otherwise default to orange Halloween
+    const pillColor = color || { primary: '#ff6600', secondary: '#ff8c00' };
 
     // Glow avec la couleur du joueur
     ctx.shadowColor = pillColor.primary + 'b3'; // Add alpha
@@ -4020,21 +4146,441 @@
     ctx.closePath();
   }
 
+  // ========= HALLOWEEN EFFECTS FUNCTIONS =========
+
+  // Initialiser les chauves-souris
+  function initBats(w, h) {
+    bats = [];
+    for(let i = 0; i < 8; i++) {
+      bats.push({
+        x: Math.random() * w,
+        y: Math.random() * h * 0.6,
+        vx: (Math.random() - 0.5) * 60,
+        vy: (Math.random() - 0.5) * 30,
+        wingPhase: Math.random() * Math.PI * 2,
+        size: Math.random() * 0.5 + 0.7
+      });
+    }
+  }
+
+  // Dessiner les chauves-souris 🦇
+  function drawBats(ctx, w, h, dt) {
+    bats.forEach(bat => {
+      // Mettre à jour position
+      bat.x += bat.vx * dt;
+      bat.y += bat.vy * dt;
+      bat.wingPhase += dt * 8;
+
+      // Wrap around screen
+      if(bat.x < -50) bat.x = w + 50;
+      if(bat.x > w + 50) bat.x = -50;
+      if(bat.y < -50) bat.y = h * 0.6;
+      if(bat.y > h * 0.6) bat.y = -50;
+
+      ctx.save();
+      ctx.translate(bat.x, bat.y);
+      ctx.scale(bat.size, bat.size);
+
+      const wingFlap = Math.sin(bat.wingPhase) * 0.3;
+
+      // Corps
+      ctx.fillStyle = '#1a1a1a';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 8, 10, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Ailes
+      ctx.fillStyle = '#000000';
+      ctx.beginPath();
+      // Aile gauche
+      ctx.moveTo(-8, 0);
+      ctx.quadraticCurveTo(-15, -8 + wingFlap * 8, -20, -5 + wingFlap * 10);
+      ctx.quadraticCurveTo(-18, 3, -10, 5);
+      ctx.fill();
+      // Aile droite
+      ctx.beginPath();
+      ctx.moveTo(8, 0);
+      ctx.quadraticCurveTo(15, -8 + wingFlap * 8, 20, -5 + wingFlap * 10);
+      ctx.quadraticCurveTo(18, 3, 10, 5);
+      ctx.fill();
+
+      // Yeux rouges
+      ctx.fillStyle = '#ff0000';
+      ctx.beginPath();
+      ctx.arc(-2, -2, 1.5, 0, Math.PI * 2);
+      ctx.arc(2, -2, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    });
+  }
+
+  // Initialiser les toiles d'araignées
+  function initSpiderWebs(w, h) {
+    spiderWebs = [];
+    for(let i = 0; i < 6; i++) {
+      spiderWebs.push({
+        x: Math.random() * w,
+        y: Math.random() * h * 0.5,
+        size: Math.random() * 40 + 40,
+        swayPhase: Math.random() * Math.PI * 2
+      });
+    }
+  }
+
+  // Dessiner les toiles d'araignées 🕷️
+  function drawSpiderWebs(ctx, dt) {
+    spiderWebs.forEach(web => {
+      web.swayPhase += dt * 0.5;
+      const sway = Math.sin(web.swayPhase) * 5;
+
+      ctx.save();
+      ctx.globalAlpha = 0.3;
+      ctx.strokeStyle = '#cccccc';
+      ctx.lineWidth = 1;
+
+      // Dessiner la toile
+      for(let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.moveTo(web.x + sway, web.y);
+        ctx.lineTo(
+          web.x + Math.cos(angle) * web.size + sway,
+          web.y + Math.sin(angle) * web.size
+        );
+        ctx.stroke();
+      }
+
+      // Anneaux concentriques
+      for(let r = web.size * 0.3; r <= web.size; r += web.size * 0.3) {
+        ctx.beginPath();
+        ctx.arc(web.x + sway, web.y, r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    });
+  }
+
+  // Initialiser les yeux rouges
+  function initRedEyes(w, h) {
+    redEyes = [];
+    for(let i = 0; i < 10; i++) {
+      redEyes.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        blinkPhase: Math.random() * 10,
+        blinkSpeed: Math.random() * 2 + 3,
+        size: Math.random() * 2 + 2
+      });
+    }
+  }
+
+  // Dessiner les yeux rouges 👁️
+  function drawRedEyes(ctx, dt) {
+    redEyes.forEach(eye => {
+      eye.blinkPhase += dt * eye.blinkSpeed;
+      const alpha = Math.abs(Math.sin(eye.blinkPhase)) * 0.8;
+
+      if(alpha > 0.3) {
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = '#ff0000';
+        ctx.shadowColor = '#ff0000';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(eye.x - 5, eye.y, eye.size, 0, Math.PI * 2);
+        ctx.arc(eye.x + 5, eye.y, eye.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    });
+  }
+
+  // Initialiser les corbeaux
+  function initCrows(w, h) {
+    crows = [];
+    for(let i = 0; i < 4; i++) {
+      crows.push({
+        x: Math.random() * w,
+        y: Math.random() * h * 0.4 + 50,
+        sitting: Math.random() > 0.5,
+        sitTime: 0,
+        flyAway: false
+      });
+    }
+  }
+
+  // Dessiner les corbeaux 🐦‍⬛
+  function drawCrows(ctx, w, h, dt, playerY) {
+    crows.forEach(crow => {
+      if(crow.sitting) {
+        crow.sitTime += dt;
+
+        // S'envole si le joueur est proche ou après un certain temps
+        const distToPlayer = Math.abs(crow.y - playerY);
+        if(distToPlayer < 100 || crow.sitTime > 5) {
+          crow.flyAway = true;
+          crow.sitting = false;
+        }
+
+        // Dessiner corbeau posé
+        ctx.save();
+        ctx.translate(crow.x, crow.y);
+        ctx.fillStyle = '#0a0a0a';
+        // Corps
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 8, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+        // Tête
+        ctx.beginPath();
+        ctx.arc(0, -8, 5, 0, Math.PI * 2);
+        ctx.fill();
+        // Bec
+        ctx.fillStyle = '#ff8800';
+        ctx.beginPath();
+        ctx.moveTo(5, -8);
+        ctx.lineTo(10, -8);
+        ctx.lineTo(7, -6);
+        ctx.fill();
+        ctx.restore();
+      } else if(crow.flyAway) {
+        crow.x += dt * 100;
+        crow.y -= dt * 60;
+
+        // Réinitialiser quand hors écran
+        if(crow.y < -50) {
+          crow.x = Math.random() * w;
+          crow.y = Math.random() * h * 0.4 + 50;
+          crow.sitting = true;
+          crow.sitTime = 0;
+          crow.flyAway = false;
+        }
+      }
+    });
+  }
+
+  // Dessiner main de squelette qui sort du bas ☠️
+  function drawSkeletonHand(ctx, w, h, t) {
+    skeletonHandTime = t;
+    const appear = Math.sin(t * 0.5) * 0.5 + 0.5;
+
+    if(appear > 0.6) {
+      const handX = w * 0.3 + Math.sin(t * 0.8) * 100;
+      const handY = h - (appear - 0.6) * 150;
+
+      ctx.save();
+      ctx.translate(handX, handY);
+      ctx.rotate(-0.3);
+
+      // Paume
+      ctx.fillStyle = '#e0d8c0';
+      ctx.strokeStyle = '#8b7355';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 20, 30, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Doigts
+      for(let i = 0; i < 4; i++) {
+        const angle = -0.5 + i * 0.3;
+        ctx.save();
+        ctx.rotate(angle);
+        ctx.fillRect(-3, -30, 6, 30);
+        ctx.strokeRect(-3, -30, 6, 30);
+        ctx.restore();
+      }
+
+      // Pouce
+      ctx.save();
+      ctx.rotate(-0.8);
+      ctx.fillRect(15, -5, 5, 20);
+      ctx.strokeRect(15, -5, 5, 20);
+      ctx.restore();
+
+      ctx.restore();
+    }
+  }
+
+  // Initialiser les orbes flottantes
+  function initFloatingOrbs(w, h) {
+    floatingOrbs = [];
+    for(let i = 0; i < 12; i++) {
+      floatingOrbs.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        vy: (Math.random() - 0.5) * 20,
+        vx: (Math.random() - 0.5) * 15,
+        phase: Math.random() * Math.PI * 2,
+        color: Math.random() > 0.5 ? '#ff6600' : '#8b00ff',
+        size: Math.random() * 3 + 2
+      });
+    }
+  }
+
+  // Dessiner les orbes flottantes ✨
+  function drawFloatingOrbs(ctx, w, h, dt) {
+    floatingOrbs.forEach(orb => {
+      orb.y += orb.vy * dt;
+      orb.x += orb.vx * dt;
+      orb.phase += dt * 2;
+
+      // Wrap around
+      if(orb.y < -20) orb.y = h + 20;
+      if(orb.y > h + 20) orb.y = -20;
+      if(orb.x < -20) orb.x = w + 20;
+      if(orb.x > w + 20) orb.x = -20;
+
+      const alpha = (Math.sin(orb.phase) * 0.3 + 0.7);
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = orb.color;
+      ctx.shadowColor = orb.color;
+      ctx.shadowBlur = 15;
+      ctx.beginPath();
+      ctx.arc(orb.x, orb.y, orb.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    });
+  }
+
+  // Dessiner constellation en forme de crâne 💀
+  function drawSkullConstellation(ctx, w, h) {
+    const skullX = w * 0.15;
+    const skullY = h * 0.15;
+    const scale = 25;
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+    ctx.shadowBlur = 5;
+
+    // Points du crâne
+    const skullPoints = [
+      {x: 0, y: 0}, {x: 1, y: 0}, {x: 2, y: 0},  // Haut du crâne
+      {x: -0.5, y: 1}, {x: 2.5, y: 1},  // Côtés
+      {x: 0, y: 2}, {x: 2, y: 2},  // Base
+      {x: 0.4, y: 0.8}, {x: 1.6, y: 0.8},  // Yeux
+      {x: 1, y: 1.5}  // Nez
+    ];
+
+    // Dessiner les étoiles
+    skullPoints.forEach(point => {
+      ctx.beginPath();
+      ctx.arc(skullX + point.x * scale, skullY + point.y * scale, 2, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // Lignes de connexion
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(skullX, skullY);
+    ctx.lineTo(skullX + scale, skullY);
+    ctx.lineTo(skullX + 2 * scale, skullY);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
   function drawTubeBackground(ctx,w,h,speed){
-    // Fond DEGEN - Sombre et agressif
+    const t = performance.now()/1000;
+
+    // Fond Halloween amélioré - Ciel de nuit violet → noir bleuté
+    // Progressivement plus rouge selon le score
+    const hellIntensity = Math.min(score / 50, 1); // Max à 50 points
     const g = ctx.createLinearGradient(0,0,0,h);
-    g.addColorStop(0,'#0a0a0a'); // noir profond
-    g.addColorStop(0.5,'#1a0f0f'); // rouge très sombre
-    g.addColorStop(1,'#0f0a0a');
+    g.addColorStop(0, hellIntensity > 0.5 ? `#${Math.floor(13 + hellIntensity * 30).toString(16)}0520` : '#0d0520');
+    g.addColorStop(0.3, hellIntensity > 0.5 ? `#${Math.floor(26 + hellIntensity * 40).toString(16)}0f2e` : '#1a0f2e');
+    g.addColorStop(0.7, `rgba(${Math.floor(10 + hellIntensity * 100)}, ${Math.floor(10 - hellIntensity * 5)}, ${Math.floor(21 - hellIntensity * 10)}, 1)`);
+    g.addColorStop(1, hellIntensity > 0.7 ? `#${Math.floor(hellIntensity * 30).toString(16)}0000` : '#000008');
     ctx.fillStyle=g;
     ctx.fillRect(0,0,w,h);
 
-    // Grille de trading en arrière-plan (effet terminal)
-    const t = performance.now()/1000;
-    const gridOff = (t * speed * 5) % 40;
+    // Effet d'éclair aléatoire ⚡
+    if(t - lastLightningTime > 8 + Math.random() * 10) {
+      lastLightningTime = t;
+      lightningFlash = 1;
+    }
+    if(lightningFlash > 0) {
+      ctx.fillStyle = `rgba(255, 255, 255, ${lightningFlash * 0.6})`;
+      ctx.fillRect(0, 0, w, h);
+      lightningFlash -= 0.1;
+      if(lightningFlash < 0) lightningFlash = 0;
+    }
 
-    ctx.strokeStyle='rgba(255,0,0,.08)';
+    // Effet de mort - clignotement rouge
+    if(deathFlash > 0) {
+      ctx.fillStyle = `rgba(139, 0, 0, ${deathFlash})`;
+      ctx.fillRect(0, 0, w, h);
+      deathFlash -= 0.05;
+      if(deathFlash < 0) deathFlash = 0;
+    }
+
+    // LUNE HALLOWEEN - Grosse lune orange PULSANTE 🌕
+    const moonX = w * 0.85; // Position à 85% à droite
+    const moonY = h * 0.20; // Position à 20% du haut
+    const moonPulse = Math.sin(t * 1.5) * 0.08 + 1; // Pulsation lente et subtile
+    const moonRadius = 60 * moonPulse;
+
+    // Halo de la lune PULSANT avec intensité variable
+    const glowIntensity = Math.sin(t * 1.5) * 0.1 + 0.35;
+    const moonGlow = ctx.createRadialGradient(moonX, moonY, moonRadius * 0.5, moonX, moonY, moonRadius * 2.5);
+    moonGlow.addColorStop(0, `rgba(255, 140, 0, ${glowIntensity})`);
+    moonGlow.addColorStop(0.4, `rgba(255, 102, 0, ${glowIntensity * 0.6})`);
+    moonGlow.addColorStop(0.7, `rgba(255, 102, 0, ${glowIntensity * 0.3})`);
+    moonGlow.addColorStop(1, 'rgba(255, 102, 0, 0)');
+    ctx.fillStyle = moonGlow;
+    ctx.fillRect(moonX - moonRadius * 2.5, moonY - moonRadius * 2.5, moonRadius * 5, moonRadius * 5);
+
+    // La lune elle-même avec gradient amélioré
+    const moonGradient = ctx.createRadialGradient(moonX - 15, moonY - 15, 10, moonX, moonY, moonRadius);
+    moonGradient.addColorStop(0, '#ffd966');
+    moonGradient.addColorStop(0.5, '#ffaa33');
+    moonGradient.addColorStop(0.8, '#ff9933');
+    moonGradient.addColorStop(1, '#ff6600');
+    ctx.fillStyle = moonGradient;
+    ctx.beginPath();
+    ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Cratères sur la lune
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.beginPath();
+    ctx.arc(moonX - 20, moonY - 10, 12, 0, Math.PI * 2);
+    ctx.arc(moonX + 15, moonY + 15, 8, 0, Math.PI * 2);
+    ctx.arc(moonX + 10, moonY - 20, 10, 0, Math.PI * 2);
+    ctx.fill();
+
+    // ÉTOILES SCINTILLANTES AMÉLIORÉES ✨
+    for(let i=0; i<80; i++){
+      const starX = (i * 123.456) % w;
+      const starY = (i * 78.901) % (h * 0.65); // Plus d'étoiles dans le ciel
+      const twinkle = Math.sin(t * 2.5 + i * 0.5) * 0.4 + 0.6; // Scintillement varié
+      const size = (i % 5) === 0 ? 2.5 : (i % 3) === 0 ? 1.5 : 1;
+
+      // Couleurs variées pour les étoiles (blanches, légèrement bleues, légèrement oranges)
+      if(i % 7 === 0) {
+        ctx.fillStyle = `rgba(255, 230, 200, ${twinkle})`; // Étoiles orangées
+      } else if(i % 11 === 0) {
+        ctx.fillStyle = `rgba(200, 220, 255, ${twinkle})`; // Étoiles bleues
+      } else {
+        ctx.fillStyle = `rgba(255, 255, 255, ${twinkle})`; // Étoiles blanches
+      }
+
+      ctx.globalAlpha = twinkle;
+      ctx.beginPath();
+      ctx.arc(starX, starY, size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    // Grille Halloween légère (effet mystique)
+    const gridOff = (t * speed * 5) % 40;
+    ctx.strokeStyle='rgba(255,102,0,.05)';
     ctx.lineWidth=1;
+
     // Lignes horizontales
     for(let i=0; i<h; i+=40){
       ctx.beginPath();
@@ -4051,42 +4597,113 @@
       ctx.stroke();
     }
 
-    // Graphiques de pump en arrière-plan (lignes vertes aléatoires)
-    ctx.strokeStyle='rgba(0,209,122,.15)';
-    ctx.lineWidth=2;
+    // BROUILLARD PARALLAX MULTICOUCHE 🌫️
+    // Couche 1 - Nuages lointains (vitesse lente)
+    ctx.globalAlpha = 0.15;
+    for(let i = 0; i < 5; i++) {
+      const cloudX = ((i * 250 - t * speed * 8) % (w + 200)) - 100;
+      const cloudY = h * 0.3 + i * 40;
+      ctx.fillStyle = 'rgba(80, 60, 120, 0.6)'; // Nuages violets
+      ctx.beginPath();
+      ctx.ellipse(cloudX, cloudY, 100, 30, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(cloudX + 50, cloudY - 10, 80, 25, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Couche 2 - Brume moyenne (vitesse moyenne)
+    ctx.globalAlpha = 0.25;
+    for(let i = 0; i < 4; i++) {
+      const fogX = ((i * 300 - t * speed * 15) % (w + 150)) - 75;
+      const fogY = h * 0.5 + i * 60;
+      ctx.fillStyle = 'rgba(100, 80, 150, 0.5)'; // Brume violette
+      ctx.beginPath();
+      ctx.ellipse(fogX, fogY, 120, 40, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Couche 3 - Brouillard proche (vitesse rapide)
+    ctx.globalAlpha = 0.35;
+    for(let i = 0; i < 3; i++) {
+      const mistX = ((i * 400 - t * speed * 25) % (w + 200)) - 100;
+      const mistY = h * 0.65 + i * 50;
+      ctx.fillStyle = 'rgba(255, 102, 0, 0.3)'; // Brume orange Halloween
+      ctx.beginPath();
+      ctx.ellipse(mistX, mistY, 150, 50, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    // Brume Halloween ondulante (lignes ondulées oranges)
+    ctx.strokeStyle='rgba(255,102,0,.12)';
+    ctx.lineWidth=3;
     ctx.beginPath();
     for(let i=0; i<w; i+=20){
-      const x = i - (t * speed * 3) % w;
-      const y = h/2 + Math.sin(x * 0.02 + t) * 60;
+      const x = i - (t * speed * 2) % w;
+      const y = h * 0.7 + Math.sin(x * 0.02 + t) * 40;
       if(i===0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     }
     ctx.stroke();
 
-    // Chiffres verts qui défilent (effet Matrix/Terminal)
-    ctx.fillStyle='rgba(0,209,122,.25)';
-    ctx.font='bold 14px monospace';
+    // Textes Halloween qui défilent - Orange
+    ctx.fillStyle='rgba(255,102,0,.25)';
+    ctx.font='bold 16px monospace';
+    const spookyTexts = ['🎃 SPOOKY', '👻 BOO!', '🦇 TRICK', '🍬 TREAT'];
     for(let i=0; i<8; i++){
       const tx = (i * 130 - t * speed * 15) % w;
       const ty = 30 + (i * 70) % (h - 60);
-      ctx.fillText('$PUMP', tx, ty);
-      ctx.fillText('+420%', tx, ty + 20);
+      ctx.fillText(spookyTexts[i % 4], tx, ty);
     }
 
-    // Textes rouges de RUG qui défilent
-    ctx.fillStyle='rgba(255,59,59,.2)';
+    // Textes noirs mystiques qui défilent
+    ctx.fillStyle='rgba(0,0,0,.25)';
+    const darkTexts = ['🕷️ CREEPY', '💀 SCARY'];
     for(let i=0; i<6; i++){
       const tx = (i * 180 + t * speed * 12) % w;
       const ty = 80 + (i * 90) % (h - 100);
-      ctx.fillText('RUG', tx, ty);
-      ctx.fillText('-99%', tx, ty + 20);
+      ctx.fillText(darkTexts[i % 2], tx, ty);
     }
 
-    // Effet scanline (vieux CRT)
-    for(let i=0; i<h; i+=4){
-      ctx.fillStyle='rgba(0,0,0,.15)';
-      ctx.fillRect(0, i, w, 2);
-    }
+    // Effet de brume/fog épais en bas
+    const fogGradient = ctx.createLinearGradient(0, h * 0.65, 0, h);
+    fogGradient.addColorStop(0, 'rgba(255,102,0,0)');
+    fogGradient.addColorStop(0.5, 'rgba(255,102,0,0.08)');
+    fogGradient.addColorStop(1, 'rgba(255,102,0,0.15)');
+    ctx.fillStyle = fogGradient;
+    ctx.fillRect(0, h * 0.65, w, h * 0.35);
+
+    // ========= NOUVEAUX EFFETS HALLOWEEN =========
+    const dt = 1/60; // Delta time approximatif
+
+    // Initialiser les effets si nécessaire
+    if(bats.length === 0) initBats(w, h);
+    if(spiderWebs.length === 0) initSpiderWebs(w, h);
+    if(redEyes.length === 0) initRedEyes(w, h);
+    if(crows.length === 0) initCrows(w, h);
+    if(floatingOrbs.length === 0) initFloatingOrbs(w, h);
+
+    // Dessiner constellation crâne
+    drawSkullConstellation(ctx, w, h);
+
+    // Dessiner toiles d'araignées
+    drawSpiderWebs(ctx, dt);
+
+    // Dessiner yeux rouges
+    drawRedEyes(ctx, dt);
+
+    // Dessiner chauves-souris volantes
+    drawBats(ctx, w, h, dt);
+
+    // Dessiner corbeaux (passer playerY si disponible)
+    drawCrows(ctx, w, h, dt, player.y);
+
+    // Dessiner orbes flottantes
+    drawFloatingOrbs(ctx, w, h, dt);
+
+    // Dessiner main de squelette
+    drawSkeletonHand(ctx, w, h, t);
   }
 
   function clamp(v,a,b){ return Math.max(a, Math.min(b,v)); }
@@ -4256,7 +4873,7 @@
 
   document.getElementById('shareGameBtn').onclick = ()=>{
     const s = Math.floor(score);
-    const text = encodeURIComponent(`Just scored ${s} points on Pump The Pill! 💊💀\n\nThink you can beat me degen?\n\n#Solana #Pumpfun #WAGMI`);
+    const text = encodeURIComponent(`Just scored ${s} points on PILL KIN! 🎃👻\n\nCan you survive the spooky night?\n\n#Halloween #PillKin #Gaming`);
     const url = encodeURIComponent(window.location.href);
     window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`,'_blank');
   };
@@ -4288,8 +4905,8 @@
     const rotationAngle = Math.sin(performance.now() / 1000) * 0.2;
     hctx.rotate(rotationAngle);
 
-    // Glow vert Pump.fun
-    hctx.shadowColor='rgba(0,209,122,.7)';
+    // Glow orange Halloween
+    hctx.shadowColor='rgba(255,102,0,.7)';
     hctx.shadowBlur=12;
 
     // Corps principal de la capsule
@@ -4302,13 +4919,13 @@
 
     hctx.shadowBlur=0;
 
-    // Moitié VERTE (gauche) - Couleur Pump.fun
+    // Moitié ORANGE (gauche) - PILL KIN Halloween
     hctx.beginPath();
     hctx.arc(-pillWidth/4, 0, pillHeight/2, Math.PI/2, -Math.PI/2);
     hctx.lineTo(0, -pillHeight/2);
     hctx.lineTo(0, pillHeight/2);
     hctx.closePath();
-    hctx.fillStyle='#00d17a';
+    hctx.fillStyle='#ff6600';
     hctx.fill();
 
     // Moitié BLANCHE (droite)
@@ -4354,7 +4971,7 @@
       const dist = pillHeight * 0.9;
       const sx = Math.cos(angle) * dist;
       const sy = Math.sin(angle) * dist;
-      hctx.fillStyle='#00d17a';
+      hctx.fillStyle='#ff6600';
       hctx.beginPath();
       hctx.arc(sx, sy, 1, 0, Math.PI*2);
       hctx.fill();
@@ -4386,8 +5003,8 @@
     const rotationAngle = Math.sin(performance.now() / 1000) * 0.2;
     mctx.rotate(rotationAngle);
 
-    // Glow vert Pump.fun
-    mctx.shadowColor='rgba(0,209,122,.7)';
+    // Glow orange Halloween
+    mctx.shadowColor='rgba(255,102,0,.7)';
     mctx.shadowBlur=8;
 
     // Corps principal de la capsule
@@ -4400,13 +5017,13 @@
 
     mctx.shadowBlur=0;
 
-    // Moitié VERTE
+    // Moitié ORANGE - PILL KIN
     mctx.beginPath();
     mctx.arc(-pillWidth/4, 0, pillHeight/2, Math.PI/2, -Math.PI/2);
     mctx.lineTo(0, -pillHeight/2);
     mctx.lineTo(0, pillHeight/2);
     mctx.closePath();
-    mctx.fillStyle='#00d17a';
+    mctx.fillStyle='#ff6600';
     mctx.fill();
 
     // Moitié BLANCHE
@@ -4450,7 +5067,7 @@
       const dist = pillHeight * 0.9;
       const sx = Math.cos(angle) * dist;
       const sy = Math.sin(angle) * dist;
-      mctx.fillStyle='#00d17a';
+      mctx.fillStyle='#ff6600';
       mctx.beginPath();
       mctx.arc(sx, sy, 1, 0, Math.PI*2);
       mctx.fill();
@@ -4483,8 +5100,8 @@
     const rotationAngle = (performance.now() / 1000) * Math.PI / 2;
     loadingPillCtx.rotate(rotationAngle);
 
-    // Glow vert Pump.fun
-    loadingPillCtx.shadowColor = 'rgba(0,209,122,.9)';
+    // Glow orange Halloween
+    loadingPillCtx.shadowColor = 'rgba(255,102,0,.9)';
     loadingPillCtx.shadowBlur = 25;
 
     // Corps principal de la capsule
@@ -4497,13 +5114,13 @@
 
     loadingPillCtx.shadowBlur = 0;
 
-    // Moitié VERTE
+    // Moitié ORANGE - PILL KIN
     loadingPillCtx.beginPath();
     loadingPillCtx.arc(-pillWidth/4, 0, pillHeight/2, Math.PI/2, -Math.PI/2);
     loadingPillCtx.lineTo(0, -pillHeight/2);
     loadingPillCtx.lineTo(0, pillHeight/2);
     loadingPillCtx.closePath();
-    loadingPillCtx.fillStyle = '#00d17a';
+    loadingPillCtx.fillStyle = '#ff6600';
     loadingPillCtx.fill();
 
     // Moitié BLANCHE
@@ -4547,7 +5164,7 @@
       const dist = pillHeight * 1.2;
       const sx = Math.cos(angle) * dist;
       const sy = Math.sin(angle) * dist;
-      loadingPillCtx.fillStyle = '#00d17a';
+      loadingPillCtx.fillStyle = '#ff6600';
       loadingPillCtx.beginPath();
       loadingPillCtx.arc(sx, sy, 2.5, 0, Math.PI*2);
       loadingPillCtx.fill();
