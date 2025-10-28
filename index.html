@@ -4219,11 +4219,11 @@
   function initSpiderWebs(w, h) {
     spiderWebs = [];
 
-    // Une seule toile en haut à gauche
+    // Une seule toile en haut à gauche, partiellement coupée par le bord supérieur
     spiderWebs.push({
       x: w * 0.12,  // 12% de la largeur (haut gauche)
-      y: h * 0.15,  // 15% de la hauteur
-      size: 50,
+      y: -10,       // Position négative pour être coupée par le haut
+      size: 65,     // Taille augmentée pour qu'on voie bien la partie visible
       swayPhase: Math.random() * Math.PI * 2
     });
   }
