@@ -4218,11 +4218,57 @@
   // Initialiser les toiles d'araignées
   function initSpiderWebs(w, h) {
     spiderWebs = [];
-    for(let i = 0; i < 6; i++) {
+
+    // Position de la lune (85% à droite, 20% du haut)
+    const moonX = w * 0.85;
+    const moonY = h * 0.20;
+    const moonRadius = 60;
+    const moonExclusionZone = moonRadius * 4; // Zone d'exclusion autour de la lune
+
+    let attempts = 0;
+    const maxAttempts = 100;
+
+    while(spiderWebs.length < 6 && attempts < maxAttempts) {
+      attempts++;
+
+      // Générer une position aléatoire
+      const x = Math.random() * w;
+      const y = Math.random() * h * 0.5;
+      const size = Math.random() * 35 + 35;
+
+      // Calculer la distance avec la lune
+      const distanceToMoon = Math.sqrt(
+        Math.pow(x - moonX, 2) + Math.pow(y - moonY, 2)
+      );
+
+      // Vérifier si trop proche de la lune
+      if(distanceToMoon < moonExclusionZone) {
+        continue; // Essayer une autre position
+      }
+
+      // Vérifier si trop proche d'autres toiles (éviter les chevauchements)
+      let tooClose = false;
+      for(let existing of spiderWebs) {
+        const distanceToExisting = Math.sqrt(
+          Math.pow(x - existing.x, 2) + Math.pow(y - existing.y, 2)
+        );
+        const minDistance = (size + existing.size) * 1.5; // Distance minimale = 1.5x la taille combinée
+
+        if(distanceToExisting < minDistance) {
+          tooClose = true;
+          break;
+        }
+      }
+
+      if(tooClose) {
+        continue; // Essayer une autre position
+      }
+
+      // Position valide ! Ajouter la toile
       spiderWebs.push({
-        x: Math.random() * w,
-        y: Math.random() * h * 0.5,
-        size: Math.random() * 40 + 40,
+        x: x,
+        y: y,
+        size: size,
         swayPhase: Math.random() * Math.PI * 2
       });
     }
